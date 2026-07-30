@@ -274,6 +274,41 @@ export INTERN_MODEL="intern-s2-preview"
 
 如需调整 API endpoint，请以书生 API 控制台文档中的接口地址为准配置 `INTERN_API_BASE`。
 
+`InternChatClient.chat` 支持书生 Chat API 的 `thinking_mode`、`tools` 等参数，也可以通过额外关键字参数透传其它接口参数：
+
+```python
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "calculate",
+            "description": "计算数学表达式",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "expression": {"type": "string"},
+                },
+                "required": ["expression"],
+            },
+        },
+    }
+]
+
+client = InternChatClient(
+    default_args={
+        "thinking_mode": True,
+        "top_p": 0.9,
+    }
+)
+response = client.chat(
+    messages=[{"role": "user", "content": "计算 1 + 1"}],
+    tools=tools,
+    tool_choice="auto",
+)
+```
+
+`default_args`（或初始化 client 时直接提供的额外关键字参数）会应用于每次请求；`chat` 中提供的参数优先级更高。普通回复仍返回文本字符串；如果模型发起工具调用，则返回完整的 assistant message 字典，其中包含 `tool_calls`。
+
 提交仓库至评分系统时，选手可以选择智能体实际使用的模型。正式评测时，平台 runner 会通过官方 client 使用该模型进行调用。
 
 评分系统 client 使用的 API 来自书生 API 控制台：

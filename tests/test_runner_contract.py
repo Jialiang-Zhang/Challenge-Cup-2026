@@ -38,7 +38,7 @@ def load_runner_module():
 runner = load_runner_module()
 
 
-class ConcurrentFakeAgent:
+class LocalConcurrentFakeAgent:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._release = threading.Event()
@@ -64,9 +64,9 @@ class ConcurrentFakeAgent:
 
 
 class RunnerContractTest(unittest.TestCase):
-    def test_default_semaphore_limits_shared_agent_to_three_solves(self) -> None:
+    def test_local_semaphore_limits_shared_agent_to_three_solves(self) -> None:
         self.assertEqual(runner.LOCAL_MAX_CONCURRENCY, 3)
-        agent = ConcurrentFakeAgent()
+        agent = LocalConcurrentFakeAgent()
 
         async def exercise() -> None:
             with tempfile.TemporaryDirectory() as temp_dir:

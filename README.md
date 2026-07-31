@@ -137,12 +137,19 @@ def solve(self, problem: str, metadata: dict) -> dict:
 
 选手可以新增辅助函数、类和模块，也可以在 `ReasoningAgent` 内部维护状态。但需要注意：
 
+- 正式评测会复用同一个 Agent 实例，并最多并发调用 3 个 `solve`；共享可变状态必须做好线程安全保护。
 - 不要依赖评测题之间的固定顺序。
 - 不要假设多个题目一定在同一个进程中运行。
 - 不要依赖本地绝对路径。
 - 不要读取或构造隐藏测试集、标准答案或 judger 信息。
 - 不要在代码中硬编码 API key。
 - 不要输出恶意内容、执行破坏性操作或规避平台资源限制。
+
+### 正式评测的并发、时限与计分
+
+- Agent 阶段的总硬时限为 6 小时，不包含后续 Judge 阶段的耗时。到达时限后，平台可以终止仍在运行的 Agent 代码。
+- 截止时只接受已由平台 runner 原子落盘且状态为成功的逐题结果。选手只需从 `solve` 返回规定的字典，不要自行写评测输出文件。
+- Agent 异常、无效输出、到达截止时间仍未完成或缺失的题目均计为 `C`。最终成绩的分母固定为完整正式评测题集，不会因为只完成部分题目而缩小。
 
 ## 输入数据与输出样例
 
@@ -222,13 +229,13 @@ export INTERN_API_KEY="sk-..."
 python main.py --input_file sample_data/dev.jsonl --output_dir sample_outputs
 ```
 
-本地 runner 默认并发数为 8。如需调整：
+本地 runner 默认并发数为 3。如需调整：
 
 ```bash
-export LOCAL_MAX_CONCURRENCY=4
+export LOCAL_MAX_CONCURRENCY=2
 ```
 
-本地调试结果只用于选手自测，不代表正式评测分数。正式评测会使用隐藏测试集、官方 client、平台 runner 和官方 judger。
+本地 runner 只近似模拟正式评测的并发与逐题原子写入行为，不会完整复现平台的容器级 6 小时硬时限、失败补 `C` 和 Judge 流程。本地调试结果只用于选手自测，不代表正式评测分数。正式评测会使用隐藏测试集、官方 client、平台 runner 和官方 judger。
 
 ## Intern-S API 使用说明
 

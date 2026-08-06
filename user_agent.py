@@ -70,6 +70,7 @@ class ReasoningAgent:
             )
             scored_candidates.append(
                 {
+                    "candidate_id": candidate_id,
                     "content": candidate,
                     "confidence_score": confidence,
                 }
@@ -80,7 +81,10 @@ class ReasoningAgent:
         trace.append(
             {
                 "step": "select_final_response",
-                "content": f"Selected candidate with confidence {best['confidence_score']:.3f}.",
+                "content": {
+                    "candidate_id": best["candidate_id"],
+                    "confidence_score": round(best["confidence_score"], 3),
+                },
             }
         )
         return {
@@ -107,8 +111,9 @@ class ReasoningAgent:
                 {
                     "step": f"policy_call_{sample_id}",
                     "content": {
-                        "message": user_message.content,
-                        "response": response.content,
+                        "candidate_id": sample_id,
+                        "status": "completed",
+                        "response_chars": len(response.content),
                     },
                 }
             )
@@ -142,14 +147,15 @@ class ReasoningAgent:
                 max_tokens=1024,
             )
             verdict = response.content
-            votes.append(self._is_correct_vote(verdict))
+            accepted = self._is_correct_vote(verdict)
+            votes.append(accepted)
             trace.append(
                 {
                     "step": f"verifier_call_{candidate_id}_{vote_id}",
                     "content": {
                         "candidate_id": candidate_id,
-                        "message": user_message.content,
-                        "response": verdict,
+                        "vote_id": vote_id,
+                        "accepted": accepted,
                     },
                 }
             )

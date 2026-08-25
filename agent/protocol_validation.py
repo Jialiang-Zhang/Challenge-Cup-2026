@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+from .canonicalize import compare_answers
 from .models import SolutionCapsule
 from .parsing import extract_final_candidate
 
@@ -54,12 +55,26 @@ def is_protocol_placeholder(value: str | None) -> bool:
     return any(key.startswith(prefix) for prefix in _PREFIX_PLACEHOLDERS)
 
 
+def leading_response_answer(value: str | None) -> str | None:
+    """Read the exact-answer line required at the start of FINAL_RESPONSE."""
+
+    if value is None:
+        return None
+    lines = [line.strip() for line in value.splitlines() if line.strip()]
+    if not lines:
+        return None
+    first = re.sub(r"^[\-*•]+\s*", "", lines[0]).strip()
+    if len(first) > 300 or is_protocol_placeholder(first):
+        return None
+    return first
+
+
 def sanitize_solution_capsule(
     capsule: SolutionCapsule,
     *,
     requires_proof: bool,
 ) -> SolutionCapsule:
-    """Reject copied protocol instructions and preserve only real solver content."""
+    """Reject placeholders and reconcile exact answers with FINAL_RESPONSE."""
 
     warnings = list(capsule.parse_warnings)
     answer = capsule.answer_raw.strip()
@@ -83,6 +98,19 @@ def sanitize_solution_capsule(
         else:
             response = ""
             warnings.append("placeholder_final_response")
+
+    # For calculation and short-answer routes, the exact answer is required on
+    # the first line of FINAL_RESPONSE. If FINAL_CANDIDATE contradicts that later
+    # transaction field, the later field wins and the conflict remains in trace
+    # metadata via parse_warnings.
+    if not requires_proof and answer and response:
+        response_answer = leading_response_answer(response)
+        if response_answer:
+            relation = compare_answers(answer, response_answer)
+            if relation == "not_equivalent":
+                answer = response_answer
+                warnings.append("candidate_response_conflict")
+                warnings.append("reconciled_to_final_response")
 
     valid_claims = []
     for claim in capsule.claims:

@@ -6,13 +6,6 @@ on:
       - main
     paths:
       - ".github/workflows/run-dev.yml"
-  pull_request:
-    paths:
-      - "agent/**"
-      - "user_agent.py"
-      - "llm_client.py"
-      - "requirements.txt"
-      - ".github/workflows/run-dev.yml"
   workflow_dispatch:
     inputs:
       concurrency:
@@ -29,12 +22,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: hora-dev-${{ github.event.pull_request.number || github.ref }}
+  group: hora-dev-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   run-dev:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:

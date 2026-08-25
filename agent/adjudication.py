@@ -56,7 +56,13 @@ def select_best_candidate(state: CaseState) -> CandidateRecord | None:
     eligible = [
         record
         for record in state.candidates.values()
-        if record.eligible and record.capsule.answer_raw.strip()
+        if (
+            record.eligible
+            and record.capsule.answer_raw.strip()
+            and record.capsule.complete
+            and not record.capsule.truncated
+            and not has_hard_fail(state, record.capsule.candidate_id)
+        )
     ]
     if not eligible:
         return None
@@ -65,5 +71,7 @@ def select_best_candidate(state: CaseState) -> CandidateRecord | None:
 
 def freeze_candidate(state: CaseState, candidate_id: str) -> None:
     record = state.candidates[candidate_id]
+    if has_hard_fail(state, candidate_id) or record.capsule.truncated:
+        raise ValueError("cannot freeze a hard-failed or truncated candidate")
     record.frozen = True
     state.committed_candidate_id = candidate_id

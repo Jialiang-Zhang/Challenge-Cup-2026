@@ -51,6 +51,17 @@ exposed_to_primary: true
 <FINAL_RESPONSE>-1</FINAL_RESPONSE>
 """
 
+AUDIT_ACCEPT_REPAIR = r"""
+<VERDICT>ACCEPT_A</VERDICT>
+<TARGET_CANDIDATE>none</TARGET_CANDIDATE>
+<TARGET_CLAIM>none</TARGET_CLAIM>
+<ATTACK_TYPE>boundary</ATTACK_TYPE>
+<SEVERITY>none</SEVERITY>
+<CHALLENGE>none</CHALLENGE>
+<WITNESS>none</WITNESS>
+<RESOLVER_HINT>none</RESOLVER_HINT>
+"""
+
 
 class FakeClient:
     def __init__(self, responses):
@@ -70,8 +81,10 @@ class FakeClient:
 
 
 class CompactRepairTest(unittest.TestCase):
-    def test_repair_uses_non_thinking_protocol_and_commits_corrected_answer(self) -> None:
-        client = FakeClient([PRIMARY_WRONG, AUDIT_REPAIR, REPAIRED])
+    def test_repair_is_compact_reaudited_and_commits_corrected_answer(self) -> None:
+        client = FakeClient(
+            [PRIMARY_WRONG, AUDIT_REPAIR, REPAIRED, AUDIT_ACCEPT_REPAIR]
+        )
         agent = ReasoningAgent(
             client=client,
             config=AgentConfig(always_run_blind=False, max_model_calls=4),
@@ -81,8 +94,13 @@ class CompactRepairTest(unittest.TestCase):
             {"idx": 1},
         )
         self.assertEqual(result["final_response"], "-1")
-        self.assertEqual(len(client.calls), 3)
+        self.assertEqual(len(client.calls), 4)
         self.assertIs(client.calls[2]["thinking_mode"], False)
+        self.assertIs(client.calls[3]["thinking_mode"], False)
+        red_steps = [
+            step for step in result["trace"] if step["step"] == "red_team_result"
+        ]
+        self.assertEqual(len(red_steps), 2)
         self.assertEqual(result["trace"][-1]["content"]["repair_count"], 1)
 
 

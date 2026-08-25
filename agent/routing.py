@@ -83,7 +83,7 @@ DOMAIN_PATTERNS: "OrderedDict[str, tuple[str, ...]]" = OrderedDict(
         ),
         (
             "real_analysis",
-            ("极限", "连续", "一致收敛", "级数", "可微", "积分", "数学分析"),
+            ("极限", "连续", "一致收敛", "级数", "可微", "积分", "数学分析", "inverse function", "derivative", "integral", "differentiable"),
         ),
     ]
 )

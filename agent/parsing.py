@@ -58,10 +58,20 @@ def _extract_balanced_boxed(text: str) -> str | None:
     return None
 
 
+def _compact_candidate(value: str) -> str:
+    lines = [line.strip() for line in value.splitlines() if line.strip()]
+    if not lines:
+        return ""
+    first = lines[0]
+    if len(lines) > 1 and len(first) <= 300:
+        return first
+    return value.strip()
+
+
 def extract_final_candidate(text: str) -> str | None:
     tagged = extract_tag(text, "FINAL_CANDIDATE")
     if tagged:
-        return tagged
+        return _compact_candidate(tagged)
 
     patterns = (
         r"(?:FINAL_CANDIDATE|FINAL ANSWER|Final Answer|最终答案|答案)\s*[:：]\s*(.+)",
@@ -72,7 +82,7 @@ def extract_final_candidate(text: str) -> str | None:
         if matches:
             candidate = matches[-1].strip().splitlines()[0].strip()
             if candidate:
-                return candidate
+                return _compact_candidate(candidate)
 
     boxed = _extract_balanced_boxed(text)
     if boxed:
@@ -214,32 +224,48 @@ def parse_solution_capsule(
     )
 
 
+def _extract_tag_or_label(text: str, tag: str) -> str | None:
+    tagged = extract_tag(text, tag)
+    if tagged:
+        return tagged
+    matches = re.findall(
+        rf"(?:^|\n)\s*{re.escape(tag)}\s*[:：]\s*(.+)",
+        text,
+        flags=re.IGNORECASE,
+    )
+    return matches[-1].strip() if matches else None
+
+
 def parse_audit_result(text: str) -> AuditResult:
-    verdict = (extract_tag(text, "VERDICT") or "UNRESOLVED").strip().upper()
-    allowed = {
+    allowed = (
         "ACCEPT_A",
         "ACCEPT_B",
         "EQUIVALENT",
         "REPAIR_A",
         "REPAIR_B",
         "UNRESOLVED",
-    }
-    if verdict not in allowed:
-        verdict = "UNRESOLVED"
+    )
+    raw_verdict = _extract_tag_or_label(text, "VERDICT")
+    if raw_verdict:
+        verdict_match = re.search("|".join(allowed), raw_verdict.upper())
+    else:
+        matches = re.findall(r"\b(?:ACCEPT_A|ACCEPT_B|EQUIVALENT|REPAIR_A|REPAIR_B|UNRESOLVED)\b", text.upper())
+        verdict_match = re.search("|".join(allowed), matches[-1]) if matches else None
+    verdict = verdict_match.group(0) if verdict_match else "UNRESOLVED"
 
-    target = (extract_tag(text, "TARGET_CANDIDATE") or "none").strip().upper()
+    target = (_extract_tag_or_label(text, "TARGET_CANDIDATE") or "none").strip().upper()
     if target not in {"A", "B"}:
         target = None
 
-    target_claim = (extract_tag(text, "TARGET_CLAIM") or "none").strip()
+    target_claim = (_extract_tag_or_label(text, "TARGET_CLAIM") or "none").strip()
     if target_claim.lower() == "none":
         target_claim = None
 
-    attack_type = (extract_tag(text, "ATTACK_TYPE") or "none").strip().lower()
-    severity = (extract_tag(text, "SEVERITY") or "none").strip().lower()
-    challenge = (extract_tag(text, "CHALLENGE") or "none").strip()
-    witness = (extract_tag(text, "WITNESS") or "none").strip()
-    resolver_hint = (extract_tag(text, "RESOLVER_HINT") or "none").strip()
+    attack_type = (_extract_tag_or_label(text, "ATTACK_TYPE") or "none").strip().lower()
+    severity = (_extract_tag_or_label(text, "SEVERITY") or "none").strip().lower()
+    challenge = (_extract_tag_or_label(text, "CHALLENGE") or "none").strip()
+    witness = (_extract_tag_or_label(text, "WITNESS") or "none").strip()
+    resolver_hint = (_extract_tag_or_label(text, "RESOLVER_HINT") or "none").strip()
 
     return AuditResult(
         verdict=verdict,

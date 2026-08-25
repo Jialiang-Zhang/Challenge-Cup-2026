@@ -21,28 +21,9 @@ def _contract_block(contract: TaskContract) -> str:
     ).strip()
 
 
-def blind_prompt_v2(problem: str, contract: TaskContract) -> str:
-    response_requirement = (
-        "The FINAL_RESPONSE field must contain a concise independent proof."
-        if contract.requires_proof
-        else "The FINAL_RESPONSE field must contain the exact answer and a short independent derivation."
-    )
+def _strict_protocol_block(response_requirement: str) -> str:
     return dedent(
         f"""
-        You are HORA-Math Blue Team Solver S2, an ORTHOGONAL BLIND solver.
-        You have not seen any other candidate. Solve the problem independently with the assigned
-        method family: {contract.orthogonal_method}.
-
-        Use a genuinely different route: definitions, construction, contradiction, an alternative
-        representation, local calculation, counting, or another theorem family. State all needed
-        assumptions. Do not use external online services.
-
-        TASK CONTRACT
-        {_contract_block(contract)}
-
-        PROBLEM
-        {problem}
-
         OUTPUT CONTRACT
         - Start the response immediately with the opening tag <FINAL_CANDIDATE>.
         - Inside that tag, write the actual computed mathematical answer, never an instruction.
@@ -78,5 +59,52 @@ def blind_prompt_v2(problem: str, contract: TaskContract) -> str:
         {response_requirement}
         Keep it submission-ready and compact.
         </FINAL_RESPONSE>
+        """
+    ).strip()
+
+
+def primary_prompt_v2(problem: str, contract: TaskContract) -> str:
+    return dedent(
+        f"""
+        You are HORA-Math Blue Team Solver S1. Solve this low-risk mathematical problem with the
+        shortest rigorous route. Use the assigned primary method family: {contract.primary_method}.
+        Compute the answer before writing the protocol. Do not use external online services.
+
+        TASK CONTRACT
+        {_contract_block(contract)}
+
+        PROBLEM
+        {problem}
+
+        {_strict_protocol_block(
+            "Write the exact answer first, followed by a short derivation that checks sign, domain, and boundary conditions."
+        )}
+        """
+    ).strip()
+
+
+def blind_prompt_v2(problem: str, contract: TaskContract) -> str:
+    response_requirement = (
+        "The FINAL_RESPONSE field must contain a concise independent proof."
+        if contract.requires_proof
+        else "The FINAL_RESPONSE field must contain the exact answer and a short independent derivation."
+    )
+    return dedent(
+        f"""
+        You are HORA-Math Blue Team Solver S2, an ORTHOGONAL BLIND solver.
+        You have not seen any other candidate. Solve the problem independently with the assigned
+        method family: {contract.orthogonal_method}.
+
+        Use a genuinely different route: definitions, construction, contradiction, an alternative
+        representation, local calculation, counting, or another theorem family. State all needed
+        assumptions. Do not use external online services.
+
+        TASK CONTRACT
+        {_contract_block(contract)}
+
+        PROBLEM
+        {problem}
+
+        {_strict_protocol_block(response_requirement)}
         """
     ).strip()

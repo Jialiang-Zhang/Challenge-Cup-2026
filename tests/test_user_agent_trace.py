@@ -36,6 +36,17 @@ exposed_to_primary: false
 <FINAL_RESPONSE>-\frac{1}{8}</FINAL_RESPONSE>
 """
 
+AUDIT_ACCEPT_A = """
+<VERDICT>ACCEPT_A</VERDICT>
+<TARGET_CANDIDATE>A</TARGET_CANDIDATE>
+<TARGET_CLAIM>none</TARGET_CLAIM>
+<ATTACK_TYPE>boundary</ATTACK_TYPE>
+<SEVERITY>none</SEVERITY>
+<CHALLENGE>none</CHALLENGE>
+<WITNESS>none</WITNESS>
+<RESOLVER_HINT>none</RESOLVER_HINT>
+"""
+
 
 class FakeClient:
     def __init__(self, responses):
@@ -59,9 +70,26 @@ class FakeClient:
 
 
 class UserAgentTraceTest(unittest.TestCase):
+    def test_low_risk_default_uses_primary_and_red_team_only(self) -> None:
+        client = FakeClient([PRIMARY_NUMERIC, AUDIT_ACCEPT_A])
+        agent = ReasoningAgent(client=client)
+        result = agent.solve("求函数在简单极点处的留数。", {"idx": 6})
+
+        self.assertEqual(result["final_response"], "-1/8")
+        self.assertEqual(len(client.calls), 2)
+        self.assertFalse(
+            any(step["step"] == "orthogonal_comparison" for step in result["trace"])
+        )
+        self.assertTrue(
+            any(step["step"] == "red_team_result" for step in result["trace"])
+        )
+
     def test_equivalent_orthogonal_answers_commit_in_two_calls(self) -> None:
         client = FakeClient([PRIMARY_NUMERIC, BLIND_NUMERIC])
-        agent = ReasoningAgent(client=client)
+        agent = ReasoningAgent(
+            client=client,
+            config=AgentConfig(always_run_blind=True),
+        )
         problem = "求函数在简单极点处的留数。PRIVATE-HIDDEN-PROBLEM"
 
         result = agent.solve(problem, {"idx": 7})
@@ -140,7 +168,10 @@ exposed_to_primary: false
 <RESOLVER_HINT>substitute the pole</RESOLVER_HINT>
 """
         client = FakeClient([wrong, BLIND_NUMERIC, audit])
-        agent = ReasoningAgent(client=client)
+        agent = ReasoningAgent(
+            client=client,
+            config=AgentConfig(always_run_blind=True),
+        )
         result = agent.solve("计算该复函数在极点处的留数。", {"idx": 2})
         self.assertEqual(len(client.calls), 3)
         self.assertEqual(result["final_response"], r"-\frac{1}{8}")

@@ -21,7 +21,7 @@ class ProtocolValidationTest(unittest.TestCase):
             leading_response_answer(r"-\frac{1}{8}\nproof"),
             r"-\frac{1}{8}\nproof",
         )
-        self.assertEqual(leading_response_answer("- answer\nproof"), "answer")
+        self.assertIsNone(leading_response_answer("- answer\nproof"))
 
     def test_placeholder_candidate_is_not_eligible_as_complete_content(self) -> None:
         capsule = SolutionCapsule(

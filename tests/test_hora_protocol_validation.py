@@ -2,7 +2,11 @@ import unittest
 
 from agent.evidence import evaluate_candidate
 from agent.models import MethodFingerprint, SolutionCapsule, TaskContract
-from agent.protocol_validation import is_protocol_placeholder, sanitize_solution_capsule
+from agent.protocol_validation import (
+    is_protocol_placeholder,
+    leading_response_answer,
+    sanitize_solution_capsule,
+)
 
 
 class ProtocolValidationTest(unittest.TestCase):
@@ -10,6 +14,14 @@ class ProtocolValidationTest(unittest.TestCase):
         self.assertTrue(is_protocol_placeholder("Exact independent answer."))
         self.assertTrue(is_protocol_placeholder("..."))
         self.assertFalse(is_protocol_placeholder(r"-\frac{1}{8}"))
+
+    def test_leading_response_answer_preserves_negative_signs(self) -> None:
+        self.assertEqual(leading_response_answer("-1\nproof"), "-1")
+        self.assertEqual(
+            leading_response_answer(r"-\frac{1}{8}\nproof"),
+            r"-\frac{1}{8}\nproof",
+        )
+        self.assertEqual(leading_response_answer("- answer\nproof"), "answer")
 
     def test_placeholder_candidate_is_not_eligible_as_complete_content(self) -> None:
         capsule = SolutionCapsule(

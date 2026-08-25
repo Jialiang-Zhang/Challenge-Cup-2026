@@ -34,7 +34,17 @@ def resolve_path(path: Path, repo_root: Path) -> Path:
     return path if path.is_absolute() else (repo_root / path).resolve()
 
 
-def load_dataset(dataset_dir: Path, expected_count: int | None = 112) -> list[dict[str, Any]]:
+def display_path(path: Path, repo_root: Path) -> str:
+    try:
+        return str(path.relative_to(repo_root))
+    except ValueError:
+        return str(path)
+
+
+def load_dataset(
+    dataset_dir: Path,
+    expected_count: int | None = 112,
+) -> list[dict[str, Any]]:
     if not dataset_dir.is_dir():
         raise FileNotFoundError(f"Dataset directory does not exist: {dataset_dir}")
 
@@ -65,10 +75,22 @@ def load_dataset(dataset_dir: Path, expected_count: int | None = 112) -> list[di
 
     records.sort(key=lambda item: item["idx"])
 
-    if expected_count is not None and len(records) != expected_count:
-        raise ValueError(
-            f"Expected {expected_count} dataset items, found {len(records)} in {dataset_dir}"
-        )
+    if expected_count is not None:
+        if len(records) != expected_count:
+            raise ValueError(
+                f"Expected {expected_count} dataset items, "
+                f"found {len(records)} in {dataset_dir}"
+            )
+
+        expected_indices = set(range(expected_count))
+        if seen_indices != expected_indices:
+            missing = sorted(expected_indices - seen_indices)
+            unexpected = sorted(seen_indices - expected_indices)
+            raise ValueError(
+                "Dataset indices must be exactly "
+                f"0..{expected_count - 1}; missing={missing}, "
+                f"unexpected={unexpected}"
+            )
 
     return records
 
@@ -184,6 +206,20 @@ def build_summary(
     }
 
 
+def derive_benchmark_exit_code(
+    summary: dict[str, Any],
+    runner_exit_code: int,
+) -> int:
+    """Treat any missing, error, or non-success item as a failed benchmark."""
+    if runner_exit_code != 0:
+        return runner_exit_code
+
+    total = int(summary.get("total", 0))
+    counts = summary.get("counts", {})
+    success_count = int(counts.get("success", 0)) if isinstance(counts, dict) else 0
+    return 0 if success_count == total else 2
+
+
 def get_repository_commit(repo_root: Path) -> str | None:
     try:
         completed = subprocess.run(
@@ -270,6 +306,16 @@ def run_benchmark(args: argparse.Namespace) -> int:
             run_id=run_id,
             runner_exit_code=runner_exit_code,
         )
+        final_exit_code = derive_benchmark_exit_code(summary, runner_exit_code)
+        if final_exit_code != runner_exit_code and runner_error is None:
+            counts = summary["counts"]
+            runner_error = (
+                "Incomplete benchmark outputs: "
+                f"success={counts['success']}, error={counts['error']}, "
+                f"missing={counts['missing']}, other={counts['other']}"
+            )
+        runner_exit_code = final_exit_code
+        summary["runner_exit_code"] = runner_exit_code
         write_json(output_dir / "summary.json", summary)
 
         metadata = {
@@ -290,7 +336,7 @@ def run_benchmark(args: argparse.Namespace) -> int:
             },
             "runner_exit_code": runner_exit_code,
             "runner_error": runner_error,
-            "output_directory": str(output_dir.relative_to(repo_root)),
+            "output_directory": display_path(output_dir, repo_root),
         }
         write_json(output_dir / "run_metadata.json", metadata)
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -329,7 +375,7 @@ def parse_args() -> argparse.Namespace:
         "--expected-count",
         type=int,
         default=112,
-        help="Fail fast when the dataset item count differs.",
+        help="Fail fast unless indices are exactly 0 through expected-count - 1.",
     )
     parser.add_argument(
         "--dataset-repository",

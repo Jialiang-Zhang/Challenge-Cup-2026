@@ -20,9 +20,11 @@ class StagedHORAEngine(HORAEngine):
         guard: RuntimeGuard,
         trace: list[dict[str, Any]],
     ) -> SolutionCapsule:
+        # Objective single-part questions use the compact transaction protocol
+        # regardless of domain risk. Extended thinking is reserved for proofs and
+        # multipart derivations, where a full argument is part of final_response.
         use_compact_protocol = (
-            state.contract.risk_level == "low"
-            and not state.contract.requires_proof
+            not state.contract.requires_proof
             and state.contract.multipart_count == 1
         )
         if not use_compact_protocol:

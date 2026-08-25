@@ -21,7 +21,7 @@ class AgentConfig:
     """Runtime configuration for the HORA-Math orchestrator.
 
     The defaults intentionally keep the normal route to two model calls and the
-    maximum conflict route to four. The official runner can still clamp
+    maximum conflict route to four.  The official runner can still clamp
     max_tokens or model calls independently.
     """
 
@@ -31,21 +31,23 @@ class AgentConfig:
     repair_temperature: float = 0.1
 
     primary_max_tokens: int = 4096
-    blind_max_tokens: int = 4096
-    audit_max_tokens: int = 2048
-    repair_max_tokens: int = 3072
+    blind_max_tokens: int = 3072
+    audit_max_tokens: int = 1024
+    repair_max_tokens: int = 2048
 
     max_model_calls: int = 4
     soft_deadline_seconds: float = 760.0
     finalization_reserve_seconds: float = 90.0
 
+    # A genuinely independent second solution is the default.  This still cuts
+    # the baseline from nine calls to two for ordinary questions.
     always_run_blind: bool = True
     red_team_for_medium: bool = False
     red_team_for_high: bool = True
     allow_repair: bool = True
 
     max_submit_chars: int = 6000
-    max_candidate_context_chars: int = 5000
+    max_candidate_context_chars: int = 3200
 
 
 @dataclass(frozen=True)

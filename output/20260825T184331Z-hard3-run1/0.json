@@ -1,0 +1,108 @@
+{
+  "idx": 0,
+  "status": "success",
+  "final_response": "根据矩阵树定理，完全二分图 $K_{m,n}$ 的生成树总数等于其拉普拉斯矩阵任意一个余子式的行列式。拉普拉斯矩阵 $L$ 的特征值为 $0$（重数 $1$）、$m$（重数 $n-1$）和 $n$（重数 $m-1$）。非零特征值的乘积为 $m^{n-1} \\cdot n^{m-1}$，因此生成树总数为 $m^{n-1} n^{m-1}$。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "linear_algebra",
+        "secondary_domain_count": 1,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 14065,
+        "elapsed_ms": 34598
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 14065,
+        "claim_count": 0,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 2
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 1002,
+        "elapsed_ms": 5514
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 1002,
+        "claim_count": 4,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 247,
+        "elapsed_ms": 2090
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "B",
+        "target_claim_id": "FINAL",
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "model_calls": 3,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 170
+      }
+    }
+  ]
+}

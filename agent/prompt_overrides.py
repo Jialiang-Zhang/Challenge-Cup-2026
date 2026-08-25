@@ -108,3 +108,133 @@ def blind_prompt_v2(problem: str, contract: TaskContract) -> str:
         {_strict_protocol_block(response_requirement)}
         """
     ).strip()
+
+
+def repair_prompt_v2(
+    problem: str,
+    contract: TaskContract,
+    *,
+    parent_answer: str,
+    parent_response: str,
+    challenge: str,
+    witness: str,
+    resolver_hint: str,
+) -> str:
+    response_requirement = (
+        "Write the corrected conclusion and a concise complete proof addressing the challenge."
+        if contract.requires_proof
+        else "Write the corrected exact answer first and a short derivation that directly resolves the challenge."
+    )
+    return dedent(
+        f"""
+        You are HORA-Math Targeted Repair Solver. A red-team audit found a localized fatal defect.
+        Recompute only the disputed point, preserve valid mathematics, and return a corrected
+        submission. Do not defend a value merely because it appeared in the parent candidate.
+
+        TASK CONTRACT
+        {_contract_block(contract)}
+
+        PROBLEM
+        {problem}
+
+        PARENT ANSWER
+        {parent_answer}
+
+        PARENT RESPONSE
+        {parent_response[:2400]}
+
+        RED-TEAM CHALLENGE
+        challenge: {challenge or 'none'}
+        witness: {witness or 'none'}
+        resolver hint: {resolver_hint or 'none'}
+
+        OUTPUT CONTRACT
+        - Start immediately with <FINAL_CANDIDATE> and put the actual corrected mathematical answer
+          inside it. Do not write analysis before the tag.
+        - Do not copy instructions, placeholders, or the parent answer unless independently confirmed.
+        - Emit the tags below in order and stop after </FINAL_RESPONSE>.
+
+        <METHOD_FINGERPRINT>
+        paradigm: choose one actual corrected method family
+        representation: choose one actual representation
+        theorem_family: write the actual theorem or method family, or none
+        tool_channel: choose one of none|sympy|numeric|brute_force|residual|matrix
+        interpretation_id: I1
+        exposed_to_primary: true
+        </METHOD_FINGERPRINT>
+
+        <CRITICAL_CLAIMS>
+        Write one to four actual corrected decisive claims using
+        <CLAIM id="C1">a concrete mathematical statement</CLAIM>.
+        </CRITICAL_CLAIMS>
+
+        <CHALLENGE_RESOLUTION>
+        State exactly why the red-team objection is resolved.
+        </CHALLENGE_RESOLUTION>
+
+        <CHECK_HINTS>
+        Give one concrete falsification check, substitution, or theorem-condition check.
+        </CHECK_HINTS>
+
+        <RISK_FLAGS>
+        Write remaining risks, or none.
+        </RISK_FLAGS>
+
+        <FINAL_RESPONSE>
+        {response_requirement}
+        </FINAL_RESPONSE>
+        """
+    ).strip()
+
+
+def rescue_prompt_v2(problem: str, contract: TaskContract) -> str:
+    response_requirement = (
+        "Write a concise complete proof after the exact conclusion."
+        if contract.requires_proof
+        else "Write the exact answer and one decisive verification step."
+    )
+    return dedent(
+        f"""
+        You are HORA-Math Rescue Solver. All earlier candidates were invalid or unresolved.
+        Recompute the problem from scratch using the shortest reliable route. Do not use any
+        alleged previous answer. Do not use external online services.
+
+        TASK CONTRACT
+        {_contract_block(contract)}
+
+        PROBLEM
+        {problem}
+
+        OUTPUT CONTRACT
+        - Start immediately with <FINAL_CANDIDATE> containing the actual mathematical answer.
+        - Do not emit analysis or Markdown before the first tag.
+        - Do not copy placeholders such as "Exact answer" or "Minimal justification".
+        - Stop after </FINAL_RESPONSE>.
+
+        <METHOD_FINGERPRINT>
+        paradigm: choose one actual method
+        representation: choose one actual representation
+        theorem_family: actual theorem or method family, or none
+        tool_channel: choose one of none|sympy|numeric|brute_force|residual|matrix
+        interpretation_id: I1
+        exposed_to_primary: false
+        </METHOD_FINGERPRINT>
+
+        <CRITICAL_CLAIMS>
+        Write one to four actual decisive claims using
+        <CLAIM id="C1">a concrete mathematical statement</CLAIM>.
+        </CRITICAL_CLAIMS>
+
+        <CHECK_HINTS>
+        Give one concrete independent check.
+        </CHECK_HINTS>
+
+        <RISK_FLAGS>
+        Write remaining risks, or none.
+        </RISK_FLAGS>
+
+        <FINAL_RESPONSE>
+        {response_requirement}
+        </FINAL_RESPONSE>
+        """
+    ).strip()

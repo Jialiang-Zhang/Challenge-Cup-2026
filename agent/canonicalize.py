@@ -7,9 +7,9 @@ from typing import Any
 
 from .models import EquivalenceStatus
 
-try:
+try:  # SymPy is optional at import time; tools degrade to UNKNOWN without it.
     import sympy as sp
-except Exception:  # pragma: no cover
+except Exception:  # pragma: no cover - exercised when dependency is absent.
     sp = None  # type: ignore[assignment]
 
 
@@ -74,6 +74,12 @@ def normalize_answer_text(value: str) -> str:
     text = re.sub(r"\\text\s*\{([^{}]*)\}", r"\1", text)
     text = re.sub(r"\s+", "", text)
     text = text.strip("。.;；,，")
+    text = re.sub(
+        r"[（(](?:个|种|棵|项|元|个元素|ways?|solutions?)[)）]$",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
     return text
 
 
@@ -90,10 +96,43 @@ def _try_fraction(value: str) -> Fraction | None:
         return Fraction(int(numerator), int(denominator))
     if re.fullmatch(r"[+-]?(?:\d+\.\d*|\d*\.\d+)", normalized):
         return Fraction(normalized)
-    wrapped = re.fullmatch(r"\(\(([+-]?\d+)\)/\(([+-]?\d+)\)\)\)", normalized)
-    if wrapped and int(wrapped.group(2)) != 0:
-        return Fraction(int(wrapped.group(1)), int(wrapped.group(2)))
+    wrapped = re.fullmatch(
+        r"([+-]?)\(\(([+-]?\d+)\)/\(([+-]?\d+)\)\)\)",
+        normalized,
+    )
+    if wrapped and int(wrapped.group(3)) != 0:
+        sign = -1 if wrapped.group(1) == "-" else 1
+        return Fraction(sign * int(wrapped.group(2)), int(wrapped.group(3)))
     return None
+
+
+def _try_unique_embedded_fraction(value: str) -> Fraction | None:
+    direct = _try_fraction(value)
+    if direct is not None:
+        return direct
+    text = value.replace("$", "")
+    # Do not mistake exponents or coefficients inside a genuine symbolic
+    # expression for the answer itself. Embedded extraction is only a fallback
+    # for prose such as "the answer is -1".
+    if re.search(r"[A-Za-z_]+\s*\(", text) or any(
+        op in text for op in ("^", "**", "=")
+    ):
+        return None
+    latex_tokens = re.findall(
+        r"[+-]?\\(?:d?frac)\s*\{[+-]?\d+\}\s*\{[+-]?\d+\}", text
+    )
+    plain_tokens = re.findall(
+        r"(?<![A-Za-z0-9_])[+-]?\d+(?:/\d+|\.\d+)?(?![A-Za-z0-9_])",
+        text,
+    )
+    tokens = latex_tokens + plain_tokens
+    parsed = [
+        fraction
+        for token in tokens
+        if (fraction := _try_fraction(token)) is not None
+    ]
+    unique = set(parsed)
+    return next(iter(unique)) if len(unique) == 1 else None
 
 
 def _safe_sympy_expression(value: str) -> Any | None:
@@ -169,8 +208,8 @@ def compare_answers(a: str, b: str) -> EquivalenceStatus:
     if normalized_a.casefold() == normalized_b.casefold():
         return "equivalent"
 
-    fraction_a = _try_fraction(normalized_a)
-    fraction_b = _try_fraction(normalized_b)
+    fraction_a = _try_unique_embedded_fraction(a)
+    fraction_b = _try_unique_embedded_fraction(b)
     if fraction_a is not None and fraction_b is not None:
         return "equivalent" if fraction_a == fraction_b else "not_equivalent"
 

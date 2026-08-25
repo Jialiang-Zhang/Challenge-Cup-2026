@@ -140,25 +140,41 @@ jobs:
         run: |
           set -euo pipefail
 
-          cat > /tmp/benchmark-pr.md <<EOF
-          ## 112-question benchmark run
+          python - <<'PY'
+          import os
+          from pathlib import Path
 
-          - Run ID: `${RUN_ID}`
-          - Agent commit: `${AGENT_COMMIT}`
-          - Dataset: `Jialiang-Zhang/test-dataset-math@${DATASET_COMMIT}`
+          run_id = os.environ["RUN_ID"]
+          agent_commit = os.environ["AGENT_COMMIT"]
+          dataset_commit = os.environ["DATASET_COMMIT"]
+          model = os.environ["INTERN_MODEL"]
+          concurrency = os.environ["LOCAL_MAX_CONCURRENCY"]
+          workflow_url = (
+              f"{os.environ['GITHUB_SERVER_URL']}/"
+              f"{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+              f"{os.environ['GITHUB_RUN_ID']}"
+          )
+
+          body = f"""## 112-question benchmark run
+
+          - Run ID: `{run_id}`
+          - Agent commit: `{agent_commit}`
+          - Dataset: `Jialiang-Zhang/test-dataset-math@{dataset_commit}`
           - Dataset path: `112/`
-          - Model: `${INTERN_MODEL}`
-          - Concurrency: `${LOCAL_MAX_CONCURRENCY}`
-          - Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          - Model: `{model}`
+          - Concurrency: `{concurrency}`
+          - Workflow run: {workflow_url}
 
           Results are stored under:
 
           ```text
-          output/${RUN_ID}/
+          output/{run_id}/
           ```
 
           `summary.json` checks execution completeness only and is not the official mathematical judge.
-          EOF
+          """
+          Path("/tmp/benchmark-pr.md").write_text(body, encoding="utf-8")
+          PY
 
           if ! gh pr create \
             --base main \

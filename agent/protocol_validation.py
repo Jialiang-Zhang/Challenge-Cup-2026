@@ -75,13 +75,13 @@ def leading_response_answer(value: str | None) -> str | None:
     lines = [line.strip() for line in value.splitlines() if line.strip()]
     if not lines:
         return None
-    # Remove true Markdown bullets only. Mathematical signs must survive.
     first = re.sub(r"^(?:[*•]\s*|-\s+)", "", lines[0]).strip()
     return first if _looks_like_compact_answer(first) else None
 
 
 def _consistent_asserted_answer(capsule: SolutionCapsule) -> str | None:
     sources = [capsule.final_response, capsule.challenge_resolution or ""]
+    sources.extend(claim.statement for claim in capsule.claims)
     if capsule.check_hints:
         sources.append("\n".join(capsule.check_hints))
 
@@ -140,7 +140,7 @@ def sanitize_solution_capsule(
             relation = compare_answers(answer, asserted)
             if relation == "not_equivalent":
                 answer = asserted
-                warnings.append("candidate_response_conflict")
+                warnings.append("candidate_internal_conflict")
                 warnings.append("reconciled_to_asserted_final_answer")
 
     valid_claims = []

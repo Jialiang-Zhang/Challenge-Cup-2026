@@ -8,7 +8,7 @@ from agent.models import (
     SolutionCapsule,
     TaskContract,
 )
-from agent.parsing import parse_audit_result, parse_solution_capsule
+from agent.parsing import extract_tag, parse_audit_result, parse_solution_capsule
 
 
 class ParsingAdjudicationTest(unittest.TestCase):
@@ -54,6 +54,52 @@ exposed_to_primary: false
         self.assertEqual(capsule.answer_raw, "42")
         self.assertEqual(capsule.claims[0].claim_id, "C7")
         self.assertEqual(capsule.fingerprint.paradigm, "constructive")
+        self.assertFalse(capsule.truncated)
+
+    def test_parser_ignores_reasoning_schema_echoes(self) -> None:
+        text = r"""
+Thinking Process:
+The `<FINAL_CANDIDATE>` tag should be the very first text? Yes.
+The requested schema also mentions `<FINAL_RESPONSE>` and `<CRITICAL_CLAIMS>`.
+I will now construct the actual response.
+
+<FINAL_CANDIDATE>
+-1/8
+</FINAL_CANDIDATE>
+<METHOD_FINGERPRINT>
+paradigm: direct
+representation: symbolic
+theorem_family: residue
+tool_channel: none
+interpretation_id: I1
+exposed_to_primary: false
+</METHOD_FINGERPRINT>
+<CRITICAL_CLAIMS>
+<CLAIM id="C1">The point is a simple pole.</CLAIM>
+<CLAIM id="C2">The residue is -1/8.</CLAIM>
+</CRITICAL_CLAIMS>
+<FINAL_RESPONSE>The residue is $-1/8$.</FINAL_RESPONSE>
+
+After the response I may mention `<FINAL_CANDIDATE>` again without closing it.
+"""
+        capsule = parse_solution_capsule(
+            text,
+            candidate_id="A",
+            source="primary",
+            fallback_fingerprint=MethodFingerprint(),
+            requires_proof=False,
+        )
+        self.assertEqual(capsule.answer_raw, "-1/8")
+        self.assertEqual(capsule.final_response, "The residue is $-1/8$.")
+        self.assertEqual([claim.claim_id for claim in capsule.claims], ["C1", "C2"])
+        self.assertFalse(capsule.truncated)
+
+    def test_extract_tag_pairs_last_close_with_nearest_open(self) -> None:
+        text = (
+            "Discuss `<FINAL_CANDIDATE>` as a schema token. "
+            "<FINAL_CANDIDATE>72</FINAL_CANDIDATE>"
+        )
+        self.assertEqual(extract_tag(text, "FINAL_CANDIDATE"), "72")
 
     def test_audit_parser_rejects_unknown_verdict(self) -> None:
         audit = parse_audit_result("<VERDICT>MAYBE</VERDICT>")

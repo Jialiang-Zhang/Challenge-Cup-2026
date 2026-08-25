@@ -1,6 +1,11 @@
 name: Run dev benchmark
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/run-dev.yml"
   workflow_dispatch:
     inputs:
       concurrency:
@@ -23,7 +28,7 @@ jobs:
     env:
       INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
       INTERN_MODEL: intern-s2-preview
-      LOCAL_MAX_CONCURRENCY: ${{ inputs.concurrency }}
+      LOCAL_MAX_CONCURRENCY: ${{ github.event.inputs.concurrency || '1' }}
       PYTHONUNBUFFERED: "1"
 
     steps:

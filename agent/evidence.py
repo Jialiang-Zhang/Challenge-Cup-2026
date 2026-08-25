@@ -47,9 +47,9 @@ def evaluate_candidate(
                 candidate_id=capsule.candidate_id,
                 evidence_type="truncation",
                 status="fail",
-                strength="major",
+                strength="hard",
                 checker="capsule_parser",
-                detail_code="unclosed_protocol_tag",
+                detail_code="missing_required_protocol_section",
             )
         )
 

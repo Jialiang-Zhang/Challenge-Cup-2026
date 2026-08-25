@@ -4,7 +4,7 @@ import re
 
 from .canonicalize import compare_answers
 from .models import SolutionCapsule
-from .parsing import extract_final_candidate
+from .parsing import extract_asserted_answer, extract_final_candidate
 
 
 _EXACT_PLACEHOLDERS = {
@@ -55,20 +55,50 @@ def is_protocol_placeholder(value: str | None) -> bool:
     return any(key.startswith(prefix) for prefix in _PREFIX_PLACEHOLDERS)
 
 
+def _looks_like_compact_answer(value: str) -> bool:
+    value = value.strip()
+    if not value or len(value) > 160:
+        return False
+    if is_protocol_placeholder(value):
+        return False
+    latin_words = re.findall(r"[A-Za-z]{2,}", value)
+    if len(latin_words) > 6 and not re.search(r"[=\\{}\[\]()+\-*/^]", value):
+        return False
+    return True
+
+
 def leading_response_answer(value: str | None) -> str | None:
-    """Read the exact-answer line required at the start of FINAL_RESPONSE."""
+    """Read the compact exact-answer line required at the start of FINAL_RESPONSE."""
 
     if value is None:
         return None
     lines = [line.strip() for line in value.splitlines() if line.strip()]
     if not lines:
         return None
-    # Remove true Markdown bullets only. A mathematical negative sign such as
-    # ``-1`` or ``-\frac{1}{8}`` must be preserved.
+    # Remove true Markdown bullets only. Mathematical signs must survive.
     first = re.sub(r"^(?:[*•]\s*|-\s+)", "", lines[0]).strip()
-    if len(first) > 300 or is_protocol_placeholder(first):
-        return None
-    return first
+    return first if _looks_like_compact_answer(first) else None
+
+
+def _consistent_asserted_answer(capsule: SolutionCapsule) -> str | None:
+    sources = [capsule.final_response, capsule.challenge_resolution or ""]
+    if capsule.check_hints:
+        sources.append("\n".join(capsule.check_hints))
+
+    assertions: list[str] = []
+    leading = leading_response_answer(capsule.final_response)
+    if leading:
+        assertions.append(leading)
+    for source in sources:
+        asserted = extract_asserted_answer(source)
+        if asserted and _looks_like_compact_answer(asserted):
+            assertions.append(asserted)
+
+    unique: list[str] = []
+    for value in assertions:
+        if not any(compare_answers(value, existing) == "equivalent" for existing in unique):
+            unique.append(value)
+    return unique[0] if len(unique) == 1 else None
 
 
 def sanitize_solution_capsule(
@@ -76,7 +106,7 @@ def sanitize_solution_capsule(
     *,
     requires_proof: bool,
 ) -> SolutionCapsule:
-    """Reject placeholders and reconcile exact answers with FINAL_RESPONSE."""
+    """Reject placeholders and reconcile internally asserted exact answers."""
 
     warnings = list(capsule.parse_warnings)
     answer = capsule.answer_raw.strip()
@@ -101,18 +131,17 @@ def sanitize_solution_capsule(
             response = ""
             warnings.append("placeholder_final_response")
 
-    # For calculation and short-answer routes, the exact answer is required on
-    # the first line of FINAL_RESPONSE. If FINAL_CANDIDATE contradicts that later
-    # transaction field, the later field wins and the conflict remains in trace
-    # metadata via parse_warnings.
+    capsule.answer_raw = answer
+    capsule.final_response = response
+
     if not requires_proof and answer and response:
-        response_answer = leading_response_answer(response)
-        if response_answer:
-            relation = compare_answers(answer, response_answer)
+        asserted = _consistent_asserted_answer(capsule)
+        if asserted:
+            relation = compare_answers(answer, asserted)
             if relation == "not_equivalent":
-                answer = response_answer
+                answer = asserted
                 warnings.append("candidate_response_conflict")
-                warnings.append("reconciled_to_final_response")
+                warnings.append("reconciled_to_asserted_final_answer")
 
     valid_claims = []
     for claim in capsule.claims:

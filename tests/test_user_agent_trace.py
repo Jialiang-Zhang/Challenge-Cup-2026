@@ -53,12 +53,13 @@ class FakeClient:
         self.responses = list(responses)
         self.calls = []
 
-    def chat(self, messages, temperature=None, max_tokens=None):
+    def chat(self, messages, temperature=None, max_tokens=None, thinking_mode=None):
         self.calls.append(
             {
                 "messages": messages,
                 "temperature": temperature,
                 "max_tokens": max_tokens,
+                "thinking_mode": thinking_mode,
             }
         )
         if not self.responses:
@@ -77,6 +78,8 @@ class UserAgentTraceTest(unittest.TestCase):
 
         self.assertEqual(result["final_response"], "-1/8")
         self.assertEqual(len(client.calls), 2)
+        self.assertIs(client.calls[0]["thinking_mode"], False)
+        self.assertIs(client.calls[1]["thinking_mode"], False)
         self.assertFalse(
             any(step["step"] == "orthogonal_comparison" for step in result["trace"])
         )
@@ -150,6 +153,9 @@ exposed_to_primary: false
             "证明在支配收敛条件下可以交换极限与Lebesgue积分。", {"idx": 1}
         )
         self.assertEqual(len(client.calls), 3)
+        self.assertIs(client.calls[0]["thinking_mode"], True)
+        self.assertIs(client.calls[1]["thinking_mode"], False)
+        self.assertIs(client.calls[2]["thinking_mode"], False)
         self.assertIn("结论成立", result["final_response"])
         self.assertTrue(
             any(step["step"] == "red_team_result" for step in result["trace"])

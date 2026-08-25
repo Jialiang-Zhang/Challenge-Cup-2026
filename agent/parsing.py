@@ -26,19 +26,18 @@ def coerce_text(response: Any) -> str:
 
 
 def extract_tag(text: str, tag: str) -> str | None:
-    """Return the last well-formed tag body using nearest-open pairing.
+    """Return the last real protocol tag body.
 
-    Reasoning models may echo literal protocol tags while discussing the requested
-    schema. A normal non-overlapping ``findall`` can then pair an early echoed
-    opening tag with the real closing tag and extract prompt commentary instead of
-    the actual answer. Pairing each closing tag with the nearest preceding opening
-    tag makes the parser robust to those echoed or nested-looking tag mentions.
+    Intern-S may discuss literal protocol tags inside its reasoning. Real protocol
+    sections are required to begin at the start of a line; inline/backticked tag
+    mentions therefore cannot be paired with a later closing tag and corrupt the
+    transaction parser.
     """
 
     escaped = re.escape(tag)
     opening_pattern = re.compile(
-        rf"<{escaped}(?:\s+[^>]*)?>",
-        flags=re.IGNORECASE,
+        rf"^[ \t]*<{escaped}(?:\s+[^>]*)?>",
+        flags=re.IGNORECASE | re.MULTILINE,
     )
     closing_pattern = re.compile(
         rf"</{escaped}\s*>",
@@ -91,6 +90,45 @@ def _compact_candidate(value: str) -> str:
     return value.strip()
 
 
+def extract_asserted_answer(text: str) -> str | None:
+    """Extract a strongly asserted final/correct value from explanatory prose.
+
+    This is intentionally narrower than generic number extraction. It is used to
+    reconcile a malformed FINAL_CANDIDATE only when the model later states an
+    explicit exact/correct/final value in its transaction response.
+    """
+
+    patterns = (
+        re.compile(
+            r"(?:exact|correct|final)\s+(?:value|answer|result)\s+(?:is|=)\s*\$([^$\n]{1,180})\$",
+            flags=re.IGNORECASE,
+        ),
+        re.compile(
+            r"(?:正确答案|最终答案|精确值|正确值|最终结果)\s*(?:是|为|=|[:：])\s*\$([^$\n]{1,180})\$",
+            flags=re.IGNORECASE,
+        ),
+        re.compile(
+            r"(?:exact|correct|final)\s+(?:value|answer|result)\s+(?:is|=)\s*"
+            r"([+-]?(?:\\frac\s*\{[^{}\n]+\}\s*\{[^{}\n]+\}|\d+(?:/\d+)?(?:\.\d+)?))",
+            flags=re.IGNORECASE,
+        ),
+        re.compile(
+            r"(?:正确答案|最终答案|精确值|正确值|最终结果)\s*(?:是|为|=|[:：])\s*"
+            r"([+-]?(?:\\frac\s*\{[^{}\n]+\}\s*\{[^{}\n]+\}|\d+(?:/\d+)?(?:\.\d+)?))",
+            flags=re.IGNORECASE,
+        ),
+    )
+    matches: list[tuple[int, str]] = []
+    for pattern in patterns:
+        for match in pattern.finditer(text):
+            value = match.group(1).strip().rstrip("。.;；,")
+            if value:
+                matches.append((match.start(), value))
+    if not matches:
+        return None
+    return max(matches, key=lambda item: item[0])[1]
+
+
 def extract_final_candidate(text: str) -> str | None:
     tagged = extract_tag(text, "FINAL_CANDIDATE")
     if tagged:
@@ -106,6 +144,10 @@ def extract_final_candidate(text: str) -> str | None:
             candidate = matches[-1].strip().splitlines()[0].strip()
             if candidate:
                 return _compact_candidate(candidate)
+
+    asserted = extract_asserted_answer(text)
+    if asserted:
+        return asserted
 
     boxed = _extract_balanced_boxed(text)
     if boxed:
@@ -153,9 +195,6 @@ def parse_method_fingerprint(
 
 def parse_claims(text: str) -> list[ClaimRecord]:
     claims: list[ClaimRecord] = []
-    # Restrict claim parsing to the last well-formed CRITICAL_CLAIMS block when
-    # present. This prevents prompt/schema echoes in the model's reasoning text
-    # from being mistaken for actual candidate claims.
     block = extract_tag(text, "CRITICAL_CLAIMS")
     scope = block if block else text
 
@@ -232,9 +271,6 @@ def parse_solution_capsule(
     check_hints = _parse_list_block(text, "CHECK_HINTS")
 
     complete = bool(answer.strip() and final_response.strip())
-    # Treat the capsule as structurally complete when both required tagged
-    # sections can be paired successfully. Angle brackets in prose or LaTeX must
-    # not create false truncation signals.
     truncated = tagged_answer is None or tagged_final_response is None
 
     return SolutionCapsule(

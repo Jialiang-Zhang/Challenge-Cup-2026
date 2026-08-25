@@ -1,0 +1,185 @@
+name: Run HORA hard3 benchmark
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/run-hard3-benchmark.yml"
+      - "scripts/run_subset_benchmark.py"
+      - "tests/test_run_subset_benchmark.py"
+  workflow_dispatch:
+    inputs:
+      dataset_ref:
+        description: "Branch, tag, or commit from test-dataset-math"
+        required: false
+        default: "main"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: hora-hard3-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hard3:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
+      INTERN_MODEL: intern-s2-preview
+      LOCAL_MAX_CONCURRENCY: "1"
+      JUPYTER_PLATFORM_DIRS: "1"
+      PYTHONUNBUFFERED: "1"
+      HORA_DEBUG_DIR: _hard3_debug
+      GH_TOKEN: ${{ github.token }}
+      DATASET_REF: ${{ github.event.inputs.dataset_ref || 'main' }}
+
+    steps:
+      - name: Check out agent branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Check out public dataset
+        uses: actions/checkout@v4
+        with:
+          repository: Jialiang-Zhang/test-dataset-math
+          ref: ${{ env.DATASET_REF }}
+          path: _benchmark_dataset
+          fetch-depth: 1
+
+      - name: Define immutable run identifiers
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ID="$(date -u +'%Y%m%dT%H%M%SZ')-hard3-run${GITHUB_RUN_NUMBER}"
+          RESULT_BRANCH="benchmark/hard3-${RUN_ID}"
+          DATASET_COMMIT="$(git -C _benchmark_dataset rev-parse HEAD)"
+          AGENT_COMMIT="$(git rev-parse HEAD)"
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            BASE_BRANCH="${GITHUB_HEAD_REF}"
+          else
+            BASE_BRANCH="${GITHUB_REF_NAME}"
+          fi
+
+          echo "RUN_ID=${RUN_ID}" >> "${GITHUB_ENV}"
+          echo "RESULT_BRANCH=${RESULT_BRANCH}" >> "${GITHUB_ENV}"
+          echo "DATASET_COMMIT=${DATASET_COMMIT}" >> "${GITHUB_ENV}"
+          echo "AGENT_COMMIT=${AGENT_COMMIT}" >> "${GITHUB_ENV}"
+          echo "BASE_BRANCH=${BASE_BRANCH}" >> "${GITHUB_ENV}"
+
+      - name: Verify API secret
+        shell: bash
+        run: |
+          if [ -z "${INTERN_API_KEY}" ]; then
+            echo "::error::Missing repository Actions secret named INTERN_API_KEY"
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run hard3 public subset
+        id: hard3
+        continue-on-error: true
+        run: |
+          rm -rf "output/${RUN_ID}" _hard3_debug
+          python scripts/run_subset_benchmark.py \
+            --dataset-dir _benchmark_dataset/112 \
+            --indices 0,40,70 \
+            --output-root output \
+            --run-id "${RUN_ID}" \
+            --concurrency 1 \
+            --dataset-ref "${DATASET_REF}" \
+            --dataset-commit "${DATASET_COMMIT}"
+
+      - name: Upload hard3 artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hora-hard3-${{ env.RUN_ID }}
+          path: |
+            output/${{ env.RUN_ID }}/
+            _hard3_debug/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Commit timestamped results to a dedicated branch
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -d "output/${RUN_ID}" ]; then
+            echo "::error::Expected output/${RUN_ID} was not created"
+            exit 1
+          fi
+
+          git switch -c "${RESULT_BRANCH}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "output/${RUN_ID}"
+          if git diff --cached --quiet; then
+            echo "::error::No hard3 result files were produced"
+            exit 1
+          fi
+          git commit -m "benchmark: record HORA hard3 run ${RUN_ID}"
+          git push origin "HEAD:${RESULT_BRANCH}"
+
+      - name: Open result pull request
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          run_id = os.environ["RUN_ID"]
+          body = f"""## HORA-Math hard3 benchmark
+
+          - Run ID: `{run_id}`
+          - Agent commit: `{os.environ['AGENT_COMMIT']}`
+          - Dataset: `Jialiang-Zhang/test-dataset-math@{os.environ['DATASET_COMMIT']}`
+          - Indices: `0, 40, 70`
+          - Model: `{os.environ['INTERN_MODEL']}`
+          - Concurrency: `1`
+          - Workflow: {os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}
+
+          Results are stored under:
+
+          ```text
+          output/{run_id}/
+          ```
+
+          `review.md` contains the public reference and the agent response for manual proof review.
+          Reference answers were not passed to `ReasoningAgent.solve`.
+          """
+          Path("/tmp/hard3-pr.md").write_text(body, encoding="utf-8")
+          PY
+
+          if ! gh pr create \
+            --base "${BASE_BRANCH}" \
+            --head "${RESULT_BRANCH}" \
+            --title "benchmark: HORA hard3 ${RUN_ID}" \
+            --body-file /tmp/hard3-pr.md; then
+            echo "::warning::Result branch was pushed but the result PR was not created."
+            echo "::warning::Open it manually from ${RESULT_BRANCH} into ${BASE_BRANCH}."
+          fi
+
+      - name: Propagate hard3 execution failure
+        if: steps.hard3.outcome != 'success'
+        run: |
+          echo "::error::Hard3 runner failed; timestamped partial outputs were preserved."
+          exit 1

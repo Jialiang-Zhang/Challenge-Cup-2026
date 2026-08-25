@@ -168,9 +168,11 @@ def audit_prompt(
     attacks = ", ".join(contract.mandatory_attacks)
     return dedent(
         f"""
-        You are HORA-Math Red Team and Evidence Auditor. Your job is NOT to write a fresh long
-        solution. Assume each candidate may be wrong and try to falsify the earliest decisive
-        claim using a concrete mathematical challenge.
+        You are HORA-Math Red Team and Evidence Auditor. Return ONLY the seven protocol tags
+        requested below. Your very first characters must be <VERDICT>. Do not place analysis,
+        preamble, Markdown, or a fresh solution outside the tags. Keep the entire response concise.
+        Assume each candidate may be wrong and try to falsify the earliest decisive claim using a
+        concrete mathematical challenge.
 
         Mandatory attack families for this task: {attacks}
         Also check the known failure modes: {', '.join(contract.likely_failure_modes)}.
@@ -198,7 +200,7 @@ def audit_prompt(
         - REPAIR_B: B is preferable but contains a localized repairable fatal error.
         - UNRESOLVED: evidence is genuinely insufficient.
 
-        REQUIRED OUTPUT:
+        REQUIRED OUTPUT — start immediately with the first tag and stop after the last tag:
         <VERDICT>ACCEPT_A|ACCEPT_B|EQUIVALENT|REPAIR_A|REPAIR_B|UNRESOLVED</VERDICT>
         <TARGET_CANDIDATE>A|B|none</TARGET_CANDIDATE>
         <TARGET_CLAIM>C1|C2|...|FINAL|none</TARGET_CLAIM>
@@ -207,6 +209,7 @@ def audit_prompt(
         <CHALLENGE>State the smallest concrete challenge or write none.</CHALLENGE>
         <WITNESS>Give a counterexample, failed condition, substitution, or write none.</WITNESS>
         <RESOLVER_HINT>State the shortest check that resolves the dispute or write none.</RESOLVER_HINT>
+        Do not output anything else. Keep CHALLENGE and WITNESS below 120 words each.
         """
     ).strip()
 

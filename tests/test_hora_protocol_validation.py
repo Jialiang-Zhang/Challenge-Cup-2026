@@ -1,6 +1,7 @@
 import unittest
 
-from agent.models import MethodFingerprint, SolutionCapsule
+from agent.evidence import evaluate_candidate
+from agent.models import MethodFingerprint, SolutionCapsule, TaskContract
 from agent.protocol_validation import is_protocol_placeholder, sanitize_solution_capsule
 
 
@@ -35,6 +36,52 @@ class ProtocolValidationTest(unittest.TestCase):
         sanitize_solution_capsule(capsule, requires_proof=False)
         self.assertEqual(capsule.final_response, "-1")
         self.assertTrue(capsule.complete)
+
+    def test_later_final_response_reconciles_conflicting_candidate(self) -> None:
+        capsule = SolutionCapsule(
+            candidate_id="A",
+            source="primary",
+            answer_raw="-1/635",
+            final_response="-1\nBy FTC and f(1)=5, the value is -1.",
+            fingerprint=MethodFingerprint(paradigm="theorem"),
+        )
+        sanitize_solution_capsule(capsule, requires_proof=False)
+        self.assertEqual(capsule.answer_raw, "-1")
+        self.assertIn("candidate_response_conflict", capsule.parse_warnings)
+        self.assertIn("reconciled_to_final_response", capsule.parse_warnings)
+
+    def test_consistency_check_does_not_accept_numeric_substrings(self) -> None:
+        contract = TaskContract(
+            primary_domain="real_analysis",
+            secondary_domains=(),
+            problem_kind="calculation",
+            answer_schema="exact_expression",
+            requires_proof=False,
+            requires_exact_answer=True,
+            multipart_count=1,
+            risk_level="low",
+            verification_modes=("format",),
+            mandatory_attacks=("boundary",),
+            likely_failure_modes=(),
+            route_hint="R0",
+            primary_method="direct",
+            orthogonal_method="definition",
+        )
+        capsule = SolutionCapsule(
+            candidate_id="A",
+            source="primary",
+            answer_raw="-1",
+            final_response="-1/635",
+            fingerprint=MethodFingerprint(paradigm="direct"),
+        )
+        records = evaluate_candidate(capsule, contract)
+        consistency = next(
+            record
+            for record in records
+            if record.evidence_type == "answer_response_consistency"
+        )
+        self.assertEqual(consistency.status, "fail")
+        self.assertEqual(consistency.strength, "hard")
 
 
 if __name__ == "__main__":

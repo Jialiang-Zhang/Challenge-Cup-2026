@@ -17,17 +17,32 @@ class Run112BenchmarkTest(unittest.TestCase):
     def test_load_dataset_sorts_by_idx_and_validates_count(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             dataset_dir = Path(temp_dir)
-            (dataset_dir / "10.json").write_text(
-                json.dumps({"idx": 10, "problem": "p10", "answer": "a10"}),
+            (dataset_dir / "1.json").write_text(
+                json.dumps({"idx": 1, "problem": "p1", "answer": "a1"}),
                 encoding="utf-8",
             )
-            (dataset_dir / "2.json").write_text(
-                json.dumps({"idx": 2, "problem": "p2", "answer": "a2"}),
+            (dataset_dir / "0.json").write_text(
+                json.dumps({"idx": 0, "problem": "p0", "answer": "a0"}),
                 encoding="utf-8",
             )
 
             records = benchmark.load_dataset(dataset_dir, expected_count=2)
-            self.assertEqual([item["idx"] for item in records], [2, 10])
+            self.assertEqual([item["idx"] for item in records], [0, 1])
+
+    def test_load_dataset_rejects_noncontiguous_indices(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            dataset_dir = Path(temp_dir)
+            (dataset_dir / "0.json").write_text(
+                json.dumps({"idx": 0, "problem": "p0"}),
+                encoding="utf-8",
+            )
+            (dataset_dir / "2.json").write_text(
+                json.dumps({"idx": 2, "problem": "p2"}),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "indices must be exactly"):
+                benchmark.load_dataset(dataset_dir, expected_count=2)
 
     def test_write_agent_input_excludes_reference_fields(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -94,6 +109,20 @@ class Run112BenchmarkTest(unittest.TestCase):
             self.assertEqual(summary["subjects"], {"algebra": 1, "analysis": 2})
             self.assertEqual(summary["records"][0]["response_chars"], 2)
             self.assertEqual(summary["records"][0]["trace_steps"], 1)
+
+    def test_incomplete_outputs_produce_nonzero_exit_code(self) -> None:
+        incomplete = {
+            "total": 3,
+            "counts": {"success": 2, "error": 1, "missing": 0, "other": 0},
+        }
+        complete = {
+            "total": 3,
+            "counts": {"success": 3, "error": 0, "missing": 0, "other": 0},
+        }
+
+        self.assertEqual(benchmark.derive_benchmark_exit_code(incomplete, 0), 2)
+        self.assertEqual(benchmark.derive_benchmark_exit_code(complete, 0), 0)
+        self.assertEqual(benchmark.derive_benchmark_exit_code(complete, 7), 7)
 
 
 if __name__ == "__main__":

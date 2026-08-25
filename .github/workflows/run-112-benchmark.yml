@@ -1,6 +1,15 @@
 name: Run 112 benchmark
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "agent/**"
+      - "user_agent.py"
+      - "requirements.txt"
+      - "scripts/run_112_benchmark.py"
+      - ".github/workflows/run-112-benchmark.yml"
   workflow_dispatch:
     inputs:
       concurrency:
@@ -33,7 +42,8 @@ jobs:
     env:
       INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
       INTERN_MODEL: intern-s2-preview
-      LOCAL_MAX_CONCURRENCY: ${{ inputs.concurrency }}
+      LOCAL_MAX_CONCURRENCY: ${{ github.event.inputs.concurrency || '3' }}
+      DATASET_REF: ${{ github.event.inputs.dataset_ref || 'main' }}
       JUPYTER_PLATFORM_DIRS: "1"
       PYTHONUNBUFFERED: "1"
       GH_TOKEN: ${{ github.token }}
@@ -42,14 +52,14 @@ jobs:
       - name: Check out agent repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Check out 112-question dataset
         uses: actions/checkout@v4
         with:
           repository: Jialiang-Zhang/test-dataset-math
-          ref: ${{ inputs.dataset_ref }}
+          ref: ${{ env.DATASET_REF }}
           path: _benchmark_dataset
           fetch-depth: 1
 
@@ -98,7 +108,7 @@ jobs:
             --output-root output \
             --run-id "${RUN_ID}" \
             --concurrency "${LOCAL_MAX_CONCURRENCY}" \
-            --dataset-ref "${{ inputs.dataset_ref }}" \
+            --dataset-ref "${DATASET_REF}" \
             --dataset-commit "${DATASET_COMMIT}"
 
       - name: Upload immutable run artifact
@@ -115,7 +125,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           if [ ! -d "output/${RUN_ID}" ]; then
             echo "::error::Expected output/${RUN_ID} was not created"
             exit 1
@@ -124,14 +133,12 @@ jobs:
           git switch -c "${RESULT_BRANCH}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
           git add -- "output/${RUN_ID}"
           if git diff --cached --quiet; then
             echo "::error::No benchmark result files were produced"
             exit 1
           fi
-
-          git commit -m "benchmark: record 112 run ${RUN_ID}"
+          git commit -m "benchmark: record HORA 112 run ${RUN_ID}"
           git push origin "HEAD:${RESULT_BRANCH}"
 
       - name: Open benchmark result pull request
@@ -139,39 +146,36 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           python - <<'PY'
+          import json
           import os
           from pathlib import Path
 
           run_id = os.environ["RUN_ID"]
-          agent_commit = os.environ["AGENT_COMMIT"]
-          dataset_commit = os.environ["DATASET_COMMIT"]
-          model = os.environ["INTERN_MODEL"]
-          concurrency = os.environ["LOCAL_MAX_CONCURRENCY"]
+          summary_path = Path("output") / run_id / "summary.json"
+          summary = json.loads(summary_path.read_text(encoding="utf-8")) if summary_path.exists() else {}
+          counts = summary.get("counts", {})
+          telemetry = summary.get("telemetry", {})
           workflow_url = (
               f"{os.environ['GITHUB_SERVER_URL']}/"
               f"{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
               f"{os.environ['GITHUB_RUN_ID']}"
           )
-
-          body = f"""## 112-question benchmark run
+          body = f"""## HORA-Math 112-question benchmark
 
           - Run ID: `{run_id}`
-          - Agent commit: `{agent_commit}`
-          - Dataset: `Jialiang-Zhang/test-dataset-math@{dataset_commit}`
-          - Dataset path: `112/`
-          - Model: `{model}`
-          - Concurrency: `{concurrency}`
-          - Workflow run: {workflow_url}
+          - Agent commit: `{os.environ['AGENT_COMMIT']}`
+          - Dataset: `Jialiang-Zhang/test-dataset-math@{os.environ['DATASET_COMMIT']}`
+          - Model: `{os.environ['INTERN_MODEL']}`
+          - Concurrency: `{os.environ['LOCAL_MAX_CONCURRENCY']}`
+          - Execution success: `{counts.get('success', 0)}/{summary.get('total', 0)}`
+          - Model calls: `{telemetry.get('model_calls_total', 'unknown')}`
+          - Repairs: `{telemetry.get('repair_total', 'unknown')}`
+          - Workflow: {workflow_url}
 
-          Results are stored under:
+          Results are stored under `output/{run_id}/`.
 
-          ```text
-          output/{run_id}/
-          ```
-
-          `summary.json` checks execution completeness only and is not the official mathematical judge.
+          Reference equivalence in `summary.json` is a conservative local diagnostic, not the official judge.
           """
           Path("/tmp/benchmark-pr.md").write_text(body, encoding="utf-8")
           PY
@@ -179,14 +183,13 @@ jobs:
           if ! gh pr create \
             --base main \
             --head "${RESULT_BRANCH}" \
-            --title "benchmark: 112 run ${RUN_ID}" \
+            --title "benchmark: HORA 112 run ${RUN_ID}" \
             --body-file /tmp/benchmark-pr.md; then
-            echo "::warning::Result branch was pushed, but GitHub Actions could not create the PR."
-            echo "::warning::Create it manually from branch ${RESULT_BRANCH}."
+            echo "::warning::Result branch was pushed, but the PR could not be created automatically."
           fi
 
       - name: Propagate benchmark failure
         if: steps.benchmark.outcome != 'success'
         run: |
-          echo "::error::Benchmark runner failed; partial outputs were still preserved."
+          echo "::error::Benchmark runner failed; partial outputs were preserved."
           exit 1

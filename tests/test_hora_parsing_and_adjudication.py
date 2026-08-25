@@ -2,13 +2,8 @@ import unittest
 
 from agent.adjudication import select_best_candidate
 from agent.evidence import challenge_from_audit, evaluate_candidate
-from agent.models import (
-    CaseState,
-    MethodFingerprint,
-    SolutionCapsule,
-    TaskContract,
-)
-from agent.parsing import extract_tag, parse_audit_result, parse_solution_capsule
+from agent.models import CaseState, MethodFingerprint, SolutionCapsule, TaskContract
+from agent.parsing import extract_asserted_answer, extract_tag, parse_audit_result, parse_solution_capsule
 
 
 class ParsingAdjudicationTest(unittest.TestCase):
@@ -42,30 +37,23 @@ interpretation_id: I1
 exposed_to_primary: false
 </METHOD_FINGERPRINT>
 <CRITICAL_CLAIMS><CLAIM id="C7">A decisive fact.</CLAIM></CRITICAL_CLAIMS>
-<FINAL_RESPONSE>The result is 42.</FINAL_RESPONSE>
+<FINAL_RESPONSE>42</FINAL_RESPONSE>
 """
-        capsule = parse_solution_capsule(
+        result = parse_solution_capsule(
             text,
             candidate_id="A",
             source="primary",
             fallback_fingerprint=MethodFingerprint(),
             requires_proof=False,
         )
-        self.assertEqual(capsule.answer_raw, "42")
-        self.assertEqual(capsule.claims[0].claim_id, "C7")
-        self.assertEqual(capsule.fingerprint.paradigm, "constructive")
-        self.assertFalse(capsule.truncated)
+        self.assertEqual(result.answer_raw, "42")
+        self.assertEqual(result.claims[0].claim_id, "C7")
+        self.assertFalse(result.truncated)
 
-    def test_parser_ignores_reasoning_schema_echoes(self) -> None:
+    def test_schema_echo_is_ignored_before_real_sections(self) -> None:
         text = r"""
-Thinking Process:
-The `<FINAL_CANDIDATE>` tag should be the very first text? Yes.
-The requested schema also mentions `<FINAL_RESPONSE>` and `<CRITICAL_CLAIMS>`.
-I will now construct the actual response.
-
-<FINAL_CANDIDATE>
--1/8
-</FINAL_CANDIDATE>
+The `<FINAL_CANDIDATE>` and `<FINAL_RESPONSE>` names are schema tokens.
+<FINAL_CANDIDATE>-1/8</FINAL_CANDIDATE>
 <METHOD_FINGERPRINT>
 paradigm: direct
 representation: symbolic
@@ -74,74 +62,97 @@ tool_channel: none
 interpretation_id: I1
 exposed_to_primary: false
 </METHOD_FINGERPRINT>
-<CRITICAL_CLAIMS>
-<CLAIM id="C1">The point is a simple pole.</CLAIM>
-<CLAIM id="C2">The residue is -1/8.</CLAIM>
-</CRITICAL_CLAIMS>
-<FINAL_RESPONSE>The residue is $-1/8$.</FINAL_RESPONSE>
-
-After the response I may mention `<FINAL_CANDIDATE>` again without closing it.
+<CRITICAL_CLAIMS><CLAIM id="C1">The pole is simple.</CLAIM></CRITICAL_CLAIMS>
+<FINAL_RESPONSE>-1/8</FINAL_RESPONSE>
 """
-        capsule = parse_solution_capsule(
+        result = parse_solution_capsule(
             text,
             candidate_id="A",
             source="primary",
             fallback_fingerprint=MethodFingerprint(),
             requires_proof=False,
         )
-        self.assertEqual(capsule.answer_raw, "-1/8")
-        self.assertEqual(capsule.final_response, "The residue is $-1/8$.")
-        self.assertEqual([claim.claim_id for claim in capsule.claims], ["C1", "C2"])
-        self.assertFalse(capsule.truncated)
-
-    def test_extract_tag_pairs_last_close_with_nearest_open(self) -> None:
-        text = (
-            "Discuss `<FINAL_CANDIDATE>` as a schema token. "
-            "<FINAL_CANDIDATE>72</FINAL_CANDIDATE>"
+        self.assertEqual(result.answer_raw, "-1/8")
+        self.assertFalse(result.truncated)
+        self.assertIsNone(
+            extract_tag("Only discuss `<FINAL_CANDIDATE>` inline.", "FINAL_CANDIDATE")
         )
-        self.assertEqual(extract_tag(text, "FINAL_CANDIDATE"), "72")
+
+    def test_asserted_answer_extraction(self) -> None:
+        self.assertEqual(extract_asserted_answer("The exact value is $-1$."), "-1")
+        self.assertEqual(
+            extract_asserted_answer("因此正确答案为 $-\\frac{1}{8}$。"),
+            r"-\frac{1}{8}",
+        )
+        self.assertIsNone(extract_asserted_answer("The work mentions 1 and 635."))
 
     def test_audit_parser_rejects_unknown_verdict(self) -> None:
         audit = parse_audit_result("<VERDICT>MAYBE</VERDICT>")
         self.assertEqual(audit.verdict, "UNRESOLVED")
 
-    def test_fatal_counterexample_vetoes_soft_candidate(self) -> None:
+    def test_truncated_candidate_cannot_win(self) -> None:
         state = CaseState(contract=self.contract)
-        a = SolutionCapsule(
+        bad = SolutionCapsule(
+            candidate_id="A",
+            source="primary",
+            answer_raw="72",
+            final_response="72",
+            fingerprint=MethodFingerprint(paradigm="theorem"),
+            complete=True,
+            truncated=True,
+        )
+        good = SolutionCapsule(
+            candidate_id="B",
+            source="orthogonal_blind",
+            answer_raw="54",
+            final_response="54",
+            fingerprint=MethodFingerprint(paradigm="constructive"),
+        )
+        state.add_candidate(bad)
+        state.add_candidate(good)
+        for item in (bad, good):
+            for evidence in evaluate_candidate(item, self.contract):
+                state.add_evidence(evidence)
+        state.candidates["A"].eligible = False
+        winner = select_best_candidate(state)
+        self.assertIsNotNone(winner)
+        self.assertEqual(winner.capsule.candidate_id, "B")
+
+    def test_fatal_challenge_vetoes_candidate(self) -> None:
+        state = CaseState(contract=self.contract)
+        first = SolutionCapsule(
             candidate_id="A",
             source="primary",
             answer_raw="1",
             final_response="1",
             fingerprint=MethodFingerprint(paradigm="theorem"),
         )
-        b = SolutionCapsule(
+        second = SolutionCapsule(
             candidate_id="B",
             source="orthogonal_blind",
             answer_raw="2",
             final_response="2",
             fingerprint=MethodFingerprint(paradigm="constructive"),
         )
-        state.add_candidate(a)
-        state.add_candidate(b)
-        for candidate in (a, b):
-            for evidence in evaluate_candidate(candidate, self.contract):
+        state.add_candidate(first)
+        state.add_candidate(second)
+        for item in (first, second):
+            for evidence in evaluate_candidate(item, self.contract):
                 state.add_evidence(evidence)
-
         state.add_challenge(
             challenge_from_audit(
                 challenge_id="CH1",
                 candidate_id="A",
                 target_claim_id="C1",
-                attack_type="counterexample",
+                attack_type="boundary",
                 severity="fatal",
-                statement="A reproducible counterexample exists.",
+                statement="A reproducible failure exists.",
                 witness="n=1",
                 resolver_hint="substitute",
                 sustained=True,
             )
         )
         state.candidates["A"].eligible = False
-
         winner = select_best_candidate(state)
         self.assertIsNotNone(winner)
         self.assertEqual(winner.capsule.candidate_id, "B")

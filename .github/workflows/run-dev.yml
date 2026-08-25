@@ -79,7 +79,7 @@ jobs:
           import json
           from pathlib import Path
 
-          from agent.canonicalize import compare_answers, normalize_answer_text
+          from agent.canonicalize import compare_answers
 
           input_path = Path("sample_data/dev.jsonl")
           output_dir = Path("sample_outputs")
@@ -110,12 +110,7 @@ jobs:
               status = result.get("status", "unknown")
               final_response = str(result.get("final_response", ""))
               relation = compare_answers(expected[idx], final_response)
-              text_match = (
-                  bool(expected[idx])
-                  and normalize_answer_text(expected[idx])
-                  in normalize_answer_text(final_response)
-              )
-              mathematical_match = relation == "equivalent" or text_match
+              mathematical_match = relation == "equivalent"
 
               success_count += int(status == "success")
               mathematical_match_count += int(mathematical_match)
@@ -144,7 +139,7 @@ jobs:
               "success_count": success_count,
               "mathematical_match_count": mathematical_match_count,
               "warning": (
-                  "Mathematical matching is a local smoke test, not the official judge."
+                  "Mathematical matching is a strict local smoke test, not the official judge."
               ),
               "records": records,
           }

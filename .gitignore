@@ -4,3 +4,5 @@ sample_outputs/
 outputs/
 *.tmp
 .DS_Store
+_benchmark_dataset/
+.benchmark_tmp/

@@ -6,6 +6,13 @@ on:
       - main
     paths:
       - ".github/workflows/run-dev.yml"
+  pull_request:
+    paths:
+      - "agent/**"
+      - "user_agent.py"
+      - "llm_client.py"
+      - "requirements.txt"
+      - ".github/workflows/run-dev.yml"
   workflow_dispatch:
     inputs:
       concurrency:

@@ -33,6 +33,17 @@ _PREFIX_PLACEHOLDERS = (
     "list unresolved risks",
 )
 
+_CONCISE_TEXT_ANSWERS = {
+    "all real numbers",
+    "does not exist",
+    "no solution",
+    "infinitely many",
+    "true",
+    "false",
+    "yes",
+    "no",
+}
+
 
 def _instruction_key(value: str) -> str:
     value = re.sub(r"<[^>]+>", " ", value)
@@ -61,8 +72,21 @@ def _looks_like_compact_answer(value: str) -> bool:
         return False
     if is_protocol_placeholder(value):
         return False
+
+    key = _instruction_key(value)
+    if key in _CONCISE_TEXT_ANSWERS:
+        return True
+    if re.search(
+        r"\b(?:because|therefore|hence|since|by\s+the|the\s+answer\s+is)\b|"
+        r"(?:因为|由于|根据|所以|从而|可得|答案为)",
+        value,
+        flags=re.IGNORECASE,
+    ):
+        return False
+
     latin_words = re.findall(r"[A-Za-z]{2,}", value)
-    if len(latin_words) > 6 and not re.search(r"[=\\{}\[\]()+\-*/^]", value):
+    strong_math_syntax = bool(re.search(r"[=\\{}\[\]()+*/^]", value))
+    if len(latin_words) > 2 and not strong_math_syntax:
         return False
     return True
 

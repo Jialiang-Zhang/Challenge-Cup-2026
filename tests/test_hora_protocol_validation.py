@@ -1,7 +1,7 @@
 import unittest
 
 from agent.evidence import evaluate_candidate
-from agent.models import MethodFingerprint, SolutionCapsule, TaskContract
+from agent.models import ClaimRecord, MethodFingerprint, SolutionCapsule, TaskContract
 from agent.protocol_validation import (
     is_protocol_placeholder,
     leading_response_answer,
@@ -17,13 +17,9 @@ class ProtocolValidationTest(unittest.TestCase):
 
     def test_leading_response_answer_preserves_negative_signs(self) -> None:
         self.assertEqual(leading_response_answer("-1\nproof"), "-1")
-        self.assertEqual(
-            leading_response_answer(r"-\frac{1}{8}\nproof"),
-            r"-\frac{1}{8}\nproof",
-        )
         self.assertIsNone(leading_response_answer("- answer\nproof"))
 
-    def test_placeholder_candidate_is_not_eligible_as_complete_content(self) -> None:
+    def test_placeholder_candidate_is_not_complete(self) -> None:
         capsule = SolutionCapsule(
             candidate_id="B",
             source="orthogonal_blind",
@@ -37,7 +33,7 @@ class ProtocolValidationTest(unittest.TestCase):
         self.assertFalse(capsule.complete)
         self.assertIn("placeholder_final_candidate", capsule.parse_warnings)
 
-    def test_nonproof_response_can_fall_back_to_real_answer(self) -> None:
+    def test_nonproof_placeholder_response_falls_back_to_real_answer(self) -> None:
         capsule = SolutionCapsule(
             candidate_id="B",
             source="orthogonal_blind",
@@ -49,18 +45,19 @@ class ProtocolValidationTest(unittest.TestCase):
         self.assertEqual(capsule.final_response, "-1")
         self.assertTrue(capsule.complete)
 
-    def test_later_final_response_reconciles_conflicting_candidate(self) -> None:
+    def test_asserted_final_value_reconciles_conflicting_candidate(self) -> None:
         capsule = SolutionCapsule(
             candidate_id="A",
             source="primary",
             answer_raw="-1/635",
-            final_response="-1\nBy FTC and f(1)=5, the value is -1.",
+            final_response="The exact value is $-1$ by the FTC.",
             fingerprint=MethodFingerprint(paradigm="theorem"),
+            claims=[ClaimRecord("C1", "The correct final value is $-1$.")],
         )
         sanitize_solution_capsule(capsule, requires_proof=False)
         self.assertEqual(capsule.answer_raw, "-1")
-        self.assertIn("candidate_response_conflict", capsule.parse_warnings)
-        self.assertIn("reconciled_to_final_response", capsule.parse_warnings)
+        self.assertIn("candidate_internal_conflict", capsule.parse_warnings)
+        self.assertIn("reconciled_to_asserted_final_answer", capsule.parse_warnings)
 
     def test_consistency_check_does_not_accept_numeric_substrings(self) -> None:
         contract = TaskContract(

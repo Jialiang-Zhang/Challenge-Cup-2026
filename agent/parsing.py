@@ -26,15 +26,38 @@ def coerce_text(response: Any) -> str:
 
 
 def extract_tag(text: str, tag: str) -> str | None:
-    matches = re.findall(
-        TAG_TEMPLATE.format(tag=re.escape(tag)),
-        text,
-        flags=re.IGNORECASE | re.DOTALL,
+    """Return the last well-formed tag body using nearest-open pairing.
+
+    Reasoning models may echo literal protocol tags while discussing the requested
+    schema. A normal non-overlapping ``findall`` can then pair an early echoed
+    opening tag with the real closing tag and extract prompt commentary instead of
+    the actual answer. Pairing each closing tag with the nearest preceding opening
+    tag makes the parser robust to those echoed or nested-looking tag mentions.
+    """
+
+    escaped = re.escape(tag)
+    opening_pattern = re.compile(
+        rf"<{escaped}(?:\s+[^>]*)?>",
+        flags=re.IGNORECASE,
     )
-    if not matches:
+    closing_pattern = re.compile(
+        rf"</{escaped}\s*>",
+        flags=re.IGNORECASE,
+    )
+    openings = list(opening_pattern.finditer(text))
+    closings = list(closing_pattern.finditer(text))
+    if not openings or not closings:
         return None
-    value = matches[-1].strip()
-    return value or None
+
+    for closing in reversed(closings):
+        preceding = [opening for opening in openings if opening.end() <= closing.start()]
+        if not preceding:
+            continue
+        opening = preceding[-1]
+        value = text[opening.end() : closing.start()].strip()
+        if value:
+            return value
+    return None
 
 
 def _extract_balanced_boxed(text: str) -> str | None:
@@ -130,9 +153,15 @@ def parse_method_fingerprint(
 
 def parse_claims(text: str) -> list[ClaimRecord]:
     claims: list[ClaimRecord] = []
+    # Restrict claim parsing to the last well-formed CRITICAL_CLAIMS block when
+    # present. This prevents prompt/schema echoes in the model's reasoning text
+    # from being mistaken for actual candidate claims.
+    block = extract_tag(text, "CRITICAL_CLAIMS")
+    scope = block if block else text
+
     for match in re.finditer(
         r"<CLAIM(?:\s+id=[\"']?([^\"'>\s]+)[\"']?)?>(.*?)</CLAIM>",
-        text,
+        scope,
         flags=re.IGNORECASE | re.DOTALL,
     ):
         claim_id = (match.group(1) or f"C{len(claims) + 1}").strip()
@@ -143,7 +172,6 @@ def parse_claims(text: str) -> list[ClaimRecord]:
     if claims:
         return claims[:8]
 
-    block = extract_tag(text, "CRITICAL_CLAIMS")
     if block:
         for line in block.splitlines():
             cleaned = re.sub(r"^[\s\-*\d.)、]+", "", line).strip()
@@ -182,12 +210,14 @@ def parse_solution_capsule(
     parent_candidate_id: str | None = None,
 ) -> SolutionCapsule:
     warnings: list[str] = []
-    answer = extract_final_candidate(text)
+    tagged_answer = extract_tag(text, "FINAL_CANDIDATE")
+    answer = _compact_candidate(tagged_answer) if tagged_answer else extract_final_candidate(text)
     if not answer:
         warnings.append("missing_final_candidate")
         answer = ""
 
-    final_response = extract_tag(text, "FINAL_RESPONSE")
+    tagged_final_response = extract_tag(text, "FINAL_RESPONSE")
+    final_response = tagged_final_response
     if not final_response:
         warnings.append("missing_final_response")
         final_response = strip_protocol_tags(text) if requires_proof else answer
@@ -202,9 +232,10 @@ def parse_solution_capsule(
     check_hints = _parse_list_block(text, "CHECK_HINTS")
 
     complete = bool(answer.strip() and final_response.strip())
-    truncated = text.count("<") > text.count(">") or (
-        "<FINAL_RESPONSE>" in text.upper() and "</FINAL_RESPONSE>" not in text.upper()
-    )
+    # Treat the capsule as structurally complete when both required tagged
+    # sections can be paired successfully. Angle brackets in prose or LaTeX must
+    # not create false truncation signals.
+    truncated = tagged_answer is None or tagged_final_response is None
 
     return SolutionCapsule(
         candidate_id=candidate_id,
@@ -249,7 +280,10 @@ def parse_audit_result(text: str) -> AuditResult:
     if raw_verdict:
         verdict_match = re.search("|".join(allowed), raw_verdict.upper())
     else:
-        matches = re.findall(r"\b(?:ACCEPT_A|ACCEPT_B|EQUIVALENT|REPAIR_A|REPAIR_B|UNRESOLVED)\b", text.upper())
+        matches = re.findall(
+            r"\b(?:ACCEPT_A|ACCEPT_B|EQUIVALENT|REPAIR_A|REPAIR_B|UNRESOLVED)\b",
+            text.upper(),
+        )
         verdict_match = re.search("|".join(allowed), matches[-1]) if matches else None
     verdict = verdict_match.group(0) if verdict_match else "UNRESOLVED"
 

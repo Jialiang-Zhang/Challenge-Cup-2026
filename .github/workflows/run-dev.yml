@@ -6,12 +6,6 @@ on:
       - main
     paths:
       - ".github/workflows/run-dev.yml"
-  pull_request:
-    paths:
-      - "agent/**"
-      - "user_agent.py"
-      - "requirements.txt"
-      - ".github/workflows/run-dev.yml"
   workflow_dispatch:
     inputs:
       concurrency:
@@ -38,6 +32,7 @@ jobs:
       LOCAL_MAX_CONCURRENCY: ${{ github.event.inputs.concurrency || '1' }}
       JUPYTER_PLATFORM_DIRS: "1"
       PYTHONUNBUFFERED: "1"
+      HORA_DEBUG_DIR: sample_outputs/_debug
 
     steps:
       - name: Check out repository

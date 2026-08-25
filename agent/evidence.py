@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 
-from .canonicalize import answer_appears_in_response, compare_answers, numeric_value
+from .canonicalize import compare_answers, numeric_value
 from .models import (
     CaseState,
     Challenge,
@@ -11,6 +11,7 @@ from .models import (
     TaskContract,
 )
 from .orthogonality import is_independent_support
+from .protocol_validation import leading_response_answer
 
 
 _counter = itertools.count(1)
@@ -52,18 +53,25 @@ def evaluate_candidate(
             )
         )
 
-    response_consistent = answer_appears_in_response(
-        capsule.answer_raw, capsule.final_response
+    response_answer = leading_response_answer(capsule.final_response)
+    relation = (
+        compare_answers(capsule.answer_raw, response_answer)
+        if response_answer
+        else "unknown"
     )
     records.append(
         EvidenceRecord(
             evidence_id=_evidence_id(),
             candidate_id=capsule.candidate_id,
             evidence_type="answer_response_consistency",
-            status="pass" if response_consistent else "unknown",
-            strength="structural",
+            status=(
+                "pass"
+                if relation == "equivalent"
+                else ("fail" if relation == "not_equivalent" else "unknown")
+            ),
+            strength="hard" if relation == "not_equivalent" else "structural",
             checker="answer_normalizer",
-            detail_code=None if response_consistent else "candidate_not_located_in_response",
+            detail_code=None if relation == "equivalent" else f"relation={relation}",
         )
     )
 

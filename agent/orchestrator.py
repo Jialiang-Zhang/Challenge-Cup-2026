@@ -46,6 +46,7 @@ class HORAEngine:
         prompt: str,
         temperature: float,
         max_tokens: int,
+        thinking_mode: bool | None = None,
     ) -> str:
         if not guard.allow_model_call(state):
             raise RuntimeError("HORA-Math model-call budget or soft deadline reached")
@@ -54,11 +55,20 @@ class HORAEngine:
         started = time.monotonic()
         call_id = state.model_calls
         try:
-            response = self.client.chat(
-                messages=[{"role": "user", "content": prompt}],
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
+            call_kwargs = {
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            if thinking_mode is not None:
+                call_kwargs["thinking_mode"] = thinking_mode
+            try:
+                response = self.client.chat(**call_kwargs)
+            except TypeError as exc:
+                if thinking_mode is None or "thinking_mode" not in str(exc):
+                    raise
+                call_kwargs.pop("thinking_mode", None)
+                response = self.client.chat(**call_kwargs)
             text = coerce_text(response)
         except Exception as exc:
             trace.append(
@@ -173,6 +183,7 @@ class HORAEngine:
             prompt=primary_prompt(problem, state.contract),
             temperature=self.config.primary_temperature,
             max_tokens=self.config.primary_max_tokens,
+            thinking_mode=True,
         )
         capsule = parse_solution_capsule(
             text,
@@ -201,13 +212,27 @@ class HORAEngine:
             prompt=blind_prompt(problem, state.contract),
             temperature=self.config.blind_temperature,
             max_tokens=self.config.blind_max_tokens,
+            thinking_mode=True,
         )
+        planned_fingerprint = self._blind_fingerprint(state.contract.orthogonal_method)
         capsule = parse_solution_capsule(
             text,
             candidate_id="B",
             source="orthogonal_blind",
-            fallback_fingerprint=self._blind_fingerprint(state.contract.orthogonal_method),
+            fallback_fingerprint=planned_fingerprint,
             requires_proof=state.contract.requires_proof,
+        )
+        capsule.fingerprint = MethodFingerprint(
+            paradigm=planned_fingerprint.paradigm,
+            representation=planned_fingerprint.representation,
+            theorem_family=planned_fingerprint.theorem_family,
+            tool_channel=(
+                capsule.fingerprint.tool_channel
+                if capsule.fingerprint.tool_channel not in {"", "none", "unknown"}
+                else planned_fingerprint.tool_channel
+            ),
+            interpretation_id=capsule.fingerprint.interpretation_id or "I1",
+            exposed_to_primary=False,
         )
         state.add_candidate(capsule)
         self._apply_candidate_evidence(state, capsule)
@@ -254,6 +279,7 @@ class HORAEngine:
             ),
             temperature=self.config.audit_temperature,
             max_tokens=self.config.audit_max_tokens,
+            thinking_mode=False,
         )
         result = parse_audit_result(text)
         trace.append(
@@ -338,6 +364,7 @@ class HORAEngine:
             prompt=repair_prompt(problem, state.contract, parent, audit),
             temperature=self.config.repair_temperature,
             max_tokens=self.config.repair_max_tokens,
+            thinking_mode=True,
         )
         state.repair_count += 1
         capsule = parse_solution_capsule(
@@ -402,6 +429,7 @@ class HORAEngine:
                 prompt=rescue_prompt(problem, state.contract),
                 temperature=0.0,
                 max_tokens=min(2048, self.config.primary_max_tokens),
+                thinking_mode=False,
             )
         except Exception:
             return None
@@ -445,7 +473,6 @@ class HORAEngine:
         return value
 
     def solve(self, problem: str, metadata: dict[str, Any] | None = None) -> dict[str, Any]:
-        del metadata
         if not isinstance(problem, str) or not problem.strip():
             raise ValueError("problem must be a non-empty string")
 

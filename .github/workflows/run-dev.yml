@@ -165,3 +165,25 @@ jobs:
           path: sample_outputs/
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Enforce dev smoke test
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("sample_outputs/dev_summary.json")
+          if not path.exists():
+              raise SystemExit("dev_summary.json was not produced")
+          summary = json.loads(path.read_text(encoding="utf-8"))
+          total = int(summary.get("total", 0))
+          success = int(summary.get("success_count", 0))
+          matched = int(summary.get("mathematical_match_count", 0))
+          if not total or success != total or matched != total:
+              raise SystemExit(
+                  f"dev smoke test failed: success={success}/{total}, mathematical_match={matched}/{total}"
+              )
+          print(f"dev smoke test passed: {matched}/{total}")
+          PY

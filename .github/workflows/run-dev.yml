@@ -1,0 +1,143 @@
+name: Run dev benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      concurrency:
+        description: "Number of dev questions to run concurrently (1-3)"
+        required: false
+        default: "1"
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "3"
+
+permissions:
+  contents: read
+
+jobs:
+  run-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
+      INTERN_MODEL: intern-s2-preview
+      LOCAL_MAX_CONCURRENCY: ${{ inputs.concurrency }}
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Verify API secret
+        shell: bash
+        run: |
+          if [ -z "${INTERN_API_KEY}" ]; then
+            echo "::error::Missing repository Actions secret named INTERN_API_KEY"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run sample_data/dev.jsonl
+        run: |
+          rm -rf sample_outputs
+          python main.py \
+            --input_file sample_data/dev.jsonl \
+            --output_dir sample_outputs
+
+      - name: Build smoke-test summary
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          input_path = Path("sample_data/dev.jsonl")
+          output_dir = Path("sample_outputs")
+          expected = {}
+
+          for line in input_path.read_text(encoding="utf-8").splitlines():
+              if not line.strip():
+                  continue
+              item = json.loads(line)
+              expected[int(item["idx"])] = str(item.get("answer", ""))
+
+          def compact(value: str) -> str:
+              value = value.replace("\\\\boxed", "")
+              value = value.replace("\\boxed", "")
+              value = value.replace("$", "")
+              return re.sub(r"\\s+", "", value).lower()
+
+          records = []
+          success_count = 0
+          answer_text_match_count = 0
+
+          for idx in sorted(expected):
+              path = output_dir / f"{idx}.json"
+              if not path.exists():
+                  records.append({
+                      "idx": idx,
+                      "status": "missing",
+                      "expected": expected[idx],
+                      "answer_text_match": False,
+                  })
+                  continue
+
+              result = json.loads(path.read_text(encoding="utf-8"))
+              status = result.get("status", "unknown")
+              final_response = str(result.get("final_response", ""))
+              answer_text_match = (
+                  bool(expected[idx])
+                  and compact(expected[idx]) in compact(final_response)
+              )
+
+              success_count += int(status == "success")
+              answer_text_match_count += int(answer_text_match)
+              records.append({
+                  "idx": idx,
+                  "status": status,
+                  "expected": expected[idx],
+                  "answer_text_match": answer_text_match,
+                  "response_chars": len(final_response),
+                  "error_type": result.get("error", {}).get("type"),
+              })
+
+          summary = {
+              "total": len(expected),
+              "success_count": success_count,
+              "answer_text_match_count": answer_text_match_count,
+              "warning": (
+                  "answer_text_match is only a smoke test; it is not the official judge"
+              ),
+              "records": records,
+          }
+
+          output_dir.mkdir(parents=True, exist_ok=True)
+          (output_dir / "dev_summary.json").write_text(
+              json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(summary, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload dev results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-results-${{ github.run_number }}
+          path: sample_outputs/
+          if-no-files-found: warn
+          retention-days: 7

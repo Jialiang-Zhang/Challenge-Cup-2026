@@ -63,7 +63,9 @@ def leading_response_answer(value: str | None) -> str | None:
     lines = [line.strip() for line in value.splitlines() if line.strip()]
     if not lines:
         return None
-    first = re.sub(r"^[\-*•]+\s*", "", lines[0]).strip()
+    # Remove true Markdown bullets only. A mathematical negative sign such as
+    # ``-1`` or ``-\frac{1}{8}`` must be preserved.
+    first = re.sub(r"^(?:[*•]\s*|-\s+)", "", lines[0]).strip()
     if len(first) > 300 or is_protocol_placeholder(first):
         return None
     return first

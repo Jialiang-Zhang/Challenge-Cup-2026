@@ -1,0 +1,166 @@
+{
+  "idx": 58,
+  "status": "error",
+  "final_response": "",
+  "error": {
+    "type": "RuntimeError",
+    "message": "HORA-Math produced no complete, hard-valid candidate"
+  },
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "random_process",
+        "secondary_domain_count": 2,
+        "risk": "medium",
+        "route": "R1",
+        "answer_schema": "exact_expression",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "probability",
+          "mathematical_analysis"
+        ],
+        "question_mode": "open_response",
+        "mode_confidence": 0.35,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "derivation_chain"
+        ],
+        "ambiguity_flags": [
+          "weak_mode_signal"
+        ]
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 1,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 3498,
+        "elapsed_ms": 32659
+      }
+    },
+    {
+      "step": "candidate_evidence_gate",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "reason_codes": [
+          "derivation_certificate:explicit_final_candidate_complete"
+        ],
+        "detail_codes": [
+          "dangling_answer_cue"
+        ]
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3498,
+        "claim_count": 5,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 3177,
+        "elapsed_ms": 35599
+      }
+    },
+    {
+      "step": "candidate_evidence_gate",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "reason_codes": [
+          "derivation_certificate:explicit_final_candidate_complete"
+        ],
+        "detail_codes": [
+          "dangling_answer_cue"
+        ]
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3177,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [],
+        "invalid_candidate_ids": [
+          "A",
+          "B"
+        ]
+      }
+    },
+    {
+      "step": "rescue_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 3340,
+        "elapsed_ms": 39914
+      }
+    },
+    {
+      "step": "candidate_evidence_gate",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "reason_codes": [
+          "derivation_certificate:explicit_final_candidate_complete"
+        ],
+        "detail_codes": [
+          "dangling_answer_cue"
+        ]
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3340,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    }
+  ]
+}

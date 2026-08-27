@@ -1,0 +1,107 @@
+{
+  "run_id": "20260827T144102Z-recovery-diag3-round7-397b-run1",
+  "model": "intern-s2-preview-397b",
+  "agent_base_commit": "611700688f03f30839274c089d294539029fc58a",
+  "ids": [
+    16,
+    25,
+    58
+  ],
+  "counts": {
+    "error": 2,
+    "success": 1
+  },
+  "records": [
+    {
+      "idx": 16,
+      "status": "error",
+      "source": null,
+      "candidate_id": null,
+      "model_calls": null,
+      "repair_count": null,
+      "rejection_gates": [
+        {
+          "candidate_id": "R",
+          "source": "rescue",
+          "reason_codes": [
+            "derivation_certificate:shearer_ordered_conditioning_chain"
+          ],
+          "detail_codes": [
+            "missing_non_circular_ordered_conditioning_argument"
+          ]
+        }
+      ],
+      "error": {
+        "type": "RuntimeError",
+        "message": "HORA-Math produced no complete, hard-valid candidate"
+      }
+    },
+    {
+      "idx": 25,
+      "status": "success",
+      "source": "orthogonal_blind",
+      "candidate_id": "B",
+      "model_calls": 4,
+      "repair_count": 0,
+      "rejection_gates": [
+        {
+          "candidate_id": "A",
+          "source": "primary",
+          "reason_codes": [
+            "explicit_requirement:bdf2_taylor_coefficient",
+            "derivation_certificate:stable_branch_interior_anchor"
+          ],
+          "detail_codes": [
+            "wrong_third_derivative_coefficient",
+            "missing_verified_interior_stable_anchor"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "idx": 58,
+      "status": "error",
+      "source": null,
+      "candidate_id": null,
+      "model_calls": null,
+      "repair_count": null,
+      "rejection_gates": [
+        {
+          "candidate_id": "A",
+          "source": "primary",
+          "reason_codes": [
+            "derivation_certificate:explicit_final_candidate_complete"
+          ],
+          "detail_codes": [
+            "dangling_answer_cue"
+          ]
+        },
+        {
+          "candidate_id": "B",
+          "source": "orthogonal_blind",
+          "reason_codes": [
+            "derivation_certificate:explicit_final_candidate_complete"
+          ],
+          "detail_codes": [
+            "dangling_answer_cue"
+          ]
+        },
+        {
+          "candidate_id": "R",
+          "source": "rescue",
+          "reason_codes": [
+            "derivation_certificate:explicit_final_candidate_complete"
+          ],
+          "detail_codes": [
+            "dangling_answer_cue"
+          ]
+        }
+      ],
+      "error": {
+        "type": "RuntimeError",
+        "message": "HORA-Math produced no complete, hard-valid candidate"
+      }
+    }
+  ]
+}

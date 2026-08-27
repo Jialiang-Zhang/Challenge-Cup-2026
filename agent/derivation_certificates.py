@@ -52,8 +52,7 @@ def evaluate_decisive_derivation_certificates(
 
     # Shearer/Han-style entropy proof. With natural chain-rule order,
     # H(Z_j | Z_{<j}\setminus{Z_i}) >= H(Z_j | Z_{<j}) because LESS conditioning gives
-    # larger conditional entropy. A proof that explicitly leaves the generally false shortcut
-    # H(Z) <= H(Z_-i) in the final submission is rejected even if a later paragraph restarts.
+    # larger conditional entropy. Common shortcuts reverse this direction.
     shearer_requested = _has(req + "\n" + text, r"shearer") and _has(
         req, r"条件越多.*条件熵越小|conditioning reduces entropy"
     )
@@ -68,6 +67,20 @@ def evaluate_decisive_derivation_certificates(
             text,
             r"(?:得到|推出|故|因此|hence|therefore)[^\n。]{0,80}"
             r"H\s*\(\s*Z\s*\)\s*(?:<=|≤|\\le)\s*H\s*\(\s*Z_\{?-i\}?\s*\)",
+        )
+        reversed_prefix_vs_full = _has(
+            text,
+            r"H\s*\(\s*Z_i\s*\\?mid\s*Z_1\s*,\s*\\dots\s*,\s*Z_\{?i-1\}?\s*\)\s*"
+            r"(?:\\le|≤)\s*H\s*\(\s*Z_i\s*\\?mid\s*Z_\{?-i\}?\s*\)",
+        )
+        reversed_by_words = (
+            _has(text, r"Z_\{?-i\}?.{0,140}(?:包含|contains).{0,140}Z_1.{0,100}Z_\{?i-1\}?")
+            and _has(text, r"条件越多.{0,30}条件熵越小|conditioning reduces entropy")
+            and _has(
+                text,
+                r"H\s*\(\s*Z_i[^\n]{0,180}Z_\{?i-1\}?[^\n]{0,50}\)\s*(?:\\le|≤)\s*"
+                r"H\s*\(\s*Z_i[^\n]{0,120}Z_\{?-i\}?[^\n]{0,30}\)",
+            )
         )
         wrong_conditioning_direction = (
             _has(text, r"条件集合.{0,120}(?:多|larger|more variables)")
@@ -85,8 +98,14 @@ def evaluate_decisive_derivation_certificates(
             _has(text, r"少一个条件|条件更少|less conditioning|fewer conditioning")
             and _has(text, r"H\s*\(\s*Z_j[^\n]{0,220}\\?mid[^\n]{0,220}\)\s*\\?ge")
         )
-        ok = ordered_prefix and not false_marginal_domination and not wrong_conditioning_direction
-        if safe_less_conditioning and not false_marginal_domination:
+        explicit_reversal = reversed_prefix_vs_full or reversed_by_words
+        ok = (
+            ordered_prefix
+            and not false_marginal_domination
+            and not wrong_conditioning_direction
+            and not explicit_reversal
+        )
+        if safe_less_conditioning and not false_marginal_domination and not explicit_reversal:
             ok = True
         checks.append(
             DerivationCertificate(
@@ -97,12 +116,16 @@ def evaluate_decisive_derivation_certificates(
                     "ordered_less_conditioning_chain_present"
                     if ok
                     else (
-                        "false_HZ_le_HZminus_i_shortcut_present"
-                        if false_marginal_domination
+                        "prefix_vs_full_conditioning_inequality_reversed"
+                        if explicit_reversal
                         else (
-                            "conditioning_monotonicity_direction_conflicts_with_shearer_lower_bound"
-                            if wrong_conditioning_direction
-                            else "missing_non_circular_ordered_conditioning_argument"
+                            "false_HZ_le_HZminus_i_shortcut_present"
+                            if false_marginal_domination
+                            else (
+                                "conditioning_monotonicity_direction_conflicts_with_shearer_lower_bound"
+                                if wrong_conditioning_direction
+                                else "missing_non_circular_ordered_conditioning_argument"
+                            )
                         )
                     )
                 ),
@@ -141,10 +164,49 @@ def evaluate_decisive_derivation_certificates(
             )
         )
 
+        wrong_third_derivative_sign = _has(
+            text,
+            r"\\frac\{3y[^\n]{0,180}\}\{2h\}\s*=\s*y'[^\n]{0,100}"
+            r"\+\s*\\frac\{h\^2\}\{3\}\s*y'''",
+        ) or _has(
+            text,
+            r"差分商[^\n]{0,200}=\s*y'[^\n]{0,100}\+\s*\\frac\{h\^2\}\{3\}\s*y'''",
+        )
+        checks.append(
+            DerivationCertificate(
+                code="bdf2_third_derivative_sign",
+                status="fail" if wrong_third_derivative_sign else "pass",
+                hard_failure=wrong_third_derivative_sign,
+                detail=(
+                    "bdf2_difference_quotient_third_derivative_sign_reversed"
+                    if wrong_third_derivative_sign
+                    else "no_detected_bdf2_third_derivative_sign_conflict"
+                ),
+            )
+        )
+
+        z_minus_one = _has(text, r"z\s*=\s*-\s*1")
+        missing_constant_at_anchor = z_minus_one and (
+            _has(text, r"5\s*\\?zeta\^2\s*-\s*4\s*\\?zeta\s*=\s*0")
+            or _has(text, r"5\s*ζ\^2\s*-\s*4\s*ζ\s*=\s*0")
+            or _has(text, r"根[^\n]{0,90}(?:0\s*,\s*4/5|0\s*和\s*4/5)")
+        )
+        checks.append(
+            DerivationCertificate(
+                code="bdf2_negative_anchor_equation",
+                status="fail" if missing_constant_at_anchor else "pass",
+                hard_failure=missing_constant_at_anchor,
+                detail=(
+                    "constant_term_plus_one_lost_at_z_minus_one"
+                    if missing_constant_at_anchor
+                    else "no_detected_negative_anchor_equation_conflict"
+                ),
+            )
+        )
+
     # If the task explicitly asks why a boundary locus cannot disconnect the stable branch,
     # require an interior stable anchor in the left half-plane. This can be a checked finite
-    # point (e.g. z=-1) or a negative-real asymptotic whose roots are explicitly shown to tend
-    # inside the unit disk.
+    # point or a negative-real asymptotic whose roots are explicitly shown to enter the unit disk.
     bdf2_branch_requested = _has(req, r"边界轨迹|根轨迹|boundary locus|root locus") and _has(
         req, r"割裂|稳定分支|左半平面|disconnect|stable branch|left half"
     )

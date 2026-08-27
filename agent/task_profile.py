@@ -9,12 +9,7 @@ QuestionMode = str
 
 @dataclass(frozen=True)
 class TaskProfile:
-    """Conservative, model-free description of the requested answer shape.
-
-    A profile is advisory when the wording is ambiguous.  The orchestrator uses
-    the confidence and alternate modes instead of forcing every question into a
-    single closed taxonomy.
-    """
+    """Conservative, model-free description of the requested answer shape."""
 
     mode: QuestionMode
     confidence: float
@@ -30,11 +25,28 @@ class TaskProfile:
 
 _PROOF_MARKERS = (
     "证明",
+    "严格证明",
     "严格说明",
     "给出证明",
     "prove that",
     "show that",
     "justify rigorously",
+)
+
+_DERIVATION_MARKERS = (
+    "严格推导",
+    "推导",
+    "说明为什么",
+    "解释为什么",
+    "说明理由",
+    "给出理由",
+    "验证其关系",
+    "验证关系",
+    "并验证",
+    "derive",
+    "explain why",
+    "justify",
+    "verify",
 )
 
 _ALL_SOLUTION_MARKERS = (
@@ -85,9 +97,12 @@ def _part_labels(problem: str) -> tuple[str, ...]:
 
 
 def _option_labels(problem: str) -> tuple[str, ...]:
+    """Detect common inline and line-separated A-F option labels."""
+
     problem = problem.replace("\\n", "\n")
     pattern = re.compile(
-        r"(?m)(?:^|[；;])\s*[（(]?\s*([A-FＡ-Ｆ])\s*[)）.、:]\s*"
+        r"(?:^|[\s；;])\s*[（(]?\s*([A-FＡ-Ｆ])\s*(?:[)）]|[.、:：])\s*",
+        flags=re.MULTILINE,
     )
     labels: list[str] = []
     for match in pattern.finditer(problem):
@@ -144,12 +159,13 @@ def _explicit_choice_count(text: str) -> int | None:
     return None
 
 
-def _score_modes(problem: str) -> tuple[dict[str, float], int, int, int | None, bool, bool]:
+def _score_modes(problem: str) -> tuple[dict[str, float], int, int, int | None, bool, bool, bool]:
     lowered = _flatten(problem)
     options = _option_labels(problem)
     parts = _part_labels(problem)
     blanks = _blank_count(problem)
     requires_proof = any(marker in lowered for marker in _PROOF_MARKERS)
+    requires_derivation = any(marker in lowered for marker in _DERIVATION_MARKERS)
     requires_all = any(marker in lowered for marker in _ALL_SOLUTION_MARKERS)
 
     scores = {
@@ -184,11 +200,27 @@ def _score_modes(problem: str) -> tuple[dict[str, float], int, int, int | None, 
     if len(parts) >= 2:
         scores["multipart"] += 0.82 + min(0.14, 0.03 * len(parts))
 
-    return scores, max(1, len(parts)), blanks, _explicit_choice_count(lowered), requires_proof, requires_all
+    return (
+        scores,
+        max(1, len(parts)),
+        blanks,
+        _explicit_choice_count(lowered),
+        requires_proof,
+        requires_derivation,
+        requires_all,
+    )
 
 
 def analyze_task(problem: str) -> TaskProfile:
-    scores, part_count, blanks, choice_count, requires_proof, requires_all = _score_modes(problem)
+    (
+        scores,
+        part_count,
+        blanks,
+        choice_count,
+        requires_proof,
+        requires_derivation,
+        requires_all,
+    ) = _score_modes(problem)
     ranked = sorted(scores.items(), key=lambda item: (-item[1], item[0]))
     best_mode, best_score = ranked[0]
     second_mode, second_score = ranked[1]
@@ -218,6 +250,8 @@ def analyze_task(problem: str) -> TaskProfile:
         obligations.append(f"multipart_count:{part_count}")
     if requires_proof:
         obligations.append("proof_chain")
+    elif requires_derivation:
+        obligations.append("derivation_chain")
     if requires_all:
         obligations.append("all_solutions")
     if not obligations:

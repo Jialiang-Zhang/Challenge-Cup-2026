@@ -1,0 +1,34 @@
+{
+  "run_id": "20260827T145021Z-recovery-pair-round8-397b-run1",
+  "model": "intern-s2-preview-397b",
+  "agent_base_commit": "d600c6aa36fc4b8f0fced4420840370089e4f44b",
+  "ids": [
+    16,
+    58
+  ],
+  "counts": {
+    "success": 2
+  },
+  "records": [
+    {
+      "idx": 16,
+      "status": "success",
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 5,
+      "repair_count": 0,
+      "rejection_gates": [],
+      "error": null
+    },
+    {
+      "idx": 58,
+      "status": "success",
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 5,
+      "repair_count": 0,
+      "rejection_gates": [],
+      "error": null
+    }
+  ]
+}

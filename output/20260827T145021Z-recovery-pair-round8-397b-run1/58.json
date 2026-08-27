@@ -1,0 +1,185 @@
+{
+  "idx": 58,
+  "status": "success",
+  "final_response": "最终答案：$F_{g_T}(t)=\\mathbb{P}(g_T\\le t)=\\frac{2}{\\pi}\\arcsin\\sqrt{\\frac{t}{T}},\\quad 0\\le t\\le T;\\quad f_{g_T}(t)=\\frac{1}{\\pi\\sqrt{t(T-t)}},\\quad 0<t<T.$\n\n推导概要：\n记 $B$ 为标准布朗运动，$\\mathcal F_s=\\sigma(B_u,u\\le s)$。对 $0<t<T$，利用 $g_T$ 的定义有\n$$\\{g_T\\le t\\}=\\{B_s\\neq0,\\ \\forall s\\in(t,T]\\}.$$\n由布朗运动的 Markov 性，在 $\\mathcal F_t$ 条件下，$(B_{t+u}-B_t)_{u\\ge0}$ 为独立于 $\\mathcal F_t$ 的标准布朗运动。于是\n$$\\mathbb P(g_T\\le t\\mid\\mathcal F_t)=\\varphi(B_t,T-t),$$\n其中对 $x\\neq0,\\ u>0$ 定义\n$$\\varphi(x,u):=\\mathbb P\\bigl(\\text{BM 从 }x\\text{ 出发在 }[0,u]\\text{ 内不经过 }0\\bigr).$$\n\n**反射原理求 $\\varphi(x,u)$。**设 $(W_s)_{s\\ge0}$ 为从 $x$ 出发的标准布朗运动，$\\tau_0=\\inf\\{s\\ge0:W_s=0\\}$。由反射原理，\n$$\\mathbb P(\\tau_0\\le u)=2\\,\\mathbb P(W_u\\le0)=2\\,\\Phi\\!\\left(-\\frac{|x|}{\\sqrt u}\\right),$$\n其中 $\\Phi$ 为标准正态分布函数。故\n$$\\varphi(x,u)=1-2\\Phi\\!\\left(-\\frac{|x|}{\\sqrt u}\\right)=2\\Phi\\!\\left(\\frac{|x|}{\\sqrt u}\\right)-1.$$\n\n取期望得\n$$\\mathbb P(g_T\\le t)=\\mathbb E\\bigl[\\varphi(B_t,T-t)\\bigr]=\\int_{\\mathbb R}\\Bigl[2\\Phi\\!\\Bigl(\\frac{|x|}{\\sqrt{T-t}}\\Bigr)-1\\Bigr]\\frac{e^{-x^2/(2t)}}{\\sqrt{2\\pi t}}\\,dx.$$\n因被积函数为偶函数，\n$$\\mathbb P(g_T\\le t)=2\\int_0^\\infty\\Bigl[2\\Phi\\!\\Bigl(\\frac{x}{\\sqrt{T-t}}\\Bigr)-1\\Bigr]\\frac{e^{-x^2/(2t)}}{\\sqrt{2\\pi t}}\\,dx.$$\n注意 $2\\Phi(z)-1=\\operatorname{erf}(z/\\sqrt2)$，于是\n$$\\mathbb P(g_T\\le t)=2\\int_0^\\infty\\operatorname{erf}\\!\\Bigl(\\frac{x}{\\sqrt{2(T-t)}}\\Bigr)\\frac{e^{-x^2/(2t)}}{\\sqrt{2\\pi t}}\\,dx.$$\n\n**高斯积分计算。**设 $a=\\frac1{2t},\\ b=\\frac1{\\sqrt{2(T-t)}}$，则上式写为\n$$I=2\\sqrt{\\frac{a}{\\pi}}\\int_0^\\infty e^{-a x^2}\\operatorname{erf}(b x)\\,dx.$$\n利用已知积分（可由交换积分次序严格得到）\n$$\\int_0^\\infty e^{-a x^2}\\operatorname{erf}(b x)\\,dx=\\frac{1}{\\sqrt{\\pi a}}\\arctan\\!\\frac{b}{\\sqrt a},\\qquad a>0,$$\n得到\n$$\\mathbb P(g_T\\le t)=\\frac{2}{\\pi}\\arctan\\!\\Bigl(\\sqrt{\\frac{t}{T-t}}\\Bigr).$$\n最后用三角恒等式 $\\arctan\\sqrt{\\frac{t}{T-t}}=\\arcsin\\sqrt{\\frac{t}{T}}$（对 $0\\le t\\le T$ 成立），即得分布函数\n$$F_{g_T}(t)=\\frac{2}{\\pi}\\arcsin\\sqrt{\\frac{t}{T}},\\qquad 0\\le t\\le T.$$\n\n对 $t\\in(0,T)$ 求导得密度\n$$f_{g_T}(t)=\\frac{d}{dt}F_{g_T}(t)=\\frac{1}{\\pi\\sqrt{t(T-t)}}.$$\n这正是莱维反正弦律，但此处已由 Markov 性、反射原理与高斯积分完整推导而得。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "random_process",
+        "secondary_domain_count": 2,
+        "risk": "medium",
+        "route": "R1",
+        "answer_schema": "exact_expression",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "probability",
+          "mathematical_analysis"
+        ],
+        "question_mode": "open_response",
+        "mode_confidence": 0.35,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "derivation_chain"
+        ],
+        "ambiguity_flags": [
+          "weak_mode_signal"
+        ]
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 1,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 3393,
+        "elapsed_ms": 30274
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3393,
+        "claim_count": 6,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 3303,
+        "elapsed_ms": 32957
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3303,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A",
+          "B"
+        ],
+        "invalid_candidate_ids": []
+      }
+    },
+    {
+      "step": "orthogonal_comparison",
+      "content": {
+        "candidate_ids": [
+          "A",
+          "B"
+        ],
+        "orthogonality": "O3",
+        "equivalence": "unknown"
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 1080,
+        "elapsed_ms": 9735
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "EQUIVALENT",
+        "verdict": "UNRESOLVED",
+        "target_candidate_id": null,
+        "target_claim_id": null,
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "unknown"
+      }
+    },
+    {
+      "step": "rescue_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 3136,
+        "elapsed_ms": 31920
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3136,
+        "claim_count": 5,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "proof_confirmation_call",
+      "content": {
+        "call_id": 5,
+        "status": "completed",
+        "response_chars": 2601,
+        "elapsed_ms": 19455
+      }
+    },
+    {
+      "step": "proof_confirmation_result",
+      "content": {
+        "candidate_id": "R",
+        "verdict": "ACCEPT_A",
+        "attack_type": "none",
+        "severity": "none"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "model_calls": 5,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 2016
+      }
+    }
+  ]
+}

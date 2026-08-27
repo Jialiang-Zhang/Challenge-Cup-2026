@@ -1,0 +1,111 @@
+{
+  "model": "intern-s2-preview-397b",
+  "run_id": "20260827T144824Z-cert-recovery-smoke3-round8-397b-run1",
+  "records": [
+    {
+      "idx": 16,
+      "status": "success",
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 4,
+      "repair_count": 0,
+      "gates": [
+        {
+          "candidate_id": "B",
+          "source": "orthogonal_blind",
+          "reason_codes": [
+            "derivation_certificate:shearer_ordered_conditioning_chain"
+          ],
+          "detail_codes": [
+            "missing_non_circular_ordered_conditioning_argument"
+          ]
+        }
+      ],
+      "recoveries": [],
+      "error": null
+    },
+    {
+      "idx": 25,
+      "status": "success",
+      "source": "orthogonal_blind",
+      "candidate_id": "B",
+      "model_calls": 4,
+      "repair_count": 0,
+      "gates": [
+        {
+          "candidate_id": "A",
+          "source": "primary",
+          "reason_codes": [
+            "derivation_certificate:stable_branch_interior_anchor"
+          ],
+          "detail_codes": [
+            "missing_verified_interior_stable_anchor"
+          ]
+        }
+      ],
+      "recoveries": [],
+      "error": null
+    },
+    {
+      "idx": 58,
+      "status": "error",
+      "source": null,
+      "candidate_id": null,
+      "model_calls": null,
+      "repair_count": null,
+      "gates": [
+        {
+          "candidate_id": "A",
+          "source": "primary",
+          "reason_codes": [
+            "derivation_certificate:explicit_final_candidate_complete"
+          ],
+          "detail_codes": [
+            "dangling_answer_cue"
+          ]
+        },
+        {
+          "candidate_id": "B",
+          "source": "orthogonal_blind",
+          "reason_codes": [
+            "derivation_certificate:explicit_final_candidate_complete"
+          ],
+          "detail_codes": [
+            "dangling_answer_cue"
+          ]
+        },
+        {
+          "candidate_id": "R",
+          "source": "rescue",
+          "reason_codes": [
+            "derivation_certificate:explicit_final_candidate_complete"
+          ],
+          "detail_codes": [
+            "dangling_answer_cue"
+          ]
+        },
+        {
+          "candidate_id": "C",
+          "source": "targeted_repair",
+          "reason_codes": [
+            "derivation_certificate:explicit_final_candidate_complete"
+          ],
+          "detail_codes": [
+            "dangling_answer_cue"
+          ]
+        }
+      ],
+      "recoveries": [
+        {
+          "candidate_id": "R",
+          "attack_type": "transformation",
+          "reason_code": "derivation_certificate:explicit_final_candidate_complete"
+        }
+      ],
+      "error": {
+        "type": "RuntimeError",
+        "message": "HORA-Math produced no complete, hard-valid candidate"
+      }
+    }
+  ]
+}

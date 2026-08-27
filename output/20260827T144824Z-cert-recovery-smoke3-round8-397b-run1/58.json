@@ -1,0 +1,221 @@
+{
+  "idx": 58,
+  "status": "error",
+  "final_response": "",
+  "error": {
+    "type": "RuntimeError",
+    "message": "HORA-Math produced no complete, hard-valid candidate"
+  },
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "random_process",
+        "secondary_domain_count": 2,
+        "risk": "medium",
+        "route": "R1",
+        "answer_schema": "exact_expression",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "probability",
+          "mathematical_analysis"
+        ],
+        "question_mode": "open_response",
+        "mode_confidence": 0.35,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "derivation_chain"
+        ],
+        "ambiguity_flags": [
+          "weak_mode_signal"
+        ]
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 1,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 2420,
+        "elapsed_ms": 24680
+      }
+    },
+    {
+      "step": "candidate_evidence_gate",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "reason_codes": [
+          "derivation_certificate:explicit_final_candidate_complete"
+        ],
+        "detail_codes": [
+          "dangling_answer_cue"
+        ]
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2420,
+        "claim_count": 5,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 3124,
+        "elapsed_ms": 34818
+      }
+    },
+    {
+      "step": "candidate_evidence_gate",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "reason_codes": [
+          "derivation_certificate:explicit_final_candidate_complete"
+        ],
+        "detail_codes": [
+          "dangling_answer_cue"
+        ]
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3124,
+        "claim_count": 6,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [],
+        "invalid_candidate_ids": [
+          "A",
+          "B"
+        ]
+      }
+    },
+    {
+      "step": "rescue_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 3047,
+        "elapsed_ms": 32715
+      }
+    },
+    {
+      "step": "candidate_evidence_gate",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "reason_codes": [
+          "derivation_certificate:explicit_final_candidate_complete"
+        ],
+        "detail_codes": [
+          "dangling_answer_cue"
+        ]
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3047,
+        "claim_count": 5,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "certificate_guided_recovery",
+      "content": {
+        "candidate_id": "R",
+        "attack_type": "transformation",
+        "reason_code": "derivation_certificate:explicit_final_candidate_complete"
+      }
+    },
+    {
+      "step": "targeted_repair_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 3670,
+        "elapsed_ms": 32096
+      }
+    },
+    {
+      "step": "candidate_evidence_gate",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "reason_codes": [
+          "derivation_certificate:explicit_final_candidate_complete"
+        ],
+        "detail_codes": [
+          "dangling_answer_cue"
+        ]
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3670,
+        "claim_count": 2,
+        "method": "first_principles_derivation",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "repair_result",
+      "content": {
+        "candidate_id": "C",
+        "parent_candidate_id": "R",
+        "challenge_resolution_present": true,
+        "eligible": false
+      }
+    }
+  ]
+}

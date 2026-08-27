@@ -1,6 +1,11 @@
 name: Mirror to GitCode
 
 on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "output/**"
   workflow_dispatch:
     inputs:
       mode:
@@ -44,16 +49,12 @@ jobs:
           GITCODE_TOKEN: ${{ secrets.GITCODE_TOKEN }}
         run: |
           set -euo pipefail
-          cat > "${RUNNER_TEMP}/git-askpass.sh" <<'EOF'
-          #!/usr/bin/env sh
-          case "$1" in
-            *Username*) printf '%s\n' "${GITCODE_USERNAME}" ;;
-            *Password*) printf '%s\n' "${GITCODE_TOKEN}" ;;
-            *) printf '\n' ;;
-          esac
-          EOF
-          chmod 700 "${RUNNER_TEMP}/git-askpass.sh"
-          echo "GIT_ASKPASS=${RUNNER_TEMP}/git-askpass.sh" >> "${GITHUB_ENV}"
+          echo "::add-mask::${GITCODE_TOKEN}"
+          basic_auth="$(printf '%s:%s' "${GITCODE_USERNAME}" "${GITCODE_TOKEN}" | base64 | tr -d '\n')"
+          echo "::add-mask::${basic_auth}"
+          git config --global --unset-all http.https://gitcode.com/.extraheader 2>/dev/null || true
+          git config --global --add http.https://gitcode.com/.extraheader "Authorization: Basic ${basic_auth}"
+          git config --global credential.helper ""
           echo "GIT_TERMINAL_PROMPT=0" >> "${GITHUB_ENV}"
 
       - name: Add GitCode remote
@@ -64,7 +65,7 @@ jobs:
           git remote add gitcode "${GITCODE_REPO_URL}"
 
       - name: Push main branch
-        if: ${{ inputs.mode == 'main' }}
+        if: ${{ github.event_name == 'push' || inputs.mode == 'main' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -72,7 +73,7 @@ jobs:
           git push gitcode --tags --force
 
       - name: Push all branches and tags
-        if: ${{ inputs.mode == 'all' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'all' }}
         shell: bash
         run: |
           set -euo pipefail

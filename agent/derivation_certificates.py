@@ -24,8 +24,8 @@ def evaluate_decisive_derivation_certificates(
 ) -> list[DerivationCertificate]:
     """Deterministic checks for proof-shape errors that semantic review can easily miss.
 
-    Certificates are activated by explicit task language or by a distinctive derivation already
-    present in the candidate. They do not compare against benchmark answers.
+    Certificates are activated by explicit task language or a distinctive derivation in the
+    candidate. They never compare with benchmark answer fields.
     """
 
     answer = str(answer_raw or "").strip()
@@ -50,9 +50,7 @@ def evaluate_decisive_derivation_certificates(
         )
     )
 
-    # Shearer/Han-style entropy proof. With natural chain-rule order,
-    # H(Z_j | Z_{<j}\setminus{Z_i}) >= H(Z_j | Z_{<j}) because LESS conditioning gives
-    # larger conditional entropy. Common shortcuts reverse this direction.
+    # Shearer/Han entropy chain.
     shearer_requested = _has(req + "\n" + text, r"shearer") and _has(
         req, r"条件越多.*条件熵越小|conditioning reduces entropy"
     )
@@ -132,9 +130,7 @@ def evaluate_decisive_derivation_certificates(
             )
         )
 
-    # BDF2 Taylor consistency: when expanding y(t_{n+1}) at t_{n+2}, the h^2 term is
-    # (h^2/2)y''. A later substitution that silently changes it to h^2 y'' invalidates the
-    # displayed derivation even if the final coefficient is restored by hand.
+    # BDF2 local consistency.
     bdf2_like = _has(req + "\n" + text, r"BDF2|局部截断误差|local truncation") and _has(
         text, r"3\s*y|3y|3\\?zeta\^?2"
     )
@@ -156,11 +152,7 @@ def evaluate_decisive_derivation_certificates(
                 code="bdf2_taylor_substitution_consistency",
                 status="fail" if conflict else "pass",
                 hard_failure=conflict,
-                detail=(
-                    "h2_over_2_lost_during_substitution"
-                    if conflict
-                    else "no_detected_taylor_substitution_conflict"
-                ),
+                detail="h2_over_2_lost_during_substitution" if conflict else "no_detected_taylor_substitution_conflict",
             )
         )
 
@@ -177,11 +169,7 @@ def evaluate_decisive_derivation_certificates(
                 code="bdf2_third_derivative_sign",
                 status="fail" if wrong_third_derivative_sign else "pass",
                 hard_failure=wrong_third_derivative_sign,
-                detail=(
-                    "bdf2_difference_quotient_third_derivative_sign_reversed"
-                    if wrong_third_derivative_sign
-                    else "no_detected_bdf2_third_derivative_sign_conflict"
-                ),
+                detail="bdf2_difference_quotient_third_derivative_sign_reversed" if wrong_third_derivative_sign else "no_detected_bdf2_third_derivative_sign_conflict",
             )
         )
 
@@ -196,17 +184,10 @@ def evaluate_decisive_derivation_certificates(
                 code="bdf2_negative_anchor_equation",
                 status="fail" if missing_constant_at_anchor else "pass",
                 hard_failure=missing_constant_at_anchor,
-                detail=(
-                    "constant_term_plus_one_lost_at_z_minus_one"
-                    if missing_constant_at_anchor
-                    else "no_detected_negative_anchor_equation_conflict"
-                ),
+                detail="constant_term_plus_one_lost_at_z_minus_one" if missing_constant_at_anchor else "no_detected_negative_anchor_equation_conflict",
             )
         )
 
-    # If the task explicitly asks why a boundary locus cannot disconnect the stable branch,
-    # require an interior stable anchor in the left half-plane. This can be a checked finite
-    # point or a negative-real asymptotic whose roots are explicitly shown to enter the unit disk.
     bdf2_branch_requested = _has(req, r"边界轨迹|根轨迹|boundary locus|root locus") and _has(
         req, r"割裂|稳定分支|左半平面|disconnect|stable branch|left half"
     )
@@ -226,15 +207,11 @@ def evaluate_decisive_derivation_certificates(
                 code="stable_branch_interior_anchor",
                 status="pass" if ok else "fail",
                 hard_failure=not ok,
-                detail=(
-                    "left_half_plane_anchor_verified"
-                    if ok
-                    else "missing_verified_interior_stable_anchor"
-                ),
+                detail="left_half_plane_anchor_verified" if ok else "missing_verified_interior_stable_anchor",
             )
         )
 
-    # A scalar probability cannot equal a conditional expectation random variable.
+    # Scalar probability cannot equal a conditional-expectation random variable.
     conditional_scalar_mismatch = _has(
         text,
         r"\\mathbb\s*P\s*\([^\n=]{1,180}\)\s*=\s*\\mathbb\s*E\s*(?:\\Big)?\[\s*\\mathbf\s*1[^\]]{0,260}\\mid\s*\\mathcal\s*F",
@@ -246,6 +223,130 @@ def evaluate_decisive_derivation_certificates(
                 status="fail",
                 hard_failure=True,
                 detail="scalar_probability_set_equal_to_conditional_random_variable",
+            )
+        )
+
+    # Two-stage Radau IIA: catch internal arithmetic contradictions in an otherwise correct final R(z).
+    radau_like = _has(req + "\n" + text, r"Radau\s*IIA") or (
+        _has(text, r"R\s*\(z\)\s*=.*1\s*\+\s*z/3")
+        and _has(text, r"1\s*-\s*2z/3.*z\^2/6")
+    )
+    if radau_like:
+        wrong_inverse_vector = _has(
+            text,
+            r"\(I-zA\)\^\{-1\}\\mathbf\s*1.{0,320}1\s*-\s*\\frac\{1\}\{6\}\s*z",
+        )
+        wrong_axis_modulus = _has(
+            text,
+            r"\|R\s*\(i\\?omega\)\|\^2.{0,420}1\s*\+\s*\\?omega\^2/3\s*\+\s*\\?omega\^4/36",
+        ) or _has(
+            text,
+            r"\|R\s*\(iy\)\|\^2.{0,420}1\s*\+\s*y\^2/3\s*\+\s*y\^4/36",
+        )
+        conflict = wrong_inverse_vector or wrong_axis_modulus
+        checks.append(
+            DerivationCertificate(
+                code="runge_kutta_stability_arithmetic",
+                status="fail" if conflict else "pass",
+                hard_failure=conflict,
+                detail=(
+                    "inverse_vector_arithmetic_conflict"
+                    if wrong_inverse_vector
+                    else ("imaginary_axis_modulus_coefficient_conflict" if wrong_axis_modulus else "no_detected_rk_arithmetic_conflict")
+                ),
+            )
+        )
+
+    # Levy upward theorem: L1-bounded/nonnegative martingale convergence alone does not give L1 convergence.
+    levy_upward_like = _has(req, r"\\mathcal\s*F_?n|F_n") and _has(
+        req, r"条件期望|conditional expectation|\\mathbb\s*E\s*\[\s*X"
+    ) and _has(req, r"L\^?1|L_1")
+    if levy_upward_like:
+        false_doob_l1 = _has(
+            text,
+            r"非负.{0,100}(?:L\^?1|L_1).{0,80}有界.{0,180}(?:Doob|鞅收敛).{0,180}(?:L\^?1|L_1).{0,40}收敛|"
+            r"nonnegative.{0,100}L.?1.{0,80}bounded.{0,180}martingale convergence.{0,180}L.?1 convergence",
+        )
+        invalid_x_approximation = _has(
+            text,
+            r"取\s*Y.{0,100}\\mathcal\s*F_?N.{0,50}可测.{0,120}\\?\|\s*X\s*-\s*Y\s*\\?\|_?1\s*<\s*\\?varepsilon",
+        )
+        conflict = false_doob_l1 or invalid_x_approximation
+        checks.append(
+            DerivationCertificate(
+                code="levy_upward_uniform_integrability",
+                status="fail" if conflict else "pass",
+                hard_failure=conflict,
+                detail=(
+                    "l1_bounded_martingale_incorrectly_promoted_to_l1_convergence"
+                    if false_doob_l1
+                    else ("approximated_arbitrary_X_by_Fn_measurable_variables" if invalid_x_approximation else "no_detected_levy_upward_precondition_conflict")
+                ),
+            )
+        )
+
+    # Holonomy: a parallel vector generally does not return with the same direction; the sign must follow
+    # directly from dtheta=-omega and domega=-K dA, not be discarded modulo 2pi.
+    holonomy_like = _has(req, r"平行移动|parallel transport|holonomy") and _has(
+        req, r"Gauss.?Bonnet|联络\s*1-?形式|connection\s*1-?form"
+    )
+    if holonomy_like:
+        false_return = _has(
+            text,
+            r"回到起点.{0,50}(?:方向不变|direction unchanged|same direction)|"
+            r"returns?.{0,60}(?:unchanged|same)\s+direction",
+        )
+        sign_absorption = _has(
+            text,
+            r"负号.{0,80}(?:方向约定|orientation).{0,60}(?:吸收|absorb)|"
+            r"-\\int[^\n]{0,100}\\equiv\s*\\int[^\n]{0,80}(?:pmod|mod)",
+        )
+        conflict = false_return or sign_absorption
+        checks.append(
+            DerivationCertificate(
+                code="holonomy_orientation_consistency",
+                status="fail" if conflict else "pass",
+                hard_failure=conflict,
+                detail=(
+                    "parallel_vector_incorrectly_assumed_to_return_unchanged"
+                    if false_return
+                    else ("curvature_integral_sign_discarded_mod_2pi" if sign_absorption else "no_detected_holonomy_orientation_conflict")
+                ),
+            )
+        )
+
+    # If the statement explicitly demands Brownian motion relative to the original filtration, replacing
+    # it by the natural filtration proves a weaker statement and does not satisfy the contract.
+    original_filtration_required = _has(req, r"原滤过|original filtration")
+    if original_filtration_required:
+        natural_filtration = _has(text, r"自然滤过|natural filtration|\\mathcal\s*F_?t\^M|\\mathcal\s*F_?s\^M")
+        original_filtration_used = _has(text, r"原滤过|original filtration")
+        conflict = natural_filtration and not original_filtration_used
+        checks.append(
+            DerivationCertificate(
+                code="original_filtration_obligation",
+                status="fail" if conflict else "pass",
+                hard_failure=conflict,
+                detail="proved_only_natural_filtration_statement" if conflict else "original_filtration_not_replaced",
+            )
+        )
+
+    # James--Stein range: an open interval is the strict-improvement range, not the full non-increase range.
+    james_stein_like = _has(text, r"Stein\s*(?:恒等式|identity)|James.?Stein") and _has(
+        text, r"\\delta_?a|delta_?a"
+    )
+    if james_stein_like:
+        open_interval_as_iff_nonincrease = _has(
+            text,
+            r"当且仅当\s*0\s*<\s*a\s*<\s*2\s*\(?p\s*-\s*2\)?[^。\n]{0,180}(?:风险不增|R\s*\([^\n]{0,80}\\le)|"
+            r"iff\s*0\s*<\s*a\s*<\s*2\s*\(?p\s*-\s*2\)?.{0,180}risk.{0,40}(?:non.?increase|<=)",
+        )
+        checks.append(
+            DerivationCertificate(
+                code="james_stein_endpoint_range",
+                status="fail" if open_interval_as_iff_nonincrease else "pass",
+                hard_failure=open_interval_as_iff_nonincrease,
+                detail="strict_interval_mistaken_for_full_nonincrease_range" if open_interval_as_iff_nonincrease else "no_detected_james_stein_endpoint_conflict",
             )
         )
 

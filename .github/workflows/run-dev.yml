@@ -21,15 +21,21 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: hora-dev-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   run-dev:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 90
     env:
       INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
-      INTERN_MODEL: intern-s2-preview
+      INTERN_MODEL: intern-s2-preview-397b
       LOCAL_MAX_CONCURRENCY: ${{ github.event.inputs.concurrency || '1' }}
+      JUPYTER_PLATFORM_DIRS: "1"
       PYTHONUNBUFFERED: "1"
+      HORA_DEBUG_DIR: sample_outputs/_debug
 
     steps:
       - name: Check out repository
@@ -67,8 +73,9 @@ jobs:
         run: |
           python - <<'PY'
           import json
-          import re
           from pathlib import Path
+
+          from agent.canonicalize import compare_answers
 
           input_path = Path("sample_data/dev.jsonl")
           output_dir = Path("sample_outputs")
@@ -80,15 +87,9 @@ jobs:
               item = json.loads(line)
               expected[int(item["idx"])] = str(item.get("answer", ""))
 
-          def compact(value: str) -> str:
-              value = value.replace("\\\\boxed", "")
-              value = value.replace("\\boxed", "")
-              value = value.replace("$", "")
-              return re.sub(r"\\s+", "", value).lower()
-
           records = []
           success_count = 0
-          answer_text_match_count = 0
+          mathematical_match_count = 0
 
           for idx in sorted(expected):
               path = output_dir / f"{idx}.json"
@@ -97,35 +98,44 @@ jobs:
                       "idx": idx,
                       "status": "missing",
                       "expected": expected[idx],
-                      "answer_text_match": False,
+                      "mathematical_match": False,
                   })
                   continue
 
               result = json.loads(path.read_text(encoding="utf-8"))
               status = result.get("status", "unknown")
               final_response = str(result.get("final_response", ""))
-              answer_text_match = (
-                  bool(expected[idx])
-                  and compact(expected[idx]) in compact(final_response)
-              )
+              relation = compare_answers(expected[idx], final_response)
+              mathematical_match = relation == "equivalent"
 
               success_count += int(status == "success")
-              answer_text_match_count += int(answer_text_match)
+              mathematical_match_count += int(mathematical_match)
+              transaction = next(
+                  (
+                      step.get("content", {})
+                      for step in reversed(result.get("trace", []))
+                      if step.get("step") == "transaction_commit"
+                  ),
+                  {},
+              )
               records.append({
                   "idx": idx,
                   "status": status,
                   "expected": expected[idx],
-                  "answer_text_match": answer_text_match,
+                  "equivalence": relation,
+                  "mathematical_match": mathematical_match,
                   "response_chars": len(final_response),
+                  "model_calls": transaction.get("model_calls"),
+                  "repair_count": transaction.get("repair_count"),
                   "error_type": result.get("error", {}).get("type"),
               })
 
           summary = {
               "total": len(expected),
               "success_count": success_count,
-              "answer_text_match_count": answer_text_match_count,
+              "mathematical_match_count": mathematical_match_count,
               "warning": (
-                  "answer_text_match is only a smoke test; it is not the official judge"
+                  "Mathematical matching is a strict local smoke test, not the official judge."
               ),
               "records": records,
           }
@@ -142,7 +152,29 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dev-results-${{ github.run_number }}
+          name: dev-results-${{ github.run_number }}-${{ github.sha }}
           path: sample_outputs/
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 14
+
+      - name: Enforce dev smoke test
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("sample_outputs/dev_summary.json")
+          if not path.exists():
+              raise SystemExit("dev_summary.json was not produced")
+          summary = json.loads(path.read_text(encoding="utf-8"))
+          total = int(summary.get("total", 0))
+          success = int(summary.get("success_count", 0))
+          matched = int(summary.get("mathematical_match_count", 0))
+          if not total or success != total or matched != total:
+              raise SystemExit(
+                  f"dev smoke test failed: success={success}/{total}, mathematical_match={matched}/{total}"
+              )
+          print(f"dev smoke test passed: {matched}/{total}")
+          PY

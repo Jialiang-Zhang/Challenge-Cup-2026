@@ -1,0 +1,195 @@
+name: Run 112 benchmark
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "agent/**"
+      - "user_agent.py"
+      - "requirements.txt"
+      - "scripts/run_112_benchmark.py"
+      - ".github/workflows/run-112-benchmark.yml"
+  workflow_dispatch:
+    inputs:
+      concurrency:
+        description: "Number of questions processed concurrently (1-3)"
+        required: false
+        default: "3"
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "3"
+      dataset_ref:
+        description: "Branch, tag, or commit from test-dataset-math"
+        required: false
+        default: "main"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: run-112-benchmark-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
+      INTERN_MODEL: intern-s2-preview-397b
+      LOCAL_MAX_CONCURRENCY: ${{ github.event.inputs.concurrency || '3' }}
+      DATASET_REF: ${{ github.event.inputs.dataset_ref || 'main' }}
+      JUPYTER_PLATFORM_DIRS: "1"
+      PYTHONUNBUFFERED: "1"
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Check out agent repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Check out 112-question dataset
+        uses: actions/checkout@v4
+        with:
+          repository: Jialiang-Zhang/test-dataset-math
+          ref: ${{ env.DATASET_REF }}
+          path: _benchmark_dataset
+          fetch-depth: 1
+
+      - name: Define immutable run identifiers
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ID="$(date -u +'%Y%m%dT%H%M%SZ')-run${GITHUB_RUN_NUMBER}"
+          RESULT_BRANCH="benchmark/112-${RUN_ID}"
+          DATASET_COMMIT="$(git -C _benchmark_dataset rev-parse HEAD)"
+          AGENT_COMMIT="$(git rev-parse HEAD)"
+
+          echo "RUN_ID=${RUN_ID}" >> "${GITHUB_ENV}"
+          echo "RESULT_BRANCH=${RESULT_BRANCH}" >> "${GITHUB_ENV}"
+          echo "DATASET_COMMIT=${DATASET_COMMIT}" >> "${GITHUB_ENV}"
+          echo "AGENT_COMMIT=${AGENT_COMMIT}" >> "${GITHUB_ENV}"
+
+      - name: Verify API secret
+        shell: bash
+        run: |
+          if [ -z "${INTERN_API_KEY}" ]; then
+            echo "::error::Missing repository Actions secret named INTERN_API_KEY"
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run repository tests
+        run: python -m unittest discover -s tests -p "test_*.py"
+
+      - name: Run 112-question benchmark
+        id: benchmark
+        continue-on-error: true
+        run: |
+          python scripts/run_112_benchmark.py \
+            --dataset-dir _benchmark_dataset/112 \
+            --output-root output \
+            --run-id "${RUN_ID}" \
+            --concurrency "${LOCAL_MAX_CONCURRENCY}" \
+            --dataset-ref "${DATASET_REF}" \
+            --dataset-commit "${DATASET_COMMIT}"
+
+      - name: Upload immutable run artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-112-${{ env.RUN_ID }}
+          path: output/${{ env.RUN_ID }}/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Commit results to a dedicated branch
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -d "output/${RUN_ID}" ]; then
+            echo "::error::Expected output/${RUN_ID} was not created"
+            exit 1
+          fi
+
+          git switch -c "${RESULT_BRANCH}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "output/${RUN_ID}"
+          if git diff --cached --quiet; then
+            echo "::error::No benchmark result files were produced"
+            exit 1
+          fi
+          git commit -m "benchmark: record HORA 112 run ${RUN_ID}"
+          git push origin "HEAD:${RESULT_BRANCH}"
+
+      - name: Open benchmark result pull request
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          run_id = os.environ["RUN_ID"]
+          summary_path = Path("output") / run_id / "summary.json"
+          summary = json.loads(summary_path.read_text(encoding="utf-8")) if summary_path.exists() else {}
+          counts = summary.get("counts", {})
+          telemetry = summary.get("telemetry", {})
+          workflow_url = (
+              f"{os.environ['GITHUB_SERVER_URL']}/"
+              f"{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+              f"{os.environ['GITHUB_RUN_ID']}"
+          )
+          body = f"""## HORA-Math 112-question benchmark
+
+          - Run ID: `{run_id}`
+          - Agent commit: `{os.environ['AGENT_COMMIT']}`
+          - Dataset: `Jialiang-Zhang/test-dataset-math@{os.environ['DATASET_COMMIT']}`
+          - Model: `{os.environ['INTERN_MODEL']}`
+          - Concurrency: `{os.environ['LOCAL_MAX_CONCURRENCY']}`
+          - Execution success: `{counts.get('success', 0)}/{summary.get('total', 0)}`
+          - Model calls: `{telemetry.get('model_calls_total', 'unknown')}`
+          - Repairs: `{telemetry.get('repair_total', 'unknown')}`
+          - Workflow: {workflow_url}
+
+          Results are stored under `output/{run_id}/`.
+
+          Reference equivalence in `summary.json` is a conservative local diagnostic, not the official judge.
+          """
+          Path("/tmp/benchmark-pr.md").write_text(body, encoding="utf-8")
+          PY
+
+          if ! gh pr create \
+            --base main \
+            --head "${RESULT_BRANCH}" \
+            --title "benchmark: HORA 112 run ${RUN_ID}" \
+            --body-file /tmp/benchmark-pr.md; then
+            echo "::warning::Result branch was pushed, but the PR could not be created automatically."
+          fi
+
+      - name: Propagate benchmark failure
+        if: steps.benchmark.outcome != 'success'
+        run: |
+          echo "::error::Benchmark runner failed; partial outputs were preserved."
+          exit 1

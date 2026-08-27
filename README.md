@@ -1,493 +1,1503 @@
-# 赛题简介
+# Challenge-Cup-2026 数学推理智能体
 
-本仓库是挑战杯人工智能赛道初赛的 baseline 仓库。赛题围绕 Intern-S 系列模型的数学智能体设计与推理创新展开，选手需要设计一个能够解决数学问题的推理智能体。智能体接收一道数学题文本，结合题目元信息进行推理，并输出最终答案。
-
-选手的核心任务是实现：
-
-```python
-agent.solve(problem: str, metadata: dict) -> dict
-```
-
-平台会在正式评测时读取实际测试题，调用选手提交代码中的该入口函数，取得 `final_response`，并结合官方 judger 与标准答案进行判分。
-
-本赛题鼓励选手探索不同的智能体设计方式，包括但不限于：
-
-- 提示词设计与多轮推理
-- 多候选生成、验证与选择
-- 规划、反思、纠错、答案格式化
-- 工具调用、检索、记忆或其它推理策略
-- 面向数学题的专门解析、符号计算或后处理
-
-最终评分主要依据 `final_response` 的答案正确性。`trace` 可用于记录不含敏感正文的结构化运行摘要，便于内部异常排查和设计分析；它不是获取隐藏评测信息的通道。
-
-## Baseline 仓库说明
-
-本仓库提供一个 naive agent baseline，作用是帮助选手理解：
-
-- 赛题内容与本地调试方式
-- 输入数据格式
-- 智能体入口函数
-- 智能体输出格式
-- 平台 runner 与选手代码之间的调用关系
-
-Baseline 只是一个最小可运行示例，不限制选手的具体实现。选手可以保留、修改或替换其中的智能体逻辑，也可以新增模块、工具和依赖。但正式提交的仓库必须满足平台约定的入口规范。
-
-### 必须包含的文件
-
-选手提交的仓库根目录必须包含：
-
-```text
-user_agent.py
-```
-
-平台 runner 会从该文件中加载选手实现。其它文件可以根据需要添加，例如：
-
-```text
-requirements.txt
-tools/
-prompts/
-utils/
-```
-
-但所有新增文件都应使用相对路径读取，不要依赖本地机器上的绝对路径。
-
-### `user_agent.py` 必须遵守的规范
-
-`user_agent.py` 中必须提供类：
+本仓库用于开发、回归测试和提交基于 Intern-S 系列模型的数学推理智能体。平台入口保持为：
 
 ```python
 class ReasoningAgent:
-    ...
+    def __init__(self, client, *args, **kwargs):
+        ...
+
+    def solve(self, problem: str, metadata: dict) -> dict:
+        ...
 ```
 
-平台会使用官方 client 初始化该类：
+返回值必须至少包含非空字符串：
 
 ```python
-from user_agent import ReasoningAgent
-
-agent = ReasoningAgent(client=official_client)
+{
+    "final_response": "最终答案",
+    "trace": []
+}
 ```
 
-因此 `ReasoningAgent` 至少需要支持如下构造方式：
+> 当前 `user_agent.py` 仍是 generate–verify–select baseline。本文档描述的是根据榜单前十公开可核验方案、现有 112 题分布以及本项目实测问题重新设计的**目标架构**。尚未实现的模块不会被描述成当前能力。
 
-```python
-def __init__(self, client, *args, **kwargs):
-    ...
+官方接口、赛事限制和 baseline 说明以 [InternLM/Challenge-Cup-2026](https://github.com/InternLM/Challenge-Cup-2026) 为准。
+
+---
+
+# 1. 最终架构决策
+
+前十方案并非全部公开。本项目只吸收能够公开核验的设计，不推测未公开仓库的内部实现。
+
+| 公开方案 | 吸收的高价值机制 |
+|---|---|
+| [筹策 ChouCe](https://gitcode.com/2401_88048876/chouce-math-reasoning-agent) | 数学方法级独立候选、Blind Solve、对抗式审查、领域风险检查 |
+| [LemaMAV](https://gitcode.com/NUDTAIMP/mathcode) | 单题内 Verified Fact / Lemma Memory、验证、局部修复、证据选择 |
+| [九韶 JiuShao](https://gitcode.com/zcyyyy/-Intern-S1-zcy) | Tool-Integrated Reasoning、数值裁判、等价归簇、动态预算和消融实验 |
+| [ICMA](https://gitcode.com/CNZkeven/ICMA) | LLM 与 Python/SymPy 异构双路、交叉验证和冲突协调 |
+| [MathAgent](https://gitcode.com/SONGXIA_YEJI/math_agent) | 计算、证明和学科策略模块化 |
+
+最终架构必须同时具备：
+
+1. **异构求解**：不同求解器使用不同推理范式、表示方式和工具通道；
+2. **正交求解**：独立候选不能只是同一 Prompt 的随机复现；
+3. **主动攻击**：红队审查器以推翻候选为目标，而不是礼貌地“再检查一次”；
+4. **Claim 级争议定位**：冲突聚焦到第一个分歧 Claim，不把整题重新生成；
+5. **证据裁决**：硬证据、攻击结果和独立支持优先于投票和模型自信度；
+6. **动态升级**：简单题尽早提交，高风险题才启动异构求解和对抗攻击；
+7. **一次性修复**：最多一次局部 Repair，Repair 后必须重新验证；
+8. **事务提交**：最终答案规范化、冻结后再返回。
+
+明确放弃将下列方向作为主架构：
+
+- 固定执行大量 Agent；
+- 同一 Prompt 的 8/16 路同质采样；
+- 仅靠多数投票；
+- 无限 Reflection；
+- “你确定吗”式 Verifier；
+- 让 Blind Solver 看到 Primary；
+- 将 SymPy 当成万能数学 Judge；
+- Verifier、Critic、Arbiter 每题全部调用；
+- 多轮 Repair 循环；
+- 模型自报 confidence 加权；
+- 全量 Skill/RAG 注入；
+- 用长推理正文直接充当 `final_response`。
+
+---
+
+# 2. 终极目标架构：HORA-Math
+
+**HORA-Math** 表示：
+
+- **H — Heterogeneous Solvers**：异构求解器；
+- **O — Orthogonal Reasoning**：方法、表示、工具和上下文正交；
+- **R — Red-Team Attacks**：红队对抗攻击与反例搜索；
+- **A — Adjudicated Evidence**：基于证据的裁决、冻结和提交。
+
+中文定义：
+
+> **异构正交求解—红队对抗审查—证据裁决数学智能体**
+
+最高原则：
+
+> 先用异构方法产生少量高价值候选，再让红队主动攻击候选的假设、定理条件、边界和关键 Claim；只有经受攻击且得到证据支持的候选，才允许被冻结并提交。
+
+## 2.1 总体状态图
+
+```text
+Problem
+  ↓
+Runtime Guard
+  ↓
+Problem Canonicalizer
+  ↓
+Task Contract + Risk Map + Ambiguity Map
+  ↓
+Heterogeneous Strategy Compiler
+  ↓
+Blue Team Solver Portfolio
+  ├─ S1 Structural / Theorem Solver
+  ├─ S2 Constructive / Definition Solver
+  ├─ S3 Tool-Integrated Symbolic Solver
+  └─ S4 Numerical / Enumeration Solver
+  ↓
+Orthogonality Gate
+  ├─ 方法重复 → 不计为独立支持
+  └─ 方法正交 → 进入 Candidate Ledger
+  ↓
+Solution Capsules
+  ↓
+Mathematical Canonicalization
+  ↓
+Equivalence Clustering
+  ↓
+Certificate Engine
+  ├─ 格式与完整性证书
+  ├─ 符号 / 代回 / residual
+  ├─ 数值 / 枚举 / 极端测试
+  └─ 定理前提与定义条件
+  ↓
+证据是否已充分？
+  ├─ 是且风险低
+  │    ↓
+  │ Candidate Freeze
+  │    ↓
+  │ Answer Transaction
+  │
+  └─ 否或风险高
+       ↓
+Red-Team Attack Scheduler
+       ↓
+Adversarial Attack Factory
+  ├─ Assumption Attack
+  ├─ Theorem-Precondition Attack
+  ├─ Counterexample Attack
+  ├─ Boundary / Degenerate Attack
+  ├─ Transformation / Quantifier Attack
+  ├─ Interpretation Attack
+  ├─ Numerical Stress Attack
+  └─ Completeness / Format Attack
+       ↓
+Challenge Ledger
+       ↓
+Dispute Mapper
+       ↓
+定位第一个关键分歧 Claim
+       ↓
+Deterministic Local Resolver
+       ↓
+挑战是否解决？
+  ├─ 已驳回攻击 → 增加 attack-survival 证据
+  ├─ 攻击成立 → 候选降级或淘汰
+  └─ 尚不确定
+       ↓
+One-shot Cross Examination
+       ↓
+Blue Defense / Red Rebuttal
+       ↓
+仍存在 Fatal Challenge？
+  ├─ 否 → Evidence Adjudicator
+  └─ 是 → One-shot Targeted Repair
+                 ↓
+              Reverify
+                 ↓
+        Evidence Adjudicator
+                 ↓
+        Answer Normalizer
+                 ↓
+        Transaction Commit
+                 ↓
+    final_response + safe trace
 ```
 
-其中 `client` 由平台提供。选手不要在代码中写死 API key，也不要假设本地存在固定的 API 配置文件。正式评测时，模型访问、限流、token 统计、超时控制等由官方 client 和平台 runner 统一管理。
+这是按风险和证据动态展开的图，不是每道题都执行全部节点。
 
-评测时平台提供的 client 与 baseline 中 `llm_client.py` 的 `InternChatClient` 结构一致，可作为本地实现参考。选手可以参考其中的 `chat(messages, temperature, max_tokens)` 调用方式组织模型请求：
+---
+
+# 3. 异构求解器设计
+
+异构不是简单地给同一模型换几个角色名。每个求解器必须在至少两个维度上与其它求解器不同。
+
+## 3.1 异构维度
+
+```text
+推理范式：
+直接证明 / 反证 / 逆否 / 构造 / 归纳 / 极值 / 双计数
+
+数学表示：
+符号 / 几何 / 图结构 / 概率事件 / 算子 / 坐标 / 生成函数
+
+工具通道：
+纯 LLM / SymPy / Python 数值 / brute force / residual checker
+
+知识路径：
+定义展开 / 结构定理 / 局部计算 / 全局不变量 / 对偶性
+
+目标函数：
+求解 / 构造 / 验证 / 找反例 / 攻击条件
+
+上下文暴露：
+看主候选 / 不看主候选 / 只看分歧 Claim
+```
+
+## 3.2 Blue Team Solver Portfolio
+
+### S1：Structural / Theorem Solver
+
+适合：
+
+- 抽象代数；
+- 泛函分析；
+- 拓扑；
+- 测度论；
+- 图论结构题；
+- 需要调用标准定理的证明题。
+
+职责：
+
+```text
+识别结构
+选择定理
+明确列出定理前提
+给出关键 Claim
+输出最终候选
+```
+
+### S2：Constructive / Definition Solver
+
+禁止简单复述 S1 的定理路线，优先：
+
+```text
+从定义展开
+直接构造
+局部计算
+反证或逆否
+显式计数
+```
+
+它承担真正的正交盲解职责。
+
+### S3：Tool-Integrated Symbolic Solver
+
+适合：
+
+- 代数恒等；
+- 方程；
+- 积分、导数；
+- 矩阵；
+- ODE/PDE 候选解；
+- 部分复分析计算。
+
+组合：
+
+```text
+LLM 生成可检查表达式
++
+SymPy / Python 执行
++
+返回证书或反证
+```
+
+### S4：Numerical / Enumeration Solver
+
+适合：
+
+- 组合与离散；
+- 数值分析；
+- 概率小规模事件；
+- 递推；
+- 有限结构；
+- 极限和复杂表达式的 sanity check。
+
+作用主要是：
+
+```text
+快速发现错误
+```
+
+而不是把有限数值测试伪装成一般性证明。
+
+## 3.3 动态选择
+
+每题不固定调用四个求解器。
+
+```text
+低风险计算题：
+S1 或 S3
+
+中风险题：
+S1 + 一个正交求解器
+
+高风险理论题：
+S1 + S2 + 红队审查
+
+工具可验证冲突题：
+S1 + S3/S4 + 红队局部攻击
+```
+
+同一 base model 可以承担不同角色，但必须通过：
+
+- 上下文隔离；
+- 方法限制；
+- 不同工具通道；
+- 不同输出协议；
+- Method Fingerprint；
+
+实现功能异构。
+
+---
+
+# 4. 正交求解协议
+
+## 4.1 Method Fingerprint
+
+每个候选必须记录方法指纹：
 
 ```python
-response = client.chat(
-    messages=[
-        {"role": "user", "content": problem},
-    ],
-    temperature=0.2,
-    max_tokens=4096,
+MethodFingerprint(
+    paradigm="constructive",
+    representation="combinatorial",
+    theorem_family="none",
+    tool_channel="brute_force",
+    interpretation_id="I1",
+    exposed_to_primary=False,
 )
 ```
 
-正式评测 client 可能包含额外的资源统计、限流和安全控制逻辑。选手代码只应依赖公开约定的调用接口，不要依赖 client 内部私有字段。正式评测只保证非流式、单候选响应，因此不要传入 `stream=True` 或 `n != 1`；平台会锁定 `model` 和当前调用的 `messages`，并可能限制 `max_tokens` 和模型调用次数。
+## 4.2 Orthogonality Gate
 
-`ReasoningAgent` 必须提供推理函数：
+两个候选只有在关键维度确实不同，才算独立支持。
 
-```python
-def solve(self, problem: str, metadata: dict) -> dict:
-    ...
-```
-
-输入参数含义如下：
-
-- `problem`: 数学题题面文本。
-- `metadata`: 题目元信息字典，至少可能包含 `idx`。正式评测时，metadata 的具体字段以平台 runner 为准。选手代码不得依赖 `answer`、标准答案或隐藏评测数据。
-
-返回值必须是 `dict`，且必须包含非空字符串字段：
-
-```python
-{
-  "final_response": "最终答案"
-}
-```
-
-也可以返回可选的 `trace`，但只应记录非敏感的结构化摘要：
-
-```python
-{
-  "final_response": "最终答案",
-  "trace": [
-    {"step": "policy_call", "content": {"candidate_id": 0, "status": "completed"}},
-    {"step": "verify", "content": {"candidate_id": 0, "accepted": True}},
-    {"step": "finalize", "content": {"candidate_id": 0}}
-  ]
-}
-```
-
-字段要求：
-
-- `final_response` 必须是可读的最终答案，不能为空。
-- `trace` 可选，建议为列表，只记录步骤名称、调用状态、候选编号、耗时或长度等结构化元数据。
-- 返回内容必须可以被 JSON 序列化。
-- 不要在 `trace` 中重复题面、完整 prompt、模型输入输出、候选解答或最终答案，也不要写入 API key、访问令牌、个人隐私信息或其它敏感内容。
-
-### 日志与评测报告
-
-正式评测会在隔离环境中处理 `trace`，并可能直接丢弃选手进程的标准输出和标准错误。在线平台提供下载的评测日志与评测报告会经过脱敏，只包含允许公开的汇总分数、运行状态和聚合统计，不包含逐题题面、标准答案、候选解答、原始模型交互、Judge prompt/响应或其它判分细节。
-
-正式评测的公开报告由评测仓库生成并固定落盘到 `<judge-repo>/run/judgements/summary.json`；该路径不属于选手 baseline 的本地 `outputs/`，选手代码无需创建或写入它。
-
-`trace`、标准输出和标准错误都不是向选手回传隐藏评测信息的通道。选手代码不要打印或记录完整题面、模型请求/响应、`final_response`、环境变量、密钥、文件内容或异常堆栈中的敏感正文；平台也不保证这些内容会原样出现在可下载产物中。
-
-### 实现自由度
-
-选手可以使用 baseline 中的 lagent 示例，也可以完全不用 lagent。平台只要求 `user_agent.py` 暴露符合规范的 `ReasoningAgent` 和 `solve` 方法。
-
-选手可以新增辅助函数、类和模块，也可以在单道题的 `ReasoningAgent` 内部维护状态。但需要注意：
-
-- 正式评测的每道题都会在独立进程中重新加载选手模块、构造 Agent，并只调用一次 `solve`；不要依赖内存、模块全局变量、文件或外部服务保存跨题状态。
-- 平台最多同时运行 3 个相互独立的题目进程；这不是对同一个 Agent 实例并发调用 3 次。
-- 不要依赖评测题之间的固定顺序。
-- 不要依赖本地绝对路径。
-- 不要读取或构造隐藏测试集、标准答案或 judger 信息。
-- 不要在代码中硬编码 API key。
-- 不要输出恶意内容、执行破坏性操作或规避平台资源限制。
-
-### 正式评测的并发、时限与计分
-
-- Agent 阶段的总硬时限为 6 小时，不包含后续 Judge 阶段的耗时。到达时限后，平台可以终止仍在运行的 Agent 代码。
-- 每道题的独立进程组有 1200 秒硬时限，包含选手模块加载、Agent 初始化和 `solve` 执行。超时后平台会终止整个进程组，不保证执行 `finally`、退出钩子或其它清理逻辑。
-- 截止时只接受已由平台 runner 原子落盘且状态为成功的逐题结果。选手只需从 `solve` 返回规定的字典，不要自行写评测输出文件。
-- Agent 异常、无效输出、到达截止时间仍未完成或缺失的题目均计为 `C`。最终成绩的分母固定为完整正式评测题集，不会因为只完成部分题目而缩小。
-
-## 输入数据与输出样例
-
-本地调试输入为 JSONL 文件，每行是一道题。每行至少包含：
-
-```json
-{"idx": 0, "problem": "题目文本"}
-```
-
-样例：
-
-```json
-{"idx": 0, "problem": "设$\\mathbb{F}_{81}$为$81$元的有限域。$T=\\{\\alpha\\in\\mathbb{F}_{81}|\\mathbb{F}_{81}=\\mathbb{F}_3(\\alpha)\\}$。求$T$中元素的个数。", "answer": "72", "subject": "抽象代数", "source": "sample"}
-```
-
-其中 `answer` 只会出现在样例数据中，用于选手本地对照调试。正式评测不会向 `solve` 传入标准答案。
-
-本地 runner 会将每道题的结果保存为独立 JSON 文件：
+高价值正交：
 
 ```text
-outputs/
-  0.json
-  1.json
-  2.json
+结构定理 ↔ 定义构造
+条件概率 ↔ 组合计数
+生成函数 ↔ 递推
+解析求解 ↔ residual 检查
+直接证明 ↔ 反证 / 反例攻击
+自然语言证明 ↔ 确定性枚举
 ```
 
-成功输出样例：
+低价值重复：
+
+```text
+相同定理重新叙述
+相同公式换符号
+只改变 temperature
+相同 Prompt 多次采样
+看过 Primary 后再“独立”求解
+```
+
+低正交候选可以保留为调试记录，但：
+
+```text
+不能增加 independent-support 证据
+不能参与多数票
+不能触发“多候选一致即正确”
+```
+
+## 4.3 Blind Isolation
+
+正交盲解器只能看到：
+
+```text
+原题
+Task Contract
+指定的正交方法族
+必要的 1～3 个 Skill
+```
+
+禁止看到：
+
+```text
+Primary 答案
+Primary 推理
+Primary Claim
+Verifier 结论
+其它候选答案
+```
+
+---
+
+# 5. Solution Capsule 与 Candidate Ledger
+
+## 5.1 Solution Capsule
+
+每个求解器在完整推理后输出高信息密度胶囊：
+
+```text
+<INTERPRETATION>
+I1
+</INTERPRETATION>
+
+<METHOD_FINGERPRINT>
+constructive | combinatorial | no_tool | blind
+</METHOD_FINGERPRINT>
+
+<FINAL_CANDIDATE>
+...
+</FINAL_CANDIDATE>
+
+<CRITICAL_CLAIMS>
+C1: ...
+C2: ...
+C3: ...
+</CRITICAL_CLAIMS>
+
+<PRECONDITIONS_USED>
+P1: ...
+P2: ...
+</PRECONDITIONS_USED>
+
+<CHECK_HINTS>
+...
+</CHECK_HINTS>
+
+<RISK_FLAGS>
+...
+</RISK_FLAGS>
+```
+
+下游优先处理 Capsule，不反复传递完整长推理。
+
+## 5.2 Candidate Ledger
+
+```text
+A：Primary
+B：Orthogonal Blind
+C：Tool-derived Candidate
+D：Targeted Repair
+R：Rescue
+```
+
+每个候选记录：
+
+- 来源；
+- 题意解释；
+- Method Fingerprint；
+- 规范化答案；
+- 关键 Claim；
+- 使用的定理前提；
+- 硬证据；
+- 红队挑战；
+- 已解决和未解决的 Fatal Challenge；
+- 是否冻结；
+- 是否有资格提交。
+
+后一个候选不得覆盖前一个候选。
+
+---
+
+# 6. 数学等价与候选归簇
+
+不能使用普通字符串相等比较数学答案。
+
+## 6.1 等价层级
+
+```text
+E0：清洗后的字符串相同
+E1：整数 / 有理数完全相等
+E2：SymPy simplify(a-b) == 0
+E3：方程解集标准化相同
+E4：集合 / 区间标准化相同
+E5：矩阵逐项等价
+E6：多小问逐项等价
+E7：高精度多点数值支持
+E8：无法判断
+```
+
+返回：
+
+```text
+EQUIVALENT
+NOT_EQUIVALENT
+UNKNOWN
+```
+
+例如：
+
+```text
+-1/8
+-\frac{1}{8}
+-0.125
+```
+
+不能被误判为三个冲突答案。
+
+## 6.2 Equivalence Cluster
+
+候选先按数学等价归簇：
+
+```text
+Cluster K1:
+A, B, C → answer equivalent
+
+Cluster K2:
+D → conflicting answer
+```
+
+簇的可信度不由成员数量直接决定，而由：
+
+```text
+方法正交性
+硬证据覆盖
+攻击存活情况
+Fatal Challenge
+```
+
+共同决定。
+
+---
+
+# 7. Certificate Engine
+
+证据优先级高于模型自信度和自然语言长度。
+
+## 7.1 格式与完整性证书
+
+- `final_response` 非空；
+- 答案类型匹配；
+- 多小问完整；
+- 集合、区间、矩阵维度正确；
+- 返回值可 JSON 序列化；
+- Candidate 与最终规范化答案一致。
+
+## 7.2 硬数学证书
+
+- SymPy 恒等验证；
+- 方程代回；
+- 导数反验；
+- 积分反微分；
+- 矩阵等式；
+- ODE/PDE residual；
+- 初值和边界条件；
+- 有限枚举；
+- 概率归一化；
+- 高精度数值和误差界。
+
+## 7.3 反驳证书
+
+- 明确反例；
+- residual 非零；
+- 边界或初值失败；
+- 非法除零；
+- small-n 枚举冲突；
+- 概率超出 `[0,1]`；
+- 定理必要条件不成立；
+- 多小问缺失；
+- 候选答案不满足原题。
+
+工具异常只能记为：
+
+```text
+UNKNOWN
+```
+
+不能直接把候选判错。
+
+## 7.4 理论条件证书
+
+重点检查：
+
+- 可测性、可积性、支配条件；
+- 一致收敛和极限交换；
+- 完备、紧、闭、有界；
+- 正规性、同态、核与像；
+- 局部与全局条件；
+- 量词、边界和定义域；
+- 概率独立性和条件概率分母；
+- ODE/PDE 正则性与边界条件；
+- 复分析围道、支路与奇点条件。
+
+---
+
+# 8. 红队对抗审查系统
+
+红队不是普通 Verifier。它的目标是：
+
+> 假设当前候选存在错误，主动寻找能够推翻它的最小证据。
+
+红队只攻击候选，不负责写一篇新的完整解答。
+
+## 8.1 Attack Scheduler
+
+根据 Task Contract、Risk Map、Failure Skills 和候选状态选择攻击组合。
+
+```text
+低风险 + Hard Pass：
+只做格式和边界轻攻击
+
+理论高风险：
+定理前提攻击 + 反例攻击 + 量词攻击
+
+候选冲突：
+只攻击第一个分歧 Claim
+
+工具候选：
+residual / numerical stress / domain attack
+
+多小问：
+只攻击未验证的小问
+```
+
+## 8.2 Attack Factory
+
+### A1：Assumption Attack
+
+寻找：
+
+- 未声明假设；
+- 把结论当条件；
+- 隐含独立性；
+- 隐含非零；
+- 隐含可逆性；
+- 隐含有限性。
+
+### A2：Theorem-Precondition Attack
+
+逐项核对：
+
+```text
+定理名称
+必要条件
+题面是否给出
+候选是否已经证明
+```
+
+如果缺失条件，生成 Fatal Challenge。
+
+### A3：Counterexample Attack
+
+优先寻找：
+
+- 最小反例；
+- 有限低维反例；
+- 退化结构；
+- 极端参数；
+- 非一般位置；
+- 特殊分布；
+- 非紧、非完备或非正规情形。
+
+### A4：Boundary / Degenerate Attack
+
+检查：
+
+```text
+0 / 1
+空集
+单点
+端点
+奇点
+重根
+秩退化
+概率 0 或 1
+参数最小允许值
+无穷远行为
+```
+
+### A5：Transformation Attack
+
+攻击：
+
+- 非等价变形；
+- 除零；
+- 开平方丢符号；
+- 取对数定义域；
+- 极限交换；
+- 积分交换；
+- 非双向蕴含；
+- 增根与漏解。
+
+### A6：Quantifier Attack
+
+检查：
+
+```text
+任意 ↔ 存在
+几乎处处 ↔ 处处
+局部 ↔ 全局
+至少 ↔ 恰好
+至多 ↔ 等于
+充分 ↔ 必要
+```
+
+### A7：Interpretation Attack
+
+从另一种合理题意解释出发，检查：
+
+- 符号作用域；
+- 多小问共享条件；
+- 变量约束；
+- 精确值与近似值；
+- “所有”与“某个”；
+- 题目是否存在两个自然解释。
+
+### A8：Numerical Stress Attack
+
+使用：
+
+- 高精度；
+- 多测试点；
+- 极端点；
+- 随机点；
+- 特殊点；
+- residual；
+- small-instance brute force；
+
+尝试发现候选表达式失败的位置。
+
+### A9：Completeness / Answer-Schema Attack
+
+检查：
+
+- 是否回答所有小问；
+- 是否只给必要条件却漏充分性；
+- 是否只证明唯一性未证明存在性；
+- 是否给一个解而题目要求全部解；
+- 最终答案是否符合类型。
+
+---
+
+# 9. Challenge Ledger 与攻防协议
+
+## 9.1 Challenge 对象
+
+```python
+Challenge(
+    attack_id="A3-01",
+    candidate_id="A",
+    target_claim_id="C2",
+    attack_type="counterexample",
+    severity="fatal",
+    statement="...",
+    witness="...",
+    required_resolver="finite_enumeration",
+    status="open",
+)
+```
+
+状态：
+
+```text
+OPEN
+SUSTAINED
+REBUTTED
+RESOLVED_BY_TOOL
+NOT_APPLICABLE
+```
+
+## 9.2 Claim 级攻击
+
+红队必须优先输出：
+
+```text
+第一个可决定结论的错误 Claim
+```
+
+而不是：
+
+```text
+这篇解答似乎有问题。
+```
+
+只要上游 Claim 已被击破，不继续攻击其全部后续推导，避免重复 Token。
+
+## 9.3 Deterministic Local Resolver
+
+挑战生成后，优先使用：
+
+- SymPy；
+- Python；
+- 代回；
+- residual；
+- 枚举；
+- 定义检查；
+- 静态规则；
+
+解决争议。
+
+能够由本地证据解决的冲突，不调用 LLM Arbiter。
+
+## 9.4 One-shot Cross Examination
+
+只有工具无法解决 Fatal Challenge 时，允许一次 Claim 级交叉质询。
+
+### Red Team 输入
+
+```text
+原题摘要
+Candidate Capsule
+目标 Claim
+已有证据
+```
+
+### Blue Defense 输入
+
+```text
+原题
+已验证事实
+目标 Challenge
+自身 Candidate Capsule
+```
+
+Blue Defense 不能看到其它候选的长推理。
+
+输出只允许：
+
+```text
+DEFENDED
+CONCEDED
+REVISED_CLAIM
+```
+
+并附最小必要理由。
+
+### Red Rebuttal
+
+如仍有必要，由同一个 Dispute Auditor 在一次调用内完成：
+
+```text
+挑战是否成立
+哪一方证据更强
+是否需要 Repair
+```
+
+不再创建无限辩论回合。
+
+---
+
+# 10. 对抗攻击后的修复规则
+
+## 10.1 Targeted Repair
+
+只有满足以下条件才允许：
+
+```text
+存在 Fatal Challenge
++
+错误 Claim 已定位
++
+其前置 Verified Facts 仍可保留
+```
+
+修复要求：
+
+- 只修第一个 Fatal Claim 及其后续；
+- 已验证事实默认冻结；
+- Repair 生成新候选；
+- 原候选不被覆盖；
+- Repair 后重新执行原攻击和原检查器；
+- 每题最多一次 Repair。
+
+## 10.2 Fresh Restart
+
+仅当：
+
+- 题意整体误读；
+- 方法核心完全失效；
+- 所有关键 Claim 都不可保留；
+
+才允许一次短路重解。
+
+## 10.3 Repair 失败
+
+```text
+保留原 Ledger
+淘汰有 Hard Fail 的候选
+不再 Repair
+进入最终 Evidence Adjudicator
+```
+
+---
+
+# 11. Evidence Adjudicator
+
+不使用未经数据校准的浮点加权，也不使用简单多数投票。
+
+按字典序裁决。
+
+## 11.1 淘汰条件
+
+候选出现任意一项，原则上不可提交：
+
+1. 输出契约非法；
+2. 明确 Hard Fail；
+3. Fatal Challenge 已成立且未修复；
+4. 多小问缺失；
+5. 最终答案无法规范化；
+6. 使用了被反例推翻的核心 Claim。
+
+## 11.2 候选优先级
+
+1. 输出合法且完整；
+2. 无 Hard Fail；
+3. 关键结论有 Hard Pass；
+4. 经受住 Fatal Attack；
+5. 获得真正正交的独立支持；
+6. 关键 Claim 覆盖完整；
+7. 未解决 Challenge 更少；
+8. 未经修复的稳定候选优先于证据不足的 Repair 候选；
+9. 成本更低者作为最后 tie-breaker。
+
+## 11.3 Attack Survival
+
+攻击存活不能仅表示：
+
+```text
+红队没有说错
+```
+
+必须满足至少一种：
+
+- Challenge 被工具反驳；
+- Challenge 与题目不适用；
+- Blue Defense 给出可验证证据；
+- 独立正交候选支持同一 Claim；
+- 红队无法提供具体 Fatal Claim，只给出泛化怀疑。
+
+---
+
+# 12. Dynamic Route Policy
+
+## Route A：单解 + 硬证书
+
+```text
+Primary
+→ Hard Certificate
+→ Lightweight Boundary Attack
+→ Commit
+```
+
+适合：
+
+- 方程；
+- 矩阵；
+- 标准积分；
+- 明确可代回的问题。
+
+模型调用通常为 1 次。
+
+## Route B：双解 + 正交攻击
+
+```text
+Primary
+→ Orthogonal Blind
+→ Equivalence Clustering
+→ Targeted Red Attack
+→ Commit
+```
+
+适合中风险计算题、概率题和工具不能完全验证的问题。
+
+模型调用通常为 2～3 次。
+
+## Route C：理论双解 + 强制红队
+
+```text
+Structural Solver
++
+Definition / Constructive Blind Solver
+→ Theorem-Precondition Attack
+→ Counterexample / Quantifier Attack
+→ Evidence Adjudication
+```
+
+适合：
+
+- 测度论；
+- 泛函分析；
+- 抽象代数证明；
+- 拓扑；
+- 微分几何；
+- 高风险离散证明。
+
+模型调用通常为 3 次。
+
+## Route D：真实冲突攻防
+
+```text
+Equivalence Conflict
+→ Dispute Mapper
+→ Claim-level Attack
+→ Deterministic Resolver
+→ One-shot Cross Examination
+→ Targeted Repair
+→ Reattack
+→ Commit
+```
+
+只在存在真实冲突或 Hard Fail 时启用。
+
+模型调用上限建议为 4 次。
+
+---
+
+# 13. 学科专属异构与攻击路线
+
+| 学科 | 正交求解组合 | 红队重点攻击 |
+|---|---|---|
+| 离散数学 / 组合 | 双计数 ↔ 递推 / 生成函数 ↔ 枚举 | 重复计数、初值、极端小规模、连通性 |
+| 数值分析 | 理论误差推导 ↔ 高精度实验 | 收敛条件、误差阶、稳定性、初值 |
+| 测度积分 / 数学分析 | 定理法 ↔ 定义/逼近法 | 可测、可积、支配、极限交换、a.e. 与处处 |
+| 抽象代数 | 结构定理 ↔ 定义构造 / 有限实例 | 正规性、阶数整除、扩张次数、核像、商结构 |
+| 概率统计 | 条件概率 ↔ 组合计数 / 指示变量 | 独立性、条件方向、分母、归一化、重复计数 |
+| 随机过程 | 转移结构 ↔ 条件期望 / 鞅方法 | Markov 条件、停时、平稳与极限分布 |
+| ODE / PDE | 解析构造 ↔ residual / 数值检查 | 初值、边界、正则性、定义域、唯一性 |
+| 复分析 | 留数/围道 ↔ 局部 Laurent / 直接极限 | 围道方向、支路、极点阶数、边界奇点 |
+| 泛函分析 / 拓扑 | 定理法 ↔ 定义/反例法 | 完备、紧、闭、有界、Hausdorff、局部与全局 |
+| 微分几何 | 坐标计算 ↔ 不变量/几何定义 | 坐标依赖、局部全局、正则点、符号约定 |
+
+---
+
+# 14. Multi-part 与 Verified Fact Memory
+
+多小问按部分管理：
+
+```python
+PartState(
+    part_id="b",
+    candidates=[],
+    verified_facts=[],
+    challenges=[],
+    status="unresolved",
+)
+```
+
+允许：
+
+```text
+(a) 已冻结
+(b) 发生 Fatal Challenge
+(c) 已冻结
+```
+
+只对 `(b)` 启动额外求解和攻击。
+
+Verified Fact / Lemma Memory 只保存当前单题内已经验证的事实：
+
+```text
+F1: G is cyclic              VERIFIED
+F2: |G| = 8                  VERIFIED
+F3: every subgroup is cyclic VERIFIED
+```
+
+Repair 和 Blue Defense 默认不能修改已冻结事实，除非红队提供新的硬反证。
+
+---
+
+# 15. Runtime Guard
+
+正式评测必须同时考虑：
+
+- 单题进程硬时限；
+- Agent 阶段总时限；
+- 最多三题并发；
+- 模型调用次数；
+- Token；
+- 截断；
+- 异常；
+- 无效输出。
+
+阶段建议：
+
+```text
+正常阶段：
+允许 Primary、工具和必要的 Orthogonal Solver
+
+攻击阶段：
+只生成针对已有候选的 Challenge，不继续扩张普通候选
+
+争议阶段：
+只解决第一个 Fatal Dispute
+
+救援阶段：
+禁止长推理，只允许 Rescue 或选择已有候选
+
+提交阶段：
+停止所有新增模型调用
+```
+
+`FINAL_CANDIDATE` 必须优先于长推理输出。
+
+发生截断：
+
+1. 已有完整候选：直接验证；
+2. 没有候选：最多 Continuation 一次；
+3. 再次失败：Rescue 一次；
+4. 禁止无限续写。
+
+---
+
+# 16. 安全 Trace
+
+Trace 只记录结构化运行摘要，不记录题面、候选正文、最终答案、完整 Prompt 或密钥。
+
+示例：
 
 ```json
-{
-  "idx": 0,
-  "status": "success",
-  "final_response": "72",
-  "trace": [
-    {
-      "step": "select_final_response",
-      "content": {
-        "candidate_id": 0,
-        "confidence_score": 1.0
-      }
+[
+  {
+    "step": "strategy_compile",
+    "content": {
+      "route": "C",
+      "solver_roles": ["structural", "constructive_blind"],
+      "attack_plan": ["precondition", "counterexample"]
     }
-  ]
-}
-```
-
-异常输出样例：
-
-```json
-{
-  "idx": 0,
-  "status": "error",
-  "final_response": "",
-  "error": {
-    "type": "RuntimeError",
-    "message": "错误信息"
   },
-  "trace": []
-}
+  {
+    "step": "orthogonality_gate",
+    "content": {
+      "candidate_pair": ["A", "B"],
+      "status": "accepted"
+    }
+  },
+  {
+    "step": "red_team_attack",
+    "content": {
+      "candidate_id": "A",
+      "attack_type": "theorem_precondition",
+      "status": "challenge_opened",
+      "severity": "fatal"
+    }
+  },
+  {
+    "step": "challenge_resolution",
+    "content": {
+      "challenge_id": "A2-01",
+      "status": "resolved_by_tool"
+    }
+  },
+  {
+    "step": "finalize",
+    "content": {
+      "candidate_id": "A",
+      "status": "committed"
+    }
+  }
+]
 ```
 
-本地调试时，如果某个 `idx.json` 已经存在且文件非空，runner 会跳过该题，便于中断后继续运行。
+---
 
-## 本地调试
+# 17. 目标工程结构
 
-安装依赖：
-
-```bash
-pip install -r requirements.txt
+```text
+agent/
+├── core.py
+├── state.py
+├── contracts.py
+├── policies.py
+│
+├── profiler/
+│   ├── canonicalizer.py
+│   ├── task_contract.py
+│   ├── risk_map.py
+│   └── ambiguity.py
+│
+├── strategies/
+│   ├── compiler.py
+│   ├── method_fingerprint.py
+│   ├── orthogonality.py
+│   └── domain_routes.py
+│
+├── solvers/
+│   ├── structural.py
+│   ├── constructive_blind.py
+│   ├── tool_integrated.py
+│   ├── numerical_enum.py
+│   └── rescue.py
+│
+├── attacks/
+│   ├── scheduler.py
+│   ├── assumption.py
+│   ├── theorem_precondition.py
+│   ├── counterexample.py
+│   ├── boundary.py
+│   ├── transformation.py
+│   ├── quantifier.py
+│   ├── interpretation.py
+│   ├── numerical_stress.py
+│   └── completeness.py
+│
+├── challenges/
+│   ├── ledger.py
+│   ├── dispute_mapper.py
+│   ├── local_resolver.py
+│   └── cross_examination.py
+│
+├── evidence/
+│   ├── candidate_ledger.py
+│   ├── certificates.py
+│   ├── equivalence.py
+│   ├── verified_facts.py
+│   └── adjudicator.py
+│
+├── repair/
+│   ├── fatal_locator.py
+│   ├── targeted.py
+│   └── reverify.py
+│
+├── tools/
+│   ├── registry.py
+│   ├── safe_executor.py
+│   ├── sympy_tool.py
+│   ├── numeric.py
+│   ├── brute_force.py
+│   └── residual.py
+│
+├── protocols/
+│   ├── solution_capsule.py
+│   ├── answer_schema.py
+│   ├── answer_normalizer.py
+│   └── transaction.py
+│
+├── skills/
+│   ├── router.py
+│   ├── strategies/
+│   ├── verification/
+│   └── failures/
+│
+└── trace/
+    └── recorder.py
 ```
 
-设置 API key：
+目录多不等于 Agent 多。大多数模块应为确定性 Python 逻辑。
+
+---
+
+# 18. 实施顺序与消融实验
+
+每次只增加一个主要变量。
+
+## Phase 1：答案与证据基础设施
+
+```text
+Answer Schema
+→ Answer Normalizer
+→ Mathematical Equivalence
+→ Candidate Ledger
+→ Transaction Commit
+→ Runtime Guard
+```
+
+## Phase 2：异构工具求解
+
+```text
+SymPy / substitution
+→ residual
+→ numerical
+→ brute force
+→ Tool-Integrated Solver
+```
+
+## Phase 3：正交求解
+
+```text
+Method Fingerprint
+→ Orthogonality Gate
+→ Blind Context Isolation
+→ Strategy Compiler
+```
+
+## Phase 4：红队攻击
+
+```text
+Attack Scheduler
+→ Theorem-Precondition Attack
+→ Counterexample Attack
+→ Boundary / Transformation / Quantifier Attack
+→ Challenge Ledger
+```
+
+## Phase 5：攻防与修复
+
+```text
+Dispute Mapper
+→ Deterministic Local Resolver
+→ One-shot Cross Examination
+→ Fatal Error Locator
+→ One-shot Targeted Repair
+→ Reattack / Reverify
+```
+
+## Phase 6：动态策略
+
+通过 112 题回归测试学习：
+
+```text
+哪些题只需要单解
+哪些题需要一个正交盲解
+哪些题必须红队攻击
+哪些攻击误杀率过高
+哪些 Repair 没有净收益
+```
+
+每个模块记录：
+
+```text
+Wrong → Correct
+Correct → Wrong
+攻击发现真实错误数
+攻击制造假冲突数
+Challenge 被工具解决比例
+Repair 成功率
+调用次数
+输入/输出 Token
+平均与 P95 耗时
+超时率
+异常率
+无效输出率
+```
+
+模块净价值：
+
+\[
+\text{Module Value}
+=
+\text{Wrong}\rightarrow\text{Correct}
+-
+\text{Correct}\rightarrow\text{Wrong}
+-
+\lambda_1\text{Timeout}
+-
+\lambda_2\text{Invalid Output}
+-
+\lambda_3\text{False Challenge}
+\]
+
+救回题数小于误杀题数，或者制造大量假挑战的模块，应降级或删除。
+
+---
+
+# 19. 112 题公开测试集
+
+完整回归测试使用：
+
+```text
+https://github.com/Jialiang-Zhang/test-dataset-math/tree/main/112
+```
+
+静态 Task Contract 的设计、十八方向 Top-2 回放与协议恢复门见
+[`docs/ADAPTIVE_TASK_CONTRACT.md`](docs/ADAPTIVE_TASK_CONTRACT.md)。该回放不调用模型，也不会把 `answer`、`subject`、`source` 传入智能体。
+
+工作流会：
+
+1. 检出本仓库 `main`；
+2. 检出 `Jialiang-Zhang/test-dataset-math`；
+3. 数字顺序读取 `112/*.json`；
+4. 严格验证题目数量和 `idx=0..111`；
+5. 生成只含 `idx`、`problem` 的临时 JSONL；
+6. 调用 `main.py`；
+7. 将结果保存到 `output/<UTC运行时间>/`；
+8. 创建独立结果分支；
+9. 提交结果并创建 Pull Request，不直接修改 `main`。
+
+`answer`、`subject`、`source` 不会传入 `ReasoningAgent.solve`。
+
+## 19.1 GitHub Actions 运行
+
+仓库 Secret：
+
+```text
+INTERN_API_KEY
+```
+
+运行入口：
+
+```text
+Actions
+→ Run 112 benchmark
+→ Run workflow
+```
+
+推荐首次使用：
+
+```text
+concurrency = 3
+dataset_ref = main
+```
+
+工作流是手动触发，不会在普通代码 push 时自动消耗 API 配额。
+
+## 19.2 输出结构
+
+```text
+output/
+├── README.md
+└── 20260825T135011Z-run12/
+    ├── 0.json
+    ├── 1.json
+    ├── ...
+    ├── 111.json
+    ├── run_metadata.json
+    └── summary.json
+```
+
+`run_metadata.json` 记录：
+
+- 运行时间；
+- 数据集仓库、ref 和 commit；
+- 智能体仓库 commit；
+- 模型；
+- 并发数；
+- 数据集摘要；
+- runner 退出码和总耗时。
+
+`summary.json` 记录：
+
+- 成功、错误和缺失数量；
+- 学科分布；
+- 每题响应长度；
+- Trace 步骤数；
+- 错误类型。
+
+该汇总只检查运行完整性，不是官方数学 Judge 分数。
+
+## 19.3 本地运行
 
 ```bash
 export INTERN_API_KEY="sk-..."
-```
-
-运行样例：
-
-```bash
-python main.py --input_file sample_data/dev.jsonl --output_dir sample_outputs
-```
-
-本地 runner 默认并发数为 3。如需调整：
-
-```bash
-export LOCAL_MAX_CONCURRENCY=2
-```
-
-本地 runner 只近似模拟正式评测的最多 3 题并发与逐题原子写入行为。为便于快速调试，它会在一个进程中复用同一个 Agent 实例；正式评测则为每道题重新加载独立 Agent 进程。因此，本地运行不能用于验证跨题状态，也不会完整复现平台的单题 1200 秒进程组硬时限、Agent 阶段 6 小时总硬时限、失败补 `C` 和 Judge 流程。本地调试结果只用于选手自测，不代表正式评测分数。正式评测会使用隐藏测试集、官方 client、平台 runner 和官方 judger。
-
-## Intern-S API 使用说明
-
-选手可以使用报名挑战杯时填写的手机号注册书生 API 控制台：
-
-```text
-https://internlm.intern-ai.org.cn/api/document
-```
-
-API 控制台主要用于：
-
-- 查看 API docs 和可用模型列表。
-- 获取、创建或管理 API key。
-- 申请更高的 RPM / TPM 流控。
-- 查看调用量、配额和使用情况。
-
-书生 API 控制台中的 API 均可免费使用。平台会对普通用户执行流控策略：
-
-```text
-RPM 30
-TPM 150000
-```
-
-如果本地调试或实验需要更高流控，可以前往以下页面申请提升：
-
-```text
-https://internlm.intern-ai.org.cn/api/strategy
-```
-
-申请时请在备注中填写“挑战杯”。通常情况下，200 RPM 以内的流控提升会在 1-2 个工作日内生效。具体生效时间以 API 控制台状态为准。
-
-选手可以使用 API 控制台下的任意可用模型作为智能体 base model，例如：
-
-- `intern-s1`
-- `intern-s1-pro`
-- `intern-s2-preview`
-
-本地使用 baseline runner 调试时，可以通过环境变量指定模型：
-
-```bash
 export INTERN_MODEL="intern-s2-preview"
+
+python scripts/run_112_benchmark.py \
+  --dataset-dir ../test-dataset-math/112 \
+  --output-root output \
+  --concurrency 3
 ```
 
-如需调整 API endpoint，请以书生 API 控制台文档中的接口地址为准配置 `INTERN_API_BASE`。
+也可指定运行目录：
 
-`InternChatClient.chat` 支持书生 Chat API 的 `thinking_mode`、`tools` 等参数，也可以通过额外关键字参数透传其它接口参数：
+```bash
+python scripts/run_112_benchmark.py \
+  --dataset-dir ../test-dataset-math/112 \
+  --output-root output \
+  --run-id 20260825T135011Z-local \
+  --concurrency 3
+```
+
+已有且非空的运行目录不会被覆盖。
+
+---
+
+# 20. 分支与结果管理
+
+所有人工代码修改：
+
+```text
+main
+→ 新建功能分支
+→ 提交修改
+→ Pull Request
+→ 审查后合并
+```
+
+112 题工作流结果：
+
+```text
+main
+→ benchmark/112-<运行时间>
+→ output/<运行时间>/
+→ 自动或手动创建 Pull Request
+```
+
+禁止：
+
+- 直接将开发修改推入 `main`；
+- 将 API Key 写入仓库；
+- 在 Trace 或结果元数据中输出密钥；
+- 覆盖旧运行目录；
+- 用同一个输出目录混合多个 commit 的结果。
+
+---
+
+# 21. 当前项目结构
+
+```text
+.
+├── user_agent.py
+├── llm_client.py
+├── main.py
+├── requirements.txt
+├── scripts/
+│   └── run_112_benchmark.py
+├── tests/
+├── sample_data/
+├── output/
+│   └── README.md
+└── .github/
+    └── workflows/
+        ├── tests.yml
+        ├── run-dev.yml
+        └── run-112-benchmark.yml
+```
+
+当前 baseline 仍用于接口和运行链路验证。HORA-Math 将按上述阶段逐步替换内部实现，同时保持：
 
 ```python
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "calculate",
-            "description": "计算数学表达式",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "expression": {"type": "string"},
-                },
-                "required": ["expression"],
-            },
-        },
-    }
-]
-
-client = InternChatClient(
-    default_args={
-        "thinking_mode": True,
-        "top_p": 0.9,
-    }
-)
-response = client.chat(
-    messages=[{"role": "user", "content": "计算 1 + 1"}],
-    tools=tools,
-    tool_choice="auto",
-)
+ReasoningAgent(client=official_client)
+agent.solve(problem, metadata)
 ```
 
-`default_args`（或初始化 client 时直接提供的额外关键字参数）会应用于每次请求；`chat` 中提供的参数优先级更高。普通回复仍返回文本字符串；如果模型发起工具调用，则返回完整的 assistant message 字典，其中包含 `tool_calls`。
-
-上述透传约定仅适用于非流式、单候选 Chat API 请求。正式评测 client 会拒绝 `stream=True` 和 `n != 1`，并始终使用平台选定的模型及本次传入的 `messages`；选手传入同名额外参数不能覆盖这些平台字段。
-
-提交仓库至评分系统时，选手可以选择智能体实际使用的模型。正式评测时，平台 runner 会通过官方 client 使用该模型进行调用。
-
-评分系统 client 使用的 API 来自书生 API 控制台：
-
-```text
-https://internlm.intern-ai.org.cn/api
-```
-
-建议选手本地调试时也使用同一份 API 控制台，避免本地实验环境和正式评分环境之间产生模型行为、接口格式或网关策略差异。
-
-## 提交方式
-
-参赛队伍可以在报名结束后提交作品进行判分，提交开放时间预计为 2026-07-01 起，具体以赛事通知为准。选手需要基于 baseline 仓库准备自己的提交代码，并向判分系统提交仓库地址与 commit SHA。
-
-推荐流程：
-
-1. 获取 baseline 仓库代码。
-2. 在自己的仓库中完成实现。
-3. 确保仓库根目录包含符合规范的 `user_agent.py`。
-4. 将代码推送到 GitHub 或平台指定的代码托管服务。
-5. 在判分系统中完成仓库授权。
-6. 向判分系统提交仓库地址和 commit SHA。
-
-关于仓库可见性：
-
-- 如果直接 fork 一个公开 baseline 仓库，fork 和提交内容通常也是公开可见的。
-- 如果不希望自己的方案公开，建议将 baseline clone 到本地后，推送到自己的 private repository。
-- 选手也可以保持仓库公开，但需自行承担方案被其他人看到的风险。
-
-判分系统会以选手提交的 commit SHA 作为评测快照。请务必提交具体 commit SHA，而不是只提交分支名。分支名可能继续变化，commit SHA 才能保证结果可复现。
-
-### 挑战杯官网材料提交
-
-判分系统用于初赛榜单评测，挑战杯官网材料提交用于满足赛事报名与材料归档要求。两者都需要完成。
-
-初赛截止前，请根据挑战杯官网要求，将自己的最终版本代码仓库与赛题要求的其它材料打包成 `.zip` 文件，提交到挑战杯官网，并发送邮件至：
-
-```text
-changshuai@pjlab.org.cn
-```
-
-建议压缩包内至少包含：
-
-- 最终版本代码。
-- `user_agent.py` 及所有运行所需的辅助文件。
-- `requirements.txt` 或其它依赖说明。
-- 一份说明文件，写明队伍信息、题目名称、最终仓库地址、最终分支名称、最终 commit hash 和选择使用的模型。
-
-提交前建议检查：
-
-- `user_agent.py` 可以被正常 import。
-- `ReasoningAgent(client=official_client)` 可以正常初始化。
-- `solve(problem, metadata)` 返回包含非空 `final_response` 的字典。
-- 所有依赖都已写入 `requirements.txt` 或赛事另行指定的依赖文件。
-- 代码中没有硬编码 API key、个人路径、临时文件路径或调试用标准答案。
-
-## 自动判分系统
-
-自动判分系统预计 7 月上线，具体上线日期以赛事通知为准。
-
-判分系统上线前，如果选手需要提交作品并获取评测分数，可以将代码库打包成 `.zip` 文件发送邮件至：
-
-```text
-changshuai@pjlab.org.cn
-```
-
-邮件模板如下：
-
-```text
-邮件主题：[挑战杯初赛评测申请] 队伍名称 - 题目名称 - commit hash
-
-收件人：changshuai@pjlab.org.cn
-
-正文：
-队伍名称：
-
-题目名称：基于 Intern-S 系列模型的数学智能体设计与推理创新
-
-报名成员信息（至少填写 1 名挑战杯官网内报名成员）：
-- 姓名：
-- 学校：
-- 报名手机号：
-
-需要评测的代码版本：
-- 仓库地址：
-- 分支名称：main
-- commit hash：
-- 选择使用的模型：例如 intern-s2-preview
-
-附件：
-- 代码库 zip 文件名：
-
-备注：
-- 如有特殊依赖、运行说明或需要说明的异常情况，请在这里填写。
-```
-
-邮件评测同样以邮件中写明的分支名称和 commit hash 为准。请确保附件中的代码版本与邮件正文中的 commit hash 对应，避免评测结果无法复现。
-
-判分系统的基本工作流程如下：
-
-1. 选手在系统中提交仓库地址与 commit SHA。
-2. 系统检查仓库授权，并拉取对应 commit 的代码。
-3. 系统在隔离环境中安装依赖并加载 `user_agent.py`。
-4. 系统根据选手提交时选择的模型，使用官方 client 初始化 `ReasoningAgent`。
-5. 平台 runner 读取正式评测题，调用 `agent.solve(problem, metadata)`。
-6. 系统收集 `final_response`、`trace`、运行耗时、异常信息和资源使用情况。
-7. 官方 judger 结合标准答案对结果进行判分。
-8. 系统返回最终分数、是否存在异常，以及经过脱敏的汇总日志和评测报告。
-
-正式评测时：
-
-- 平台会使用官方闭源测试集。
-- 平台会使用来自书生 API 控制台的官方 client，不使用选手自带 API key。
-- 平台会统一控制超时、并发、模型调用预算和资源限制。
-- 平台提供的下载产物只包含脱敏后的汇总信息，不会向选手返回逐题题目、标准答案、候选解答、原始模型交互、judger 细节或逐题详细反馈。
-- 如果代码无法安装、无法 import、入口函数不符合规范、运行超时、输出格式错误或触发安全策略，系统会标记异常。
-
-## 初赛评分与晋级
-
-初赛完全采取客观评分方式对所有参赛队伍进行排名。排名依据为初赛截止日期时，判分系统榜单上的队伍最终排名。
-
-在初赛截止日期前，组委会会根据整体赛题完成质量、参赛队伍分数分布等情况，公布进入决赛的最低分数线。进入决赛的队伍数量少于 30 支，具体晋级名单以赛事官方通知为准。
-
-## 提交次数限制
-
-从判分系统上线日到初赛截止时间，每支队伍的提交次数限制为：
-
-- 每天最多提交 2 次。
-- 每周最多提交 10 次。
-
-判分系统会给出最终分数、是否存在异常以及脱敏后的汇总日志和评测报告。请选手在本地充分调试后再提交正式评测，避免因格式错误、依赖缺失或超时浪费提交次数。
-
-## 常见异常
-
-以下情况可能导致判分异常：
-
-- 仓库授权失败，系统无法拉取提交。
-- 提交的是分支名而不是 commit SHA。
-- `user_agent.py` 不存在。
-- `ReasoningAgent` 类不存在或构造函数不接受 `client`。
-- `solve` 方法不存在、签名不符合要求或抛出异常。
-- 返回值不是字典。
-- `final_response` 缺失、为空或不是字符串。
-- 返回值无法 JSON 序列化。
-- 依赖无法安装或版本冲突。
-- 运行超时或资源使用超过平台限制。
-- 代码依赖本地绝对路径、私有文件或未声明资源。
-- 代码包含硬编码密钥、恶意行为或规避评测限制的逻辑。
-
-## 实现建议
-
-为了提高提交稳定性，建议选手：
-
-- 保持入口接口简单稳定，把复杂逻辑封装到内部模块。
-- 对模型输出做答案抽取和格式化，避免 `final_response` 过长或答案不明确。
-- 对异常进行适度处理，保证单题失败不会影响整体运行。
-- 控制模型调用次数和 token 使用，避免超时。
-- 在本地使用样例数据完整跑通安装、初始化、推理和输出保存流程。
-- 如需返回 `trace`，只保留非敏感的结构化摘要，不要记录题面、答案或原始模型交互。
-
-本仓库的 baseline 仅用于说明接口和基本思路。正式比赛欢迎选手提交更强、更稳定、更有创造性的数学智能体实现。
+接口稳定。

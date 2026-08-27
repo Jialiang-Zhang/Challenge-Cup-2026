@@ -93,7 +93,7 @@ class CompactRepairTest(unittest.TestCase):
             "Let f_inv be the inverse of f(x)=x^7+x^5+3 and F(x)=int_x^-17 f_inv(t)dt. Find F'(5).",
             {"idx": 1},
         )
-        self.assertEqual(result["final_response"], "-1")
+        self.assertEqual(result["final_response"], "最终答案：-1")
         self.assertEqual(len(client.calls), 4)
         self.assertIs(client.calls[2]["thinking_mode"], False)
         self.assertIs(client.calls[3]["thinking_mode"], False)

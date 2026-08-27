@@ -9,6 +9,7 @@ from agent.models import (
     SolutionCapsule,
     TaskContract,
 )
+from agent.prompt_overrides import primary_prompt_v2
 from agent.requirement_checks import evaluate_explicit_requirement_coverage
 from agent.resilient_engine import ResilientHORAEngine, extract_explicit_requirements
 
@@ -113,7 +114,7 @@ class ResilientRecoveryTest(unittest.TestCase):
         self._add_presentation_failure(state, weak)
         self.assertIsNone(select_best_candidate(state))
 
-    def test_truncated_proof_must_end_coherently(self):
+    def test_truncated_proof_is_never_safe_fallback(self):
         state = CaseState(contract=self._contract(proof=True))
         broken = self._capsule(candidate_id="R", source="rescue", proof=True)
         broken.final_response = (
@@ -122,6 +123,39 @@ class ResilientRecoveryTest(unittest.TestCase):
         )
         self._add_presentation_failure(state, broken)
         self.assertIsNone(select_best_candidate(state))
+
+    def test_high_risk_primary_needs_decisive_support(self):
+        state = CaseState(contract=self._contract(proof=True))
+        primary = self._capsule(proof=True, truncated=False)
+        state.add_candidate(primary)
+        state.add_evidence(
+            EvidenceRecord(
+                evidence_id="fmt-A",
+                candidate_id="A",
+                evidence_type="format_contract",
+                status="pass",
+                strength="structural",
+                checker="test",
+            )
+        )
+        self.assertIsNone(select_best_candidate(state))
+
+        state.add_evidence(
+            EvidenceRecord(
+                evidence_id="audit-A",
+                candidate_id="A",
+                evidence_type="red_team_adjudication",
+                status="pass",
+                strength="semantic",
+                checker="test",
+            )
+        )
+        self.assertEqual(select_best_candidate(state).capsule.candidate_id, "A")
+
+    def test_protocol_puts_submission_before_metadata(self):
+        prompt = primary_prompt_v2("证明结论。", self._contract(proof=True))
+        self.assertLess(prompt.index("<FINAL_CANDIDATE>"), prompt.index("<FINAL_RESPONSE>"))
+        self.assertLess(prompt.index("<FINAL_RESPONSE>"), prompt.index("<METHOD_FINGERPRINT>"))
 
     def test_requirement_extraction_keeps_explicit_obligations(self):
         problem = (
@@ -155,6 +189,25 @@ class ResilientRecoveryTest(unittest.TestCase):
         checks = evaluate_explicit_requirement_coverage(explicit, requirements)
         by_code = {item.code: item for item in checks}
         self.assertEqual(by_code["explicit_gaussian_derivation"].status, "pass")
+
+    def test_local_truncation_order_conflict_is_hard_failure(self):
+        requirements = ("由局部截断误差验证二阶精度",)
+        contradictory = (
+            r"局部截断误差 $\tau_{n+2}=\frac h2 y'''(t_n)+O(h^2)=O(h)$。"
+            r"经整理可知局部截断误差为 $O(h^2)$，故方法二阶。"
+        )
+        checks = evaluate_explicit_requirement_coverage(contradictory, requirements)
+        by_code = {item.code: item for item in checks}
+        self.assertEqual(by_code["local_truncation_order_consistency"].status, "fail")
+        self.assertTrue(by_code["local_truncation_order_consistency"].hard_failure)
+
+        consistent = (
+            r"在 $t_{n+2}$ 展开可得差分商为 $y'-\frac13h^2y'''+O(h^3)$，"
+            r"故局部截断误差为 $O(h^2)$，方法二阶。"
+        )
+        checks = evaluate_explicit_requirement_coverage(consistent, requirements)
+        by_code = {item.code: item for item in checks}
+        self.assertEqual(by_code["local_truncation_order_consistency"].status, "pass")
 
     def test_generator_requirement_needs_mappings_and_relations(self):
         requirements = ("要求写出两个生成自同构并验证其关系，而不能只给出群名",)

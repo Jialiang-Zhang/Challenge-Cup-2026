@@ -82,12 +82,16 @@ def evaluate_cross_domain_certificates(*, answer_raw: str, response: str) -> lis
         _has(text, r"\\mathcal\s*F_?\\infty") and _has(text, r"Doob|鞅收敛")
     )
     if levy_candidate:
-        false_doob_upgrade = _has(
+        l1_bounded = _has(
             text,
-            r"L\^?1\s*有界鞅[^。\n]{0,160}(?:Doob|鞅收敛)[^。\n]{0,180}"
-            r"(?:几乎处处|a\.?s\.?).{0,80}(?:且|and).{0,40}L\^?1[^。\n]{0,40}收敛|"
-            r"(?:Doob|martingale convergence)[^。\n]{0,220}L.?1\s+conver",
+            r"L\s*\^?\s*1\s*有界|L_?1\s*有界|L¹\s*有界|L.?1[- ]bounded",
         )
+        doob_used = _has(text, r"Doob|鞅收敛定理|martingale convergence theorem")
+        l1_convergence_claim = _has(
+            text,
+            r"在\s*L\s*\^?\s*1\s*(?:中)?收敛|L_?1\s*(?:中)?收敛|L¹\s*(?:中)?收敛|L.?1\s+conver",
+        )
+        false_doob_upgrade = l1_bounded and doob_used and l1_convergence_claim
         ui_established = _has(text, r"一致可积|uniformly integrable|uniform integrability")
         conflict = false_doob_upgrade and not ui_established
         checks.append(
@@ -100,13 +104,16 @@ def evaluate_cross_domain_certificates(*, answer_raw: str, response: str) -> lis
         )
 
     # Holonomy: parallel transport around a curved loop need not return a vector to its original direction.
-    holonomy_candidate = _has(text, r"holonomy|平行移动") and _has(text, r"d\\theta|d\s*theta|\\Delta\\theta")
+    holonomy_candidate = (
+        _has(text, r"holonomy|平行移动")
+        or (_has(text, r"d\\theta|d\s*theta|\\Delta\\theta") and _has(text, r"d\\omega|K\\,?dA|K\s*dA"))
+    )
     if holonomy_candidate:
         false_closed_return = _has(
             text,
-            r"闭合回路[^。\n]{0,160}(?:向量|vector)[^。\n]{0,100}(?:回到|return)[^。\n]{0,80}"
-            r"(?:原方向|原来的方向|same direction|original direction)|"
-            r"(?:向量|vector)[^。\n]{0,100}(?:最终|最后|after one loop)[^。\n]{0,80}"
+            r"闭合回路[^。\n]{0,180}(?:向量|vector)[^。\n]{0,120}(?:最终|最后|after one loop)?[^。\n]{0,80}"
+            r"(?:回到|return)[^。\n]{0,80}(?:原方向|原来的方向|same direction|original direction)|"
+            r"(?:向量|vector)[^。\n]{0,120}(?:最终|最后|after one loop)[^。\n]{0,80}"
             r"(?:回到|return)[^。\n]{0,80}(?:原方向|same direction|original direction)",
         )
         checks.append(

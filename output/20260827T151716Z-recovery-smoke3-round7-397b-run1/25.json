@@ -1,0 +1,230 @@
+{
+  "idx": 25,
+  "status": "error",
+  "final_response": "",
+  "error": {
+    "type": "RuntimeError",
+    "message": "HORA-Math produced no complete, hard-valid candidate"
+  },
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "numerical_analysis",
+        "secondary_domain_count": 2,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 3,
+        "secondary_domains": [
+          "higher_algebra",
+          "abstract_algebra"
+        ],
+        "question_mode": "multipart",
+        "mode_confidence": 0.91,
+        "alternate_modes": [
+          "proof",
+          "calculation"
+        ],
+        "answer_obligations": [
+          "multipart_count:3",
+          "proof_chain"
+        ],
+        "ambiguity_flags": [
+          "overlapping_mode_signals",
+          "multipart_proof"
+        ]
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 5,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 2930,
+        "elapsed_ms": 34128
+      }
+    },
+    {
+      "step": "candidate_evidence_gate",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "reason_codes": [
+          "derivation_certificate:stable_branch_interior_anchor"
+        ],
+        "detail_codes": [
+          "missing_verified_interior_stable_anchor"
+        ]
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2930,
+        "claim_count": 3,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 2904,
+        "elapsed_ms": 37274
+      }
+    },
+    {
+      "step": "candidate_evidence_gate",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "reason_codes": [
+          "derivation_certificate:stable_branch_interior_anchor"
+        ],
+        "detail_codes": [
+          "missing_verified_interior_stable_anchor"
+        ]
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2904,
+        "claim_count": 4,
+        "method": "constructive",
+        "tool_channel": "brute_force",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [],
+        "invalid_candidate_ids": [
+          "A",
+          "B"
+        ]
+      }
+    },
+    {
+      "step": "rescue_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 3688,
+        "elapsed_ms": 46707
+      }
+    },
+    {
+      "step": "candidate_evidence_gate",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "reason_codes": [
+          "derivation_certificate:bdf2_taylor_substitution_consistency",
+          "derivation_certificate:stable_branch_interior_anchor"
+        ],
+        "detail_codes": [
+          "h2_over_2_lost_during_substitution",
+          "missing_verified_interior_stable_anchor"
+        ]
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3688,
+        "claim_count": 3,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "certificate_guided_recovery",
+      "content": {
+        "candidate_id": "R",
+        "attack_type": "transformation",
+        "reason_code": "derivation_certificate:bdf2_taylor_substitution_consistency"
+      }
+    },
+    {
+      "step": "targeted_repair_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 3360,
+        "elapsed_ms": 36383
+      }
+    },
+    {
+      "step": "candidate_evidence_gate",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "reason_codes": [
+          "derivation_certificate:bdf2_taylor_substitution_consistency",
+          "derivation_certificate:stable_branch_interior_anchor"
+        ],
+        "detail_codes": [
+          "h2_over_2_lost_during_substitution",
+          "missing_verified_interior_stable_anchor"
+        ]
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3360,
+        "claim_count": 0,
+        "method": "corrected-direct",
+        "tool_channel": "none",
+        "warning_count": 1,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "repair_result",
+      "content": {
+        "candidate_id": "C",
+        "parent_candidate_id": "R",
+        "challenge_resolution_present": false,
+        "eligible": false
+      }
+    }
+  ]
+}

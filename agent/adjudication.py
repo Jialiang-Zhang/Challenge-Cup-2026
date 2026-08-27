@@ -25,12 +25,6 @@ def _meaningful(value: str | None) -> bool:
 
 
 def challenge_has_concrete_basis(challenge) -> bool:
-    """Whether a semantic challenge contains enough detail to veto a candidate.
-
-    A red-team label alone is not mathematical evidence.  A veto needs a concrete
-    statement plus either a witness/check, or a claim-localized mathematical attack.
-    """
-
     if not _meaningful(getattr(challenge, "statement", None)):
         return False
     if _meaningful(getattr(challenge, "witness", None)):
@@ -54,13 +48,6 @@ def challenge_has_concrete_basis(challenge) -> bool:
 
 
 def has_irreversible_evidence_failure(state: CaseState, candidate_id: str) -> bool:
-    """Hard failures that remain disqualifying even in last-resort recovery.
-
-    Missing XML/protocol closure is treated separately from a mathematical
-    contradiction.  Empty answers, inconsistent answer/response pairs, invalid
-    objective answer shapes, and concrete fatal challenges remain non-recoverable.
-    """
-
     for item in evidence_for_candidate(state, candidate_id):
         if item.status != "fail" or item.strength not in {"hard", "fatal"}:
             continue
@@ -121,16 +108,34 @@ def _candidate_key(state: CaseState, record: CandidateRecord) -> tuple[int, ...]
     )
 
 
-def _proof_recovery_is_credible(state: CaseState, record: CandidateRecord) -> bool:
+def _coherent_completion(text: str) -> bool:
+    value = (text or "").rstrip()
+    if not value:
+        return False
+    if value.count("$") % 2:
+        return False
+    if value.count("{") != value.count("}"):
+        return False
+    if re.search(r"(?:\\[A-Za-z]+|[_^])\s*$", value):
+        return False
+    return bool(
+        value.endswith(("。", ".", "!", "！", "?", "？", ")", "]", "}", "）"))
+        or re.search(r"(?:成立|得证|证毕|as required|qed)\s*$", value, flags=re.IGNORECASE)
+    )
+
+
+def _reasoning_recovery_is_credible(state: CaseState, record: CandidateRecord) -> bool:
     response = record.capsule.final_response.strip()
     if not response:
         return False
     minimum = 80 if re.search(r"[\u4e00-\u9fff]", response) else 150
     if len(response) < minimum:
         return False
+    if record.capsule.truncated and not _coherent_completion(response):
+        return False
     signals = re.findall(
         r"(?:because|since|therefore|hence|by\s+|contradiction|"
-        r"因为|由于|根据|所以|因此|故|从而|矛盾|得证)",
+        r"因为|由于|根据|所以|因此|故|从而|矛盾|得证|验证|推导)",
         response,
         flags=re.IGNORECASE,
     )
@@ -149,11 +154,13 @@ def _is_safe_fallback_candidate(state: CaseState, record: CandidateRecord) -> bo
         return False
 
     contract = state.contract
-    if contract.requires_proof or contract.answer_schema == "proof":
-        return _proof_recovery_is_credible(state, record)
+    if (
+        contract.requires_proof
+        or contract.answer_schema == "proof"
+        or "derivation_chain" in contract.answer_obligations
+    ):
+        return _reasoning_recovery_is_credible(state, record)
 
-    # For objective/fill/calculation tasks a usable answer can survive a broken
-    # envelope; the final submission layer will normalize the answer shape.
     return True
 
 
@@ -198,9 +205,6 @@ def select_best_candidate(state: CaseState) -> CandidateRecord | None:
     if strict:
         return max(strict, key=lambda record: _candidate_key(state, record))
 
-    # Preserve the normal rescue attempt.  Degraded commitment is only enabled
-    # after a rescue candidate has actually been produced, i.e. after the strict
-    # route has already exhausted its recovery opportunity.
     if not any(record.capsule.source == "rescue" for record in state.candidates.values()):
         return None
 

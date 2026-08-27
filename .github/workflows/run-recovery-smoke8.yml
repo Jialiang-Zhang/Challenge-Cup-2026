@@ -1,0 +1,136 @@
+name: Run resilient recovery smoke8
+
+on:
+  push:
+    branches:
+      - benchmark/recovery-smoke8-20260827
+    paths:
+      - ".github/workflows/run-recovery-smoke8.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  smoke8:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
+      INTERN_MODEL: intern-s2-preview
+      LOCAL_MAX_CONCURRENCY: "4"
+      PYTHONUNBUFFERED: "1"
+      JUPYTER_PLATFORM_DIRS: "1"
+
+    steps:
+      - name: Check out benchmark branch
+        uses: actions/checkout@v4
+        with:
+          ref: benchmark/recovery-smoke8-20260827
+          fetch-depth: 0
+
+      - name: Check out fixed dataset
+        uses: actions/checkout@v4
+        with:
+          repository: Jialiang-Zhang/test-dataset-math
+          ref: 73722d85996fad9147aca2015b001153a4d7cbcf
+          path: _benchmark_dataset
+          fetch-depth: 1
+
+      - name: Verify API secret
+        shell: bash
+        run: |
+          test -n "${INTERN_API_KEY}" || (echo "::error::Missing INTERN_API_KEY" && exit 1)
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run repository tests
+        run: python -m unittest discover -s tests -p "test_*.py"
+
+      - name: Build smoke input
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          ids = [1, 5, 8, 25, 6, 16, 58, 66]
+          source = Path("_benchmark_dataset/112")
+          target = Path(".benchmark_tmp/recovery-smoke8.jsonl")
+          target.parent.mkdir(parents=True, exist_ok=True)
+          with target.open("w", encoding="utf-8") as f:
+              for idx in ids:
+                  item = json.loads((source / f"{idx}.json").read_text(encoding="utf-8"))
+                  f.write(json.dumps({"idx": item["idx"], "problem": item["problem"]}, ensure_ascii=False) + "\n")
+          print(ids)
+          PY
+
+      - name: Run recovery smoke8
+        shell: bash
+        run: |
+          RUN_ID="$(date -u +'%Y%m%dT%H%M%SZ')-recovery-smoke8-run${GITHUB_RUN_NUMBER}"
+          echo "RUN_ID=${RUN_ID}" >> "${GITHUB_ENV}"
+          mkdir -p "output/${RUN_ID}"
+          python main.py \
+            --input_file .benchmark_tmp/recovery-smoke8.jsonl \
+            --output_dir "output/${RUN_ID}"
+
+      - name: Build diagnostic summary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from collections import Counter
+
+          ids = [1, 5, 8, 25, 6, 16, 58, 66]
+          out = Path("output") / os.environ["RUN_ID"]
+          counts = Counter()
+          records = []
+          for idx in ids:
+              result = json.loads((out / f"{idx}.json").read_text(encoding="utf-8"))
+              status = result.get("status", "unknown")
+              counts[status] += 1
+              trace = result.get("trace", []) if isinstance(result.get("trace"), list) else []
+              commit = next((x.get("content", {}) for x in reversed(trace) if x.get("step") == "transaction_commit"), {})
+              requirements = next((x.get("content", {}) for x in trace if x.get("step") == "explicit_requirements"), {})
+              records.append({
+                  "idx": idx,
+                  "status": status,
+                  "response_chars": len(result.get("final_response", "")) if isinstance(result.get("final_response"), str) else 0,
+                  "trace_steps": len(trace),
+                  "source": commit.get("source"),
+                  "candidate_id": commit.get("candidate_id"),
+                  "explicit_requirement_count": requirements.get("count", 0),
+                  "error": result.get("error"),
+              })
+          summary = {"run_id": os.environ["RUN_ID"], "ids": ids, "counts": dict(counts), "records": records}
+          (out / "recovery_smoke8_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps(summary, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit results
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "output/${RUN_ID}"
+          if ! git diff --cached --quiet; then
+            git commit -m "benchmark: record resilient recovery smoke8 ${RUN_ID}"
+            git push origin HEAD:benchmark/recovery-smoke8-20260827
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: resilient-recovery-smoke8-${{ env.RUN_ID }}
+          path: output/${{ env.RUN_ID }}/
+          retention-days: 14

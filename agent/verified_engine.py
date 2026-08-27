@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import re
 
+from .derivation_certificates import evaluate_decisive_derivation_certificates
 from .evidence import challenge_from_audit, evidence_for_candidate
 from .models import AuditResult, CaseState, EvidenceRecord, SolutionCapsule
 from .parsing import parse_audit_result
-from .resilient_engine import ResilientHORAEngine
+from .resilient_engine import ResilientHORAEngine, _REQUIREMENTS
 from .verification_prompts import decisive_confirmation_prompt
 
 
@@ -20,12 +21,7 @@ _REVISION_PATTERNS: tuple[tuple[str, str], ...] = (
 
 
 def proof_revision_markers(text: str) -> tuple[str, ...]:
-    """Return distinct signs that a submitted proof visibly restarts/corrects itself.
-
-    One clarification is harmless. Multiple independent revision signals in a final proof are a
-    strong indication that false intermediate statements were left in the submission and should
-    be independently rechecked instead of treated as a clean proof chain.
-    """
+    """Return distinct signs that a submitted proof visibly restarts/corrects itself."""
 
     value = str(text or "")
     found = [
@@ -42,7 +38,7 @@ def _meaningful(value: str | None) -> bool:
 
 
 class VerifiedHORAEngine(ResilientHORAEngine):
-    """Resilient HORA with a bounded second local check for proof-heavy candidates."""
+    """Resilient HORA with deterministic certificates and bounded local confirmation."""
 
     @staticmethod
     def _reasoning_heavy(state: CaseState) -> bool:
@@ -65,6 +61,29 @@ class VerifiedHORAEngine(ResilientHORAEngine):
 
     def _apply_candidate_evidence(self, state: CaseState, capsule: SolutionCapsule) -> None:
         super()._apply_candidate_evidence(state, capsule)
+
+        for index, certificate in enumerate(
+            evaluate_decisive_derivation_certificates(
+                answer_raw=capsule.answer_raw,
+                response=capsule.final_response,
+                requirements=_REQUIREMENTS.get(),
+            ),
+            start=1,
+        ):
+            state.add_evidence(
+                EvidenceRecord(
+                    evidence_id=f"E-cert-{capsule.candidate_id}-{index}-{len(state.evidence)}",
+                    candidate_id=capsule.candidate_id,
+                    evidence_type=f"derivation_certificate:{certificate.code}",
+                    status=certificate.status,  # type: ignore[arg-type]
+                    strength="hard" if certificate.hard_failure else "structural",
+                    checker="deterministic_derivation_certificate",
+                    detail_code=certificate.detail,
+                )
+            )
+            if certificate.hard_failure and certificate.status == "fail":
+                state.candidates[capsule.candidate_id].eligible = False
+
         if not self._reasoning_heavy(state):
             return
 
@@ -222,7 +241,6 @@ class VerifiedHORAEngine(ResilientHORAEngine):
         elif result.verdict == "ACCEPT_B":
             selected = candidate_b
         elif result.verdict == "EQUIVALENT":
-            # Equivalent, genuinely independent solutions already provide the second check.
             if self._has_independent_support(state, candidate_a.candidate_id):
                 return result
             selected = candidate_a
@@ -244,7 +262,6 @@ class VerifiedHORAEngine(ResilientHORAEngine):
         if confirmation.verdict == "ACCEPT_A":
             return result
 
-        # The first audit's soft acceptance must not survive a failed independent recomputation.
         self._remove_new_soft_acceptance(state, evidence_start)
         if confirmation.verdict == "REPAIR_A":
             return confirmation

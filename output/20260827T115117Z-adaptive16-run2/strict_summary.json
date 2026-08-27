@@ -1,0 +1,136 @@
+{
+  "total": 112,
+  "agent_commit": "8367b23f1c94b285b397f1de4ec0bc644387935b",
+  "dataset_commit": "73722d85996fad9147aca2015b001153a4d7cbcf",
+  "agent_concurrency": 16,
+  "judge_concurrency": 16,
+  "execution_success": 56,
+  "execution_errors_or_empty": 56,
+  "execution_success_rate": 0.5,
+  "strict_correct": 0,
+  "strict_incorrect": 112,
+  "strict_accuracy": 0.0,
+  "strict_accuracy_among_executed_successes": 0.0,
+  "strict_rule": "execution failures count incorrect; each successful final_response is judged independently by a completeness judge and an adversarial judge; only unanimous CORRECT counts as correct",
+  "judge_disagreement_count": 5,
+  "judge_disagreements": [
+    22,
+    31,
+    98,
+    99,
+    107
+  ],
+  "judge_parse_failure_count": 102,
+  "judge_call_error_count": 66,
+  "per_subject": {
+    "偏微分方程": {
+      "total": 3,
+      "execution_success": 2,
+      "strict_correct": 0,
+      "strict_incorrect": 3
+    },
+    "复分析": {
+      "total": 7,
+      "execution_success": 1,
+      "strict_correct": 0,
+      "strict_incorrect": 7
+    },
+    "常微分方程": {
+      "total": 5,
+      "execution_success": 3,
+      "strict_correct": 0,
+      "strict_incorrect": 5
+    },
+    "微分几何": {
+      "total": 9,
+      "execution_success": 5,
+      "strict_correct": 0,
+      "strict_incorrect": 9
+    },
+    "抽象代数": {
+      "total": 8,
+      "execution_success": 4,
+      "strict_correct": 0,
+      "strict_incorrect": 8
+    },
+    "拓扑学": {
+      "total": 1,
+      "execution_success": 0,
+      "strict_correct": 0,
+      "strict_incorrect": 1
+    },
+    "数值分析": {
+      "total": 13,
+      "execution_success": 6,
+      "strict_correct": 0,
+      "strict_incorrect": 13
+    },
+    "数学分析": {
+      "total": 1,
+      "execution_success": 0,
+      "strict_correct": 0,
+      "strict_incorrect": 1
+    },
+    "概率论": {
+      "total": 8,
+      "execution_success": 5,
+      "strict_correct": 0,
+      "strict_incorrect": 8
+    },
+    "泛函分析": {
+      "total": 4,
+      "execution_success": 3,
+      "strict_correct": 0,
+      "strict_incorrect": 4
+    },
+    "测度积分": {
+      "total": 11,
+      "execution_success": 6,
+      "strict_correct": 0,
+      "strict_incorrect": 11
+    },
+    "离散数学": {
+      "total": 24,
+      "execution_success": 11,
+      "strict_correct": 0,
+      "strict_incorrect": 24
+    },
+    "线性回归": {
+      "total": 3,
+      "execution_success": 1,
+      "strict_correct": 0,
+      "strict_incorrect": 3
+    },
+    "统计推断": {
+      "total": 4,
+      "execution_success": 3,
+      "strict_correct": 0,
+      "strict_incorrect": 4
+    },
+    "运筹学": {
+      "total": 1,
+      "execution_success": 1,
+      "strict_correct": 0,
+      "strict_incorrect": 1
+    },
+    "随机过程": {
+      "total": 7,
+      "execution_success": 3,
+      "strict_correct": 0,
+      "strict_incorrect": 7
+    },
+    "非基础及进阶课程": {
+      "total": 2,
+      "execution_success": 2,
+      "strict_correct": 0,
+      "strict_incorrect": 2
+    },
+    "高等代数": {
+      "total": 1,
+      "execution_success": 0,
+      "strict_correct": 0,
+      "strict_incorrect": 1
+    }
+  },
+  "warning": "This is a conservative local strict double-judge diagnostic using Intern-S and the public reference answers. It is not the official competition judge score."
+}

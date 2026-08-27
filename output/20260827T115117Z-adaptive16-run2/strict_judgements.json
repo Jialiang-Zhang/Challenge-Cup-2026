@@ -1,0 +1,2466 @@
+[
+  {
+    "idx": 0,
+    "subject": "离散数学",
+    "execution_status": "success",
+    "response_chars": 313,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 1,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 2,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 3,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 4,
+    "subject": "离散数学",
+    "execution_status": "success",
+    "response_chars": 1062,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 5,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 6,
+    "subject": "离散数学",
+    "execution_status": "success",
+    "response_chars": 784,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 7,
+    "subject": "离散数学",
+    "execution_status": "success",
+    "response_chars": 878,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 8,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 9,
+    "subject": "离散数学",
+    "execution_status": "success",
+    "response_chars": 885,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "...",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 10,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 11,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 12,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 13,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 14,
+    "subject": "离散数学",
+    "execution_status": "success",
+    "response_chars": 649,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 15,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 16,
+    "subject": "离散数学",
+    "execution_status": "success",
+    "response_chars": 2024,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 17,
+    "subject": "离散数学",
+    "execution_status": "success",
+    "response_chars": 446,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 18,
+    "subject": "离散数学",
+    "execution_status": "success",
+    "response_chars": 362,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 19,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 20,
+    "subject": "离散数学",
+    "execution_status": "success",
+    "response_chars": 1016,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "...",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 21,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 22,
+    "subject": "离散数学",
+    "execution_status": "success",
+    "response_chars": 507,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "CORRECT",
+      "reason": "Reasoning (within 300 Chinese characters)",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": false,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 23,
+    "subject": "离散数学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 24,
+    "subject": "数值分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 25,
+    "subject": "数值分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 26,
+    "subject": "数值分析",
+    "execution_status": "success",
+    "response_chars": 498,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 27,
+    "subject": "数值分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 28,
+    "subject": "数值分析",
+    "execution_status": "success",
+    "response_chars": 1557,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 29,
+    "subject": "数值分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 30,
+    "subject": "数值分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 31,
+    "subject": "数值分析",
+    "execution_status": "success",
+    "response_chars": 7,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "CORRECT",
+      "reason": "候选答案 A, B, D 与参考答案完全一致。选项 A 正确描述了 GMRES 残差范数的变分特征；选项 B 正确指出 Krylov 子空间维度达到最小多项式次数时残差为零；选项 D 正确利用了正规矩阵的谱范数性质给出误差界。选项 C 错误，因为 GMRES 收敛性不仅取决于特征值，还取决于矩阵的非正规性（如 Jordan 块与对角阵特征值相同但收敛不同）。候选答案完整覆盖了所有正确选项，无遗漏或错误，数学上完全满足题目要求。",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "...",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": false,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 32,
+    "subject": "数值分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 33,
+    "subject": "数值分析",
+    "execution_status": "success",
+    "response_chars": 2,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "...",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 34,
+    "subject": "数值分析",
+    "execution_status": "success",
+    "response_chars": 540,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 35,
+    "subject": "数值分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 36,
+    "subject": "数值分析",
+    "execution_status": "success",
+    "response_chars": 1490,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 37,
+    "subject": "测度积分",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 38,
+    "subject": "测度积分",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 39,
+    "subject": "测度积分",
+    "execution_status": "success",
+    "response_chars": 727,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 40,
+    "subject": "测度积分",
+    "execution_status": "success",
+    "response_chars": 5,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 41,
+    "subject": "测度积分",
+    "execution_status": "success",
+    "response_chars": 32,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 42,
+    "subject": "测度积分",
+    "execution_status": "success",
+    "response_chars": 718,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 43,
+    "subject": "测度积分",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 44,
+    "subject": "测度积分",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 45,
+    "subject": "测度积分",
+    "execution_status": "success",
+    "response_chars": 3,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 46,
+    "subject": "测度积分",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 47,
+    "subject": "测度积分",
+    "execution_status": "success",
+    "response_chars": 1,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 48,
+    "subject": "微分几何",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 49,
+    "subject": "微分几何",
+    "execution_status": "success",
+    "response_chars": 1335,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 50,
+    "subject": "微分几何",
+    "execution_status": "success",
+    "response_chars": 988,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 51,
+    "subject": "微分几何",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 52,
+    "subject": "微分几何",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 53,
+    "subject": "微分几何",
+    "execution_status": "success",
+    "response_chars": 320,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 54,
+    "subject": "微分几何",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 55,
+    "subject": "微分几何",
+    "execution_status": "success",
+    "response_chars": 242,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 56,
+    "subject": "微分几何",
+    "execution_status": "success",
+    "response_chars": 480,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 57,
+    "subject": "概率论",
+    "execution_status": "success",
+    "response_chars": 760,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 58,
+    "subject": "概率论",
+    "execution_status": "success",
+    "response_chars": 73,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 59,
+    "subject": "概率论",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 60,
+    "subject": "概率论",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 61,
+    "subject": "概率论",
+    "execution_status": "success",
+    "response_chars": 19,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 62,
+    "subject": "概率论",
+    "execution_status": "success",
+    "response_chars": 855,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 63,
+    "subject": "概率论",
+    "execution_status": "success",
+    "response_chars": 162,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 64,
+    "subject": "概率论",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 65,
+    "subject": "抽象代数",
+    "execution_status": "success",
+    "response_chars": 946,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 66,
+    "subject": "抽象代数",
+    "execution_status": "success",
+    "response_chars": 106,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 67,
+    "subject": "抽象代数",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 68,
+    "subject": "抽象代数",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 69,
+    "subject": "抽象代数",
+    "execution_status": "success",
+    "response_chars": 1338,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 70,
+    "subject": "抽象代数",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 71,
+    "subject": "抽象代数",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 72,
+    "subject": "抽象代数",
+    "execution_status": "success",
+    "response_chars": 456,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 73,
+    "subject": "随机过程",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 74,
+    "subject": "随机过程",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 75,
+    "subject": "随机过程",
+    "execution_status": "success",
+    "response_chars": 136,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 76,
+    "subject": "随机过程",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 77,
+    "subject": "随机过程",
+    "execution_status": "success",
+    "response_chars": 261,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 78,
+    "subject": "随机过程",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 79,
+    "subject": "随机过程",
+    "execution_status": "success",
+    "response_chars": 416,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 80,
+    "subject": "复分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 81,
+    "subject": "复分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 82,
+    "subject": "复分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 83,
+    "subject": "复分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 84,
+    "subject": "复分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 85,
+    "subject": "复分析",
+    "execution_status": "success",
+    "response_chars": 1553,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 86,
+    "subject": "复分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 87,
+    "subject": "常微分方程",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 88,
+    "subject": "常微分方程",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 89,
+    "subject": "常微分方程",
+    "execution_status": "success",
+    "response_chars": 195,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 90,
+    "subject": "常微分方程",
+    "execution_status": "success",
+    "response_chars": 656,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 91,
+    "subject": "常微分方程",
+    "execution_status": "success",
+    "response_chars": 60,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 92,
+    "subject": "统计推断",
+    "execution_status": "success",
+    "response_chars": 1110,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 93,
+    "subject": "统计推断",
+    "execution_status": "success",
+    "response_chars": 41,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 94,
+    "subject": "统计推断",
+    "execution_status": "success",
+    "response_chars": 6,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 95,
+    "subject": "统计推断",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 96,
+    "subject": "泛函分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 97,
+    "subject": "泛函分析",
+    "execution_status": "success",
+    "response_chars": 1319,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge call failed: RuntimeError: Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "parsed": false,
+      "error_type": "RuntimeError"
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 98,
+    "subject": "泛函分析",
+    "execution_status": "success",
+    "response_chars": 5,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "CORRECT",
+      "reason": "...",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": false,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 99,
+    "subject": "泛函分析",
+    "execution_status": "success",
+    "response_chars": 5,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "...",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "CORRECT",
+      "reason": "若正确，概括为何满足全部要求；若错误，指出第一个决定性的数学错误或缺失义务。300 字以内。",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": false,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 100,
+    "subject": "线性回归",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 101,
+    "subject": "线性回归",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 102,
+    "subject": "线性回归",
+    "execution_status": "success",
+    "response_chars": 235,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 103,
+    "subject": "偏微分方程",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 104,
+    "subject": "偏微分方程",
+    "execution_status": "success",
+    "response_chars": 1785,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 105,
+    "subject": "偏微分方程",
+    "execution_status": "success",
+    "response_chars": 1664,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 106,
+    "subject": "高等代数",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 107,
+    "subject": "运筹学",
+    "execution_status": "success",
+    "response_chars": 7,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "CORRECT",
+      "reason": "若正确，概括为何满足全部要求；若错误，指出第一个决定性的数学错误或缺失义务。300 字以内。",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": false,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 108,
+    "subject": "数学分析",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 109,
+    "subject": "拓扑学",
+    "execution_status": "error",
+    "response_chars": 0,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "execution did not yield a non-empty success result: error",
+      "parsed": true,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 110,
+    "subject": "非基础及进阶课程",
+    "execution_status": "success",
+    "response_chars": 1135,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  },
+  {
+    "idx": 111,
+    "subject": "非基础及进阶课程",
+    "execution_status": "success",
+    "response_chars": 564,
+    "judge_1": {
+      "judge_kind": "completeness",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_2": {
+      "judge_kind": "adversarial",
+      "verdict": "INCORRECT",
+      "reason": "judge output was not valid structured output",
+      "parsed": false,
+      "error_type": null
+    },
+    "judge_agreement": true,
+    "strict_verdict": "INCORRECT"
+  }
+]

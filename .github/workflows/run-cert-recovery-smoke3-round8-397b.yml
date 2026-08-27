@@ -1,0 +1,106 @@
+name: Run certificate recovery smoke3 round8 397B
+
+on:
+  push:
+    branches:
+      - benchmark/cert-recovery-smoke3-round8-397b-20260827
+    paths:
+      - ".github/workflows/run-cert-recovery-smoke3-round8-397b.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  smoke3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
+      INTERN_MODEL: intern-s2-preview-397b
+      LOCAL_MAX_CONCURRENCY: "3"
+      PYTHONUNBUFFERED: "1"
+      JUPYTER_PLATFORM_DIRS: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: benchmark/cert-recovery-smoke3-round8-397b-20260827
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: Jialiang-Zhang/test-dataset-math
+          ref: 73722d85996fad9147aca2015b001153a4d7cbcf
+          path: _benchmark_dataset
+          fetch-depth: 1
+      - name: Verify model
+        shell: bash
+        run: |
+          test -n "${INTERN_API_KEY}" || exit 1
+          test "${INTERN_MODEL}" = "intern-s2-preview-397b" || exit 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      - name: Tests
+        run: python -m unittest discover -s tests -p "test_*.py"
+      - name: Build input
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          ids=[16,25,58]
+          src=Path('_benchmark_dataset/112')
+          dst=Path('.benchmark_tmp/cert-recovery-smoke3.jsonl')
+          dst.parent.mkdir(parents=True, exist_ok=True)
+          with dst.open('w', encoding='utf-8') as f:
+              for idx in ids:
+                  x=json.loads((src/f'{idx}.json').read_text(encoding='utf-8'))
+                  f.write(json.dumps({'idx':x['idx'],'problem':x['problem']}, ensure_ascii=False)+'\n')
+          PY
+      - name: Run smoke3
+        shell: bash
+        run: |
+          RUN_ID="$(date -u +'%Y%m%dT%H%M%SZ')-cert-recovery-smoke3-round8-397b-run${GITHUB_RUN_NUMBER}"
+          echo "RUN_ID=${RUN_ID}" >> "${GITHUB_ENV}"
+          mkdir -p "output/${RUN_ID}"
+          python main.py --input_file .benchmark_tmp/cert-recovery-smoke3.jsonl --output_dir "output/${RUN_ID}"
+      - name: Summarize
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          ids=[16,25,58]
+          out=Path('output')/os.environ['RUN_ID']
+          rows=[]
+          for idx in ids:
+              r=json.loads((out/f'{idx}.json').read_text(encoding='utf-8'))
+              trace=r.get('trace',[]) if isinstance(r.get('trace'),list) else []
+              commit=next((s.get('content',{}) for s in reversed(trace) if s.get('step')=='transaction_commit'),{})
+              gates=[s.get('content',{}) for s in trace if s.get('step')=='candidate_evidence_gate']
+              recoveries=[s.get('content',{}) for s in trace if s.get('step')=='certificate_guided_recovery']
+              rows.append({'idx':idx,'status':r.get('status'),'source':commit.get('source'),'candidate_id':commit.get('candidate_id'),'model_calls':commit.get('model_calls'),'repair_count':commit.get('repair_count'),'gates':gates,'recoveries':recoveries,'error':r.get('error')})
+          summary={'model':os.environ['INTERN_MODEL'],'run_id':os.environ['RUN_ID'],'records':rows}
+          (out/'cert_recovery_smoke3_summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(summary,ensure_ascii=False,indent=2))
+          PY
+      - name: Commit outputs
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "output/${RUN_ID}"
+          if ! git diff --cached --quiet; then
+            git commit -m "benchmark: record certificate recovery ${RUN_ID}"
+            git push origin HEAD:benchmark/cert-recovery-smoke3-round8-397b-20260827
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cert-recovery-smoke3-${{ env.RUN_ID }}
+          path: output/${{ env.RUN_ID }}/
+          retention-days: 14

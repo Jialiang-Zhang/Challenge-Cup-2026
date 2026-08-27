@@ -1,0 +1,147 @@
+{
+  "idx": 8,
+  "status": "success",
+  "final_response": "结论：设 $G$ 为 $n$ 个顶点且不含 $K_{2,t}$（$t\\ge2$）的简单图，则\n\n证明过程：\n设 $G=(V,E)$，$|V|=n$，$|E|=m$，记顶点 $v$ 的度数为 $d(v)$。\n\n**步骤 1：双计数长度为 2 的无向路（共同邻点）。**\n对每个顶点 $v$，其邻点中任选两点可形成一条以 $v$ 为中点的长度为 2 的路，这样的路有 $\\binom{d(v)}2$ 条。对所有顶点求和得\n$$P=\\sum_{v\\in V}\\binom{d(v)}2=\\sum_{v\\in V}\\frac{d(v)(d(v)-1)}2.$$\n另一方面，每条长度为 2 的路由其两个端点 $x,y$ 及其中间公共邻点唯一确定。由于 $G$ 不含 $K_{2,t}$，任意两个不同顶点至多有 $t-1$ 个公共邻点。因此\n$$P\\le (t-1)\\binom{n}{2}=(t-1)\\frac{n(n-1)}2.$$\n于是得到关键不等式\n$$\\sum_{v\\in V}d(v)(d(v)-1)\\le (t-1)n(n-1).\\tag{1}$$\n\n**步骤 2：利用凸性（Jensen 不等式）估计度数分布。**\n函数 $f(x)=x(x-1)$ 在 $x\\ge0$ 上是凸函数。由 Jensen 不等式，\n$$\\frac1n\\sum_{v\\in V}d(v)(d(v)-1)\\ge \\frac{2m}{n}\\Bigl(\\frac{2m}{n}-1\\Bigr).$$\n两边同乘 $n$ 得\n$$\\sum_{v\\in V}d(v)(d(v)-1)\\ge \\frac{2m}{n}\\Bigl(\\frac{2m}{n}-1\\Bigr)n=\\frac{4m^2}{n}-2m.\\tag{2}$$\n\n**步骤 3：联立 (1)(2) 得到关于 $m$ 的二次不等式。**\n$$\\frac{4m^2}{n}-2m\\le (t-1)n(n-1).$$\n整理为\n$$4m^2-2nm-(t-1)n^2(n-1)\\le0.$$\n解此关于 $m$ 的二次不等式（取正根）得\n$$m\\le\\frac{n+\\sqrt{n^2+4(t-1)n^2(n-1)}}{4}\n=\\frac n4\\Bigl(1+\\sqrt{1+4(t-1)(n-1)}\\Bigr).$$\n这即为所求精确上界。\n\n**步骤 4：推出渐近上界。**\n当 $n\\to\\infty$ 时，\n$$\\sqrt{1+4(t-1)(n-1)}=2\\sqrt{t-1}\\,n^{1/2}+O(n^{-1/2}),$$\n代入得\n$$m\\le\\frac n4\\Bigl(1+2\\sqrt{t-1}\\,n^{1/2}+O(n^{-1/2})\\Bigr)\n=\\frac12\\sqrt{t-1}\\,n^{3/2}+O(n).$$\n\n**步骤 5：凸性估计取等号时对度数分布的限制。**\nJensen 不等式 $\\sum f(d(v))\\ge n f(\\frac1n\\sum d(v))$ 对严格凸函数 $f(x)=x(x-1)$ 取等号的充要条件是所有自变量相等，即 $d(v)$ 对所有 $v\\in V$ 均相同。因此，若上述推导中的凸性估计出现等号，则 $G$ 必须是正则图（所有顶点度数相等，均为 $2m/n$）。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "discrete_combinatorics",
+        "secondary_domain_count": 0,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1,
+        "secondary_domains": [],
+        "question_mode": "proof",
+        "mode_confidence": 0.9,
+        "alternate_modes": [
+          "calculation"
+        ],
+        "answer_obligations": [
+          "proof_chain"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 2,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 2637,
+        "elapsed_ms": 33727
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2637,
+        "claim_count": 5,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 2986,
+        "elapsed_ms": 38634
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 2986,
+        "claim_count": 6,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 2,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A"
+        ],
+        "invalid_candidate_ids": [
+          "B"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 843,
+        "elapsed_ms": 9303
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "A",
+        "target_claim_id": "FINAL",
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "proof_confirmation_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 650,
+        "elapsed_ms": 7301
+      }
+    },
+    {
+      "step": "proof_confirmation_result",
+      "content": {
+        "candidate_id": "A",
+        "verdict": "ACCEPT_A",
+        "attack_type": "none",
+        "severity": "none"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "model_calls": 4,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 1373
+      }
+    }
+  ]
+}

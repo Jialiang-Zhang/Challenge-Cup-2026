@@ -1,0 +1,172 @@
+{
+  "idx": 25,
+  "status": "success",
+  "final_response": "结论：BDF2方法是二阶精度、零稳定且A-稳定的。\n\n证明过程：\n**(1) 局部截断误差验证二阶精度**\n\n将精确解 $y(t)$ 代入BDF2格式，局部截断误差为\n$$\\tau_{n+2}=\\frac{3y(t_{n+2})-4y(t_{n+1})+y(t_n)}{2h}-\\lambda y(t_{n+2})=\\frac{3y(t_{n+2})-4y(t_{n+1})+y(t_n)}{2h}-y'(t_{n+2}).$$\n在 $t_{n+2}$ 处Taylor展开：\n$$\\begin{aligned}\ny(t_{n+1})&=y(t_{n+2})-h y'(t_{n+2})+\\frac{h^2}{2}y''(t_{n+2})-\\frac{h^3}{6}y'''(\\xi_1),\\\\\ny(t_n)&=y(t_{n+2})-2h y'(t_{n+2})+2h^2 y''(t_{n+2})-\\frac{4h^3}{3}y'''(\\xi_2).\n\\end{aligned}$$\n代入得\n$$\\begin{aligned}\n3y(t_{n+2})-4y(t_{n+1})+y(t_n)&=3y-4\\Bigl(y-hy'+\\frac{h^2}y''-\\frac{h^3}{6}y'''\\Bigr)+\\Bigl(y-2hy'+2h^2y''-\\frac{4h^3}{3}y'''\\Bigr)\\\\\n&=2h y'(t_{n+2})-\\frac{2}{3}h^3 y'''(t_{n+2})+O(h^4).\n\\end{aligned}$$\n除以 $2h$ 并减去 $y'(t_{n+2})$ 得\n$$\\tau_{n+2}=-\\frac{1}{3}h^2 y'''(t_{n+2})+O(h^3)=O(h^2).$$\n故方法为**二阶精度**。\n\n---\n\n**(2) $z=0$ 时特征多项式的根条件**\n\nBDF2的特征多项式为 $\\rho(\\zeta)=\\frac{3}{2}\\zeta^2-2\\zeta+\\frac12$，或等价地 $3\\zeta^2-4\\zeta+1=0$。\n当 $z=0$ 时，根满足 $3\\zeta^2-4\\zeta+1=0$，解得 $\\zeta_1=1,\\ \\zeta_2=\\frac13$。\n两根均满足 $|\\zeta|\\le1$，且重根条件不触发（两根互异），故满足**零稳定**的根条件。\n\n---\n\n**(3) A-稳定性证明**\n\n对测试方程 $y'=\\lambda y$，BDF2给出\n$$\\Bigl(\\frac{3}{2}-z\\Bigr)\\zeta^2-2\\zeta+\\frac12=0,\\quad z=h\\lambda.$$\n绝对稳定域要求所有根满足 $|\\zeta|<1$。边界轨迹由 $\\zeta=e^{i\\theta}$ 给出：\n$$z(\\theta)=\\frac{3-4e^{-i\\theta}+e^{-2i\\theta}}{2}.$$\n计算其实部：\n$$\\Re z(\\theta)=\\frac{3}{2}-2\\cos\\theta+\\frac12\\cos2\\theta=\\frac{3}{2}-2\\cos\\theta+\\frac12(2\\cos^2\\theta-1)=(\\cos\\theta-1)^2\\ge0.$$\n等号仅在 $\\theta=0$（模 $2\\pi$）时成立，此时 $z(0)=0$。因此边界轨迹完全落在**右半平面**（包括原点），整个左半平面 $\\{\\Re z\\le0\\}$（除原点外）不与边界轨迹相交。\n\n由于 $z=0$ 时特征根为 $1$ 和 $1/3$，恰有一个单位圆上的单根（对应稳定分支），且当 $z$ 从0向左半平面移动时，根连续变化。边界轨迹 $\\partial S$ 将复平面分为内外区域，而左半平面（除原点）与 $\\partial S$ 无交，故左半平面完全包含在稳定域内部。边界轨迹不可能把左半平面中的稳定分支割裂，因为它本身不进入左半平面内部（仅在 $z=0$ 处接触），从而**BDF2是A-稳定的**。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "numerical_analysis",
+        "secondary_domain_count": 2,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 3,
+        "secondary_domains": [
+          "higher_algebra",
+          "abstract_algebra"
+        ],
+        "question_mode": "multipart",
+        "mode_confidence": 0.91,
+        "alternate_modes": [
+          "proof",
+          "calculation"
+        ],
+        "answer_obligations": [
+          "multipart_count:3",
+          "proof_chain"
+        ],
+        "ambiguity_flags": [
+          "overlapping_mode_signals",
+          "multipart_proof"
+        ]
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 5,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 2642,
+        "elapsed_ms": 29406
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2642,
+        "claim_count": 3,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 3440,
+        "elapsed_ms": 45912
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3440,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "brute_force",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A",
+          "B"
+        ],
+        "invalid_candidate_ids": []
+      }
+    },
+    {
+      "step": "orthogonal_comparison",
+      "content": {
+        "candidate_ids": [
+          "A",
+          "B"
+        ],
+        "orthogonality": "O3",
+        "equivalence": "unknown"
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 1667,
+        "elapsed_ms": 17273
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "UNRESOLVED",
+        "target_candidate_id": "A",
+        "target_claim_id": "C1",
+        "attack_type": "error_order",
+        "severity": "fatal",
+        "deterministic_relation": "unknown"
+      }
+    },
+    {
+      "step": "rescue_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 2552,
+        "elapsed_ms": 32386
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2552,
+        "claim_count": 3,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "model_calls": 4,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 1699
+      }
+    }
+  ]
+}

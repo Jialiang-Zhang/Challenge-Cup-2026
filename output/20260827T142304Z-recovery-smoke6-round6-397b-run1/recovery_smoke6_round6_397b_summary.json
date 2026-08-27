@@ -1,0 +1,77 @@
+{
+  "run_id": "20260827T142304Z-recovery-smoke6-round6-397b-run1",
+  "model": "intern-s2-preview-397b",
+  "ids": [
+    5,
+    8,
+    16,
+    25,
+    58,
+    66
+  ],
+  "counts": {
+    "success": 6
+  },
+  "records": [
+    {
+      "idx": 5,
+      "status": "success",
+      "response_chars": 3415,
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 3,
+      "repair_count": 0,
+      "error": null
+    },
+    {
+      "idx": 8,
+      "status": "success",
+      "response_chars": 1373,
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 4,
+      "repair_count": 0,
+      "error": null
+    },
+    {
+      "idx": 16,
+      "status": "success",
+      "response_chars": 1451,
+      "source": "targeted_repair",
+      "candidate_id": "C",
+      "model_calls": 6,
+      "repair_count": 1,
+      "error": null
+    },
+    {
+      "idx": 25,
+      "status": "success",
+      "response_chars": 1699,
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 4,
+      "repair_count": 0,
+      "error": null
+    },
+    {
+      "idx": 58,
+      "status": "success",
+      "response_chars": 1568,
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 2,
+      "repair_count": 0,
+      "error": null
+    },
+    {
+      "idx": 66,
+      "status": "success",
+      "response_chars": 2348,
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 4,
+      "repair_count": 0,
+      "error": null
+    }
+  ]
+}

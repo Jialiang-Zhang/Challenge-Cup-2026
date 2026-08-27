@@ -1,0 +1,129 @@
+{
+  "idx": 1,
+  "status": "success",
+  "final_response": "结论：Hoffman界：$\\alpha(G)\\le n\\frac{-\\lambda_{\\min}}{d-\\lambda_{\\min}}$；若独立集$S$达到等号，则$\\mathbf 1_S-\\frac{|S|}{n}\\mathbf 1$属于$A$的$\\lambda_{\\min}$-特征空间，且每个$V\\setminus S$中的顶点在$S$中恰有$-\\lambda_{\\min}$个邻点。\n\n证明过程：\n**证明：**\n\n设$G$为$n$个顶点的$d$-正则简单图，邻接矩阵$A$的特征值为$d=\\lambda_1\\ge\\lambda_2\\ge\\cdots\\ge\\lambda_n=\\lambda_{\\min}<0$，对应特征向量$\\mathbf u_1,\\dots,\\mathbf u_n$正交归一，其中$\\mathbf u_1=\\frac{1}{\\sqrt{n}}\\mathbf 1$（因$G$正则，$\\mathbf 1$为$d$-特征向量）。\n\n**Hoffman界证明：**  \n任取独立集$S\\subseteq V$，令$\\mathbf 1_S\\in\\mathbb{R}^V$为其示性向量。定义$\\mathbf x=\\mathbf 1_S-\\frac{|S|}{n}\\mathbf 1$。则：\n1. $\\mathbf x\\perp \\mathbf 1$：$\\mathbf 1^\\top\\mathbf x=\\mathbf 1^\\top\\mathbf 1_S-\\frac{|S|}{n}\\mathbf 1^\\top\\mathbf 1=|S|-|S|=0$。\n2. $\\|\\mathbf x\\|^2=\\mathbf x^\\top\\mathbf x=\\|\\mathbf 1_S\\|^2-2\\frac{|S|}{n}\\mathbf 1^\\top\\mathbf 1_S+\\left(\\frac{|S|}{n}\\right)^2\\|\\mathbf 1\\|^2=|S|-2\\frac{|S|^2}{n}+\\frac{|S|^2}{n}=|S|\\left(1-\\frac{|S|}{n}\\right)$。\n3. 因$S$独立，$A$在$S$内无边，故$\\mathbf 1_S^\\top A\\mathbf 1_S=0$。计算：\n   \\[\n   \\mathbf x^\\top A\\mathbf x = \\left(\\mathbf 1_S-\\frac{|S|}{n}\\mathbf 1\\right)^\\top A \\left(\\mathbf 1_S-\\frac{|S|}{n}\\mathbf 1\\right) = \\mathbf 1_S^\\top A\\mathbf 1_S - \\frac{|S|}{n}\\mathbf 1^\\top A\\mathbf 1_S - \\frac{|S|}{n}\\mathbf 1_S^\\top A\\mathbf 1 + \\left(\\frac{|S|}{n}\\right)^2\\mathbf 1^\\top A\\mathbf 1.\n   \\]\n   其中$\\mathbf 1_S^\\top A\\mathbf 1_S=0$，$\\mathbf 1^\\top A\\mathbf 1_S=\\mathbf 1_S^\\top A\\mathbf 1=d|S|$（因$A\\mathbf 1=d\\mathbf 1$），$\\mathbf 1^\\top A\\mathbf 1=dn$，代入得：\n   \\[\n   \\mathbf x^\\top A\\mathbf x = 0 - \\frac{|S|}{n}\\cdot d|S| - \\frac{|S|}{n}\\cdot d|S| + \\left(\\frac{|S|}{n}\\right)^2\\cdot dn = -\\frac{2d|S|^2}{n} + \\frac{d|S|^2}{n} = -\\frac{d|S|^2}{n}.\n   \\]\n4. 由谱分解，对任意$\\mathbf x\\perp \\mathbf 1$，有$\\mathbf x^\\top A\\mathbf x\\ge\\lambda_{\\min}\\|\\mathbf x\\|^2$（因$\\mathbf x$在$\\lambda_2,\\dots,\\lambda_n$张成空间，最小特征值为$\\lambda_{\\min}$）。代入得：\n   \\[\n   -\\frac{d|S|^2}{n} \\ge \\lambda_{\\min} |S|\\left(1-\\frac{|S|}{n}\\right).\n   \\]\n   若$|S|=0$则不等式 trivial；若$|S|>0$，两边除以$|S|$并整理：\n   \\[\n   -\\frac{d|S|}{n} \\ge \\lambda_{\\min} - \\lambda_{\\min}\\frac{|S|}{n} \\implies |S|\\left(\\frac{-d+\\lambda_{\\min}}{n}\\right) \\ge \\lambda_{\\min} \\implies |S| \\le \\frac{-\\lambda_{\\min} n}{d-\\lambda_{\\min}}.\n   \\]\n   故$\\alpha(G)=\\max_S|S|\\le n\\frac{-\\lambda_{\\min}}{d-\\lambda_{\\min}}$，证毕。\n\n**等号成立条件：**  \n若$|S|=n\\frac{-\\lambda_{\\min}}{d-\\lambda_{\\min}}$，则上述不等式取等号，故$\\mathbf x^\\top A\\mathbf x=\\lambda_{\\min}\\|\\mathbf x\\|^2$。因$\\mathbf x\\perp \\mathbf 1$且$\\lambda_{\\min}$是最小特征值，当且仅当$\\mathbf x$为$\\lambda_{\\min}$-特征向量时取等（Rayleigh商极小值条件），即$A\\mathbf x=\\lambda_{\\min}\\mathbf x$。代入$\\mathbf x=\\mathbf 1_S-\\frac{|S|}{n}\\mathbf 1$，得：\n\\[\nA\\left(\\mathbf 1_S-\\frac{|S|}{n}\\mathbf 1\\right)=\\lambda_{\\min}\\left(\\mathbf 1_S-\\frac{|S|}{n}\\mathbf 1\\right) \\implies A\\mathbf 1_S = \\lambda_{\\min}\\mathbf 1_S + \\frac{|S|}{n}(d-\\lambda_{\\min})\\mathbf 1.\n\\]\n对任意$v\\in V\\setminus S$，$\\mathbf 1_S(v)=0$，故左边$(A\\mathbf 1_S)(v)$等于$v$在$S$中的邻点数（因$A$为邻接矩阵），右边为$0 + \\frac{|S|}{n}(d-\\lambda_{\\min})$。但由$|S|=n\\frac{-\\lambda_{\\min}}{d-\\lambda_{\\min}}$，得$\\frac{|S|}{n}(d-\\lambda_{\\min})=-\\lambda_{\\min}$。因此：\n\\[\n\\text{$v$在$S$中的邻点数} = -\\lambda_{\\min}.\n\\]\n证毕。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "discrete_combinatorics",
+        "secondary_domain_count": 1,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "higher_algebra"
+        ],
+        "question_mode": "proof",
+        "mode_confidence": 0.9,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "proof_chain"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 2,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 5182,
+        "elapsed_ms": 28556
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 5182,
+        "claim_count": 6,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 5760,
+        "elapsed_ms": 30088
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 5760,
+        "claim_count": 3,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 2,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A"
+        ],
+        "invalid_candidate_ids": [
+          "B"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 247,
+        "elapsed_ms": 2287
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "A",
+        "target_claim_id": "FINAL",
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "model_calls": 3,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 3061
+      }
+    }
+  ]
+}

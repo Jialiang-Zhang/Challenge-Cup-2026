@@ -1,0 +1,184 @@
+{
+  "idx": 25,
+  "status": "error",
+  "final_response": "",
+  "error": {
+    "type": "RuntimeError",
+    "message": "HORA-Math produced no complete, hard-valid candidate"
+  },
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "numerical_analysis",
+        "secondary_domain_count": 2,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 3,
+        "secondary_domains": [
+          "higher_algebra",
+          "abstract_algebra"
+        ],
+        "question_mode": "multipart",
+        "mode_confidence": 0.91,
+        "alternate_modes": [
+          "proof",
+          "calculation"
+        ],
+        "answer_obligations": [
+          "multipart_count:3",
+          "proof_chain"
+        ],
+        "ambiguity_flags": [
+          "overlapping_mode_signals",
+          "multipart_proof"
+        ]
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 5,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 2883,
+        "elapsed_ms": 17377
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2883,
+        "claim_count": 3,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 924,
+        "elapsed_ms": 6100
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 924,
+        "claim_count": 3,
+        "method": "constructive",
+        "tool_channel": "brute_force",
+        "warning_count": 2,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A"
+        ],
+        "invalid_candidate_ids": [
+          "B"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 1304,
+        "elapsed_ms": 4703
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "REPAIR_A",
+        "verdict": "REPAIR_A",
+        "target_candidate_id": "A",
+        "target_claim_id": "C1",
+        "attack_type": "theorem_precondition",
+        "severity": "fatal",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "targeted_repair_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 2888,
+        "elapsed_ms": 19364
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2888,
+        "claim_count": 1,
+        "method": "corrected-constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "repair_result",
+      "content": {
+        "candidate_id": "C",
+        "parent_candidate_id": "A",
+        "challenge_resolution_present": true,
+        "eligible": true
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 5,
+        "status": "completed",
+        "response_chars": 1118,
+        "elapsed_ms": 5220
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "REPAIR_A",
+        "verdict": "REPAIR_A",
+        "target_candidate_id": "C",
+        "target_claim_id": "C1",
+        "attack_type": "theorem_precondition",
+        "severity": "fatal",
+        "deterministic_relation": "not_applicable"
+      }
+    }
+  ]
+}

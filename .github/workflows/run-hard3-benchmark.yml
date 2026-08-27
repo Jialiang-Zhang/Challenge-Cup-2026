@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 180
     env:
       INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
-      INTERN_MODEL: intern-s2-preview
+      INTERN_MODEL: intern-s2-preview-397b
       LOCAL_MAX_CONCURRENCY: "1"
       JUPYTER_PLATFORM_DIRS: "1"
       PYTHONUNBUFFERED: "1"

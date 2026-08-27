@@ -6,7 +6,7 @@ from .derivation_certificates import evaluate_decisive_derivation_certificates
 from .evidence import challenge_from_audit, evidence_for_candidate
 from .models import AuditResult, CaseState, EvidenceRecord, SolutionCapsule
 from .parsing import parse_audit_result
-from .resilient_engine import ResilientHORAEngine, _REQUIREMENTS
+from .resilient_engine import ResilientHORAEngine, _ACTIVE_TRACE, _REQUIREMENTS
 from .verification_prompts import decisive_confirmation_prompt
 
 
@@ -68,6 +68,30 @@ class VerifiedHORAEngine(ResilientHORAEngine):
             for item in evidence_for_candidate(state, candidate_id)
         )
 
+    @staticmethod
+    def _trace_rejection_codes(state: CaseState, capsule: SolutionCapsule) -> None:
+        failed = [
+            item
+            for item in evidence_for_candidate(state, capsule.candidate_id)
+            if item.status == "fail" and item.strength in {"hard", "fatal"}
+        ]
+        if not failed:
+            return
+        trace = _ACTIVE_TRACE.get()
+        if trace is None:
+            return
+        trace.append(
+            {
+                "step": "candidate_evidence_gate",
+                "content": {
+                    "candidate_id": capsule.candidate_id,
+                    "source": capsule.source,
+                    "reason_codes": [item.evidence_type for item in failed[:8]],
+                    "detail_codes": [item.detail_code for item in failed[:8]],
+                },
+            }
+        )
+
     def _apply_candidate_evidence(self, state: CaseState, capsule: SolutionCapsule) -> None:
         super()._apply_candidate_evidence(state, capsule)
 
@@ -93,31 +117,29 @@ class VerifiedHORAEngine(ResilientHORAEngine):
             if certificate.hard_failure and certificate.status == "fail":
                 state.candidates[capsule.candidate_id].eligible = False
 
-        if not self._reasoning_heavy(state):
-            return
+        if self._reasoning_heavy(state):
+            markers = proof_revision_markers(capsule.final_response)
+            strong_retraction = "explicit_retraction" in markers
+            too_many_revisions = len(markers) >= 3
+            if strong_retraction or too_many_revisions:
+                state.add_evidence(
+                    EvidenceRecord(
+                        evidence_id=f"E-proof-revision-{capsule.candidate_id}-{len(state.evidence)}",
+                        candidate_id=capsule.candidate_id,
+                        evidence_type="proof_internal_revision_conflict",
+                        status="fail",
+                        strength="hard",
+                        checker="proof_chain_consistency_gate",
+                        detail_code=(
+                            "explicit_retraction_present"
+                            if strong_retraction
+                            else f"revision_markers={len(markers)}"
+                        ),
+                    )
+                )
+                state.candidates[capsule.candidate_id].eligible = False
 
-        markers = proof_revision_markers(capsule.final_response)
-        strong_retraction = "explicit_retraction" in markers
-        too_many_revisions = len(markers) >= 3
-        if not strong_retraction and not too_many_revisions:
-            return
-
-        state.add_evidence(
-            EvidenceRecord(
-                evidence_id=f"E-proof-revision-{capsule.candidate_id}-{len(state.evidence)}",
-                candidate_id=capsule.candidate_id,
-                evidence_type="proof_internal_revision_conflict",
-                status="fail",
-                strength="hard",
-                checker="proof_chain_consistency_gate",
-                detail_code=(
-                    "explicit_retraction_present"
-                    if strong_retraction
-                    else f"revision_markers={len(markers)}"
-                ),
-            )
-        )
-        state.candidates[capsule.candidate_id].eligible = False
+        self._trace_rejection_codes(state, capsule)
 
     def _confirmation_result(
         self,

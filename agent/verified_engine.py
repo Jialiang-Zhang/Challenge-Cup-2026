@@ -92,6 +92,63 @@ class VerifiedHORAEngine(ResilientHORAEngine):
             }
         )
 
+    @staticmethod
+    def _certificate_feedback_audit(
+        state: CaseState,
+        capsule: SolutionCapsule,
+    ) -> AuditResult | None:
+        """Translate deterministic failures into a safe local repair challenge.
+
+        Only checker/type/detail codes are passed back to the model. Problem text, hidden answers,
+        raw tool output, and other candidates are never inserted into this feedback object.
+        """
+
+        failed = [
+            item
+            for item in evidence_for_candidate(state, capsule.candidate_id)
+            if item.status == "fail"
+            and item.strength in {"hard", "fatal"}
+            and (
+                item.evidence_type.startswith("derivation_certificate:")
+                or item.evidence_type.startswith("explicit_requirement:")
+                or item.evidence_type == "proof_internal_revision_conflict"
+            )
+        ]
+        if not failed:
+            return None
+
+        preferred = sorted(
+            failed,
+            key=lambda item: (
+                0 if item.evidence_type.startswith("derivation_certificate:") else 1,
+                0 if item.evidence_type == "proof_internal_revision_conflict" else 1,
+                item.evidence_type,
+            ),
+        )[0]
+        code = preferred.evidence_type
+        detail = preferred.detail_code or "deterministic_consistency_failure"
+        attack_type = "transformation"
+        if "requirement" in code or "proof_internal_revision" in code:
+            attack_type = "completeness"
+        if "conditioning" in detail or "inequality" in detail or "shortcut" in detail:
+            attack_type = "transformation"
+        if "normalization" in detail or "coefficient" in detail or "scaling" in detail:
+            attack_type = "numerical_stress"
+
+        return AuditResult(
+            verdict="REPAIR_A",
+            target_candidate_id=capsule.candidate_id,
+            target_claim_id="FINAL",
+            attack_type=attack_type,
+            severity="major",
+            challenge=f"Deterministic certificate failed: {code}",
+            witness=f"detail_code={detail}",
+            resolver_hint=(
+                "Recompute the flagged local step from first principles, remove the inconsistent "
+                "displayed step, and keep the final proof internally consistent."
+            ),
+        )
+
     def _apply_candidate_evidence(self, state: CaseState, capsule: SolutionCapsule) -> None:
         super()._apply_candidate_evidence(state, capsule)
 
@@ -246,6 +303,98 @@ class VerifiedHORAEngine(ResilientHORAEngine):
             challenge=raw.challenge,
             witness=raw.witness,
             resolver_hint=raw.resolver_hint,
+        )
+
+    def _confirm_or_repair_rescue(
+        self,
+        *,
+        problem: str,
+        state: CaseState,
+        guard,
+        trace: list[dict],
+        capsule: SolutionCapsule,
+    ) -> SolutionCapsule:
+        record = state.candidates[capsule.candidate_id]
+
+        # Deterministic certificate failure: spend one bounded repair call on the precise local defect.
+        if not record.eligible:
+            feedback = self._certificate_feedback_audit(state, capsule)
+            if (
+                feedback is not None
+                and state.repair_count < 1
+                and guard.allow_model_call(state)
+            ):
+                trace.append(
+                    {
+                        "step": "certificate_guided_recovery",
+                        "content": {
+                            "candidate_id": capsule.candidate_id,
+                            "attack_type": feedback.attack_type,
+                            "reason_code": feedback.challenge.split(": ", 1)[-1],
+                        },
+                    }
+                )
+                repaired = self._run_repair(problem, state, guard, trace, feedback)
+                if repaired is not None:
+                    capsule = repaired
+                    record = state.candidates[capsule.candidate_id]
+            if not record.eligible:
+                return capsule
+
+        # A reasoning-heavy Rescue/Repair must survive an independent local recomputation before commit.
+        if not self._reasoning_heavy(state) or not guard.allow_model_call(state):
+            return capsule
+
+        confirmation = self._confirmation_result(
+            problem=problem,
+            state=state,
+            guard=guard,
+            trace=trace,
+            selected=capsule,
+        )
+        if confirmation.verdict == "ACCEPT_A":
+            return capsule
+
+        if confirmation.verdict == "UNRESOLVED":
+            state.candidates[capsule.candidate_id].eligible = False
+            return capsule
+
+        # If confirmation finds a defect and the single repair slot is still unused, repair and re-confirm.
+        if (
+            confirmation.verdict == "REPAIR_A"
+            and state.repair_count < 1
+            and guard.allow_model_call(state)
+        ):
+            repaired = self._run_repair(problem, state, guard, trace, confirmation)
+            if repaired is None:
+                return capsule
+            capsule = repaired
+            if not state.candidates[capsule.candidate_id].eligible:
+                return capsule
+            if guard.allow_model_call(state):
+                final_confirmation = self._confirmation_result(
+                    problem=problem,
+                    state=state,
+                    guard=guard,
+                    trace=trace,
+                    selected=capsule,
+                )
+                if final_confirmation.verdict != "ACCEPT_A":
+                    state.candidates[capsule.candidate_id].eligible = False
+            return capsule
+
+        return capsule
+
+    def _run_rescue(self, problem, state, guard, trace):
+        capsule = super()._run_rescue(problem, state, guard, trace)
+        if capsule is None:
+            return None
+        return self._confirm_or_repair_rescue(
+            problem=problem,
+            state=state,
+            guard=guard,
+            trace=trace,
+            capsule=capsule,
         )
 
     def _run_audit(

@@ -1,0 +1,182 @@
+{
+  "idx": 94,
+  "status": "success",
+  "final_response": "最终答案：R(X)-R(\\delta_a)=\\bigl(2a(p-2)-a^2\\bigr)\\,\\mathbb E_\\theta\\!\\bigl[\\|X\\|^{-2}\\bigr]; 风险对所有\\theta不增的闭区间为a\\in[0,\\,2(p-2)]，在该区间内部且a\\neq0时风险在若干\\theta处严格降低，即严格改进范围为a\\in(0,\\,2(p-2))。\n\n推导概要：\n设 $\\delta_a(X)=\\bigl(1-\\frac{a}{\\|X\\|^2}\\bigr)X$，记 $g(X)=-\\frac{a}{\\|X\\|^2}X$，则 $\\delta_a(X)=X+g(X)$。平方误差风险为  \n$$R(\\theta,\\delta_a)=\\mathbb E_\\theta\\|X+g(X)-\\theta\\|^2=\\mathbb E_\\theta\\|X-\\theta\\|^2+2\\mathbb E_\\theta g(X)\\cdot(X-\\theta)+\\mathbb E_\\theta\\|g(X)\\|^2.$$\n对 $X\\sim N_p(\\theta,I_p)$，Stein 恒等式给出 $\\mathbb E_\\theta[g(X)\\cdot(X-\\theta)]=\\mathbb E_\\theta\\operatorname{div} g(X)$。直接计算得  \n$$\\operatorname{div} g(X)=\\sum_{i=1}^p\\frac{\\partial}{\\partial x_i}\\!\\Bigl(-\\frac{a x_i}{\\|X\\|^2}\\Bigr)=-\\frac{ap}{\\|X\\|^2}+\\frac{2a\\|X\\|^2}{\\|X\\|^4}=-\\frac{a(p-2)}{\\|X\\|^2}.$$\n又 $\\|g(X)\\|^2=\\frac{a^2}{\\|X\\|^2}$。于是  \n$$R(\\theta,\\delta_a)=R(\\theta,X)+2\\mathbb E_\\theta\\!\\Bigl[-\\frac{a(p-2)}{\\|X\\|^2}\\Bigr]+\\mathbb E_\\theta\\!\\Bigl[\\frac{a^2}{\\|X\\|^2}\\Bigr]\n=R(\\theta,X)-\\bigl[2a(p-2)-a^2\\bigr]\\mathbb E_\\theta\\!\\bigl[\\|X\\|^{-2}\\bigr].$$\n因为 $p\\ge3$ 时 $\\mathbb E_\\theta\\|X\\|^{-2}>0$ 对所有 $\\theta$ 成立，风险差的符号完全由 $2a(p-2)-a^2=a\\bigl(2(p-2)-a\\bigr)$ 决定。  \n风险不增要求 $R(\\theta,\\delta_a)\\le R(\\theta,X)$ 对所有 $\\theta$ 成立，等价于  \n$$a\\bigl(2(p-2)-a\\bigr)\\ge0\\quad\\Longleftrightarrow\\quad a\\in[0,\\,2(p-2)].$$\n在此闭区间内，若 $a\\in(0,2(p-2))$ 则 $a(2(p-2)-a)>0$，从而对至少部分 $\\theta$（事实上对所有 $\\theta$）得到 $R(\\theta,\\delta_a)<R(\\theta,X)$，即严格改进；端点 $a=0$ 退化为 MLE，$a=2(p-2)$ 时系数为零，风险与 MLE 相同，不严格改进。  \n综上：闭的非增区间为 $[0,2(p-2)]$，严格改进范围为 $(0,2(p-2))$。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "statistical_inference",
+        "secondary_domain_count": 0,
+        "risk": "medium",
+        "route": "R1",
+        "answer_schema": "exact_expression",
+        "multipart_count": 1,
+        "secondary_domains": [],
+        "question_mode": "open_response",
+        "mode_confidence": 0.35,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "derivation_chain"
+        ],
+        "ambiguity_flags": [
+          "weak_mode_signal"
+        ]
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 0,
+        "derivation_required": false
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 2394,
+        "elapsed_ms": 22577
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2394,
+        "claim_count": 4,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 2529,
+        "elapsed_ms": 23757
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2529,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A",
+          "B"
+        ],
+        "invalid_candidate_ids": []
+      }
+    },
+    {
+      "step": "orthogonal_comparison",
+      "content": {
+        "candidate_ids": [
+          "A",
+          "B"
+        ],
+        "orthogonality": "O3",
+        "equivalence": "unknown"
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 667,
+        "elapsed_ms": 6689
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "EQUIVALENT",
+        "verdict": "UNRESOLVED",
+        "target_candidate_id": null,
+        "target_claim_id": null,
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "unknown"
+      }
+    },
+    {
+      "step": "rescue_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 2487,
+        "elapsed_ms": 28146
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2487,
+        "claim_count": 5,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "proof_confirmation_call",
+      "content": {
+        "call_id": 5,
+        "status": "completed",
+        "response_chars": 4053,
+        "elapsed_ms": 40636
+      }
+    },
+    {
+      "step": "proof_confirmation_result",
+      "content": {
+        "candidate_id": "R",
+        "verdict": "UNRESOLVED",
+        "attack_type": "transformation",
+        "severity": "major"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "model_calls": 5,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 1488
+      }
+    }
+  ]
+}

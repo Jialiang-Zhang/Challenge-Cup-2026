@@ -1,0 +1,102 @@
+{
+  "run_id": "20260827T151825Z-failure7-round10-397b-run1",
+  "model": "intern-s2-preview-397b",
+  "agent_base_commit": "eae6847bc1f4ffac8b0d8be6041603403584a048",
+  "ids": [
+    26,
+    33,
+    42,
+    49,
+    62,
+    69,
+    94
+  ],
+  "counts": {
+    "success": 7
+  },
+  "records": [
+    {
+      "idx": 26,
+      "status": "success",
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 4,
+      "repair_count": 0,
+      "rejection_gates": [
+        {
+          "candidate_id": "B",
+          "source": "orthogonal_blind",
+          "reason_codes": [
+            "derivation_certificate:explicit_final_candidate_complete",
+            "proof_internal_revision_conflict"
+          ],
+          "detail_codes": [
+            "dangling_answer_cue",
+            "explicit_retraction_present"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "idx": 33,
+      "status": "success",
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 3,
+      "repair_count": 0,
+      "rejection_gates": [],
+      "error": null
+    },
+    {
+      "idx": 42,
+      "status": "success",
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 5,
+      "repair_count": 0,
+      "rejection_gates": [],
+      "error": null
+    },
+    {
+      "idx": 49,
+      "status": "success",
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 5,
+      "repair_count": 0,
+      "rejection_gates": [],
+      "error": null
+    },
+    {
+      "idx": 62,
+      "status": "success",
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 3,
+      "repair_count": 0,
+      "rejection_gates": [],
+      "error": null
+    },
+    {
+      "idx": 69,
+      "status": "success",
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 5,
+      "repair_count": 0,
+      "rejection_gates": [],
+      "error": null
+    },
+    {
+      "idx": 94,
+      "status": "success",
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 5,
+      "repair_count": 0,
+      "rejection_gates": [],
+      "error": null
+    }
+  ]
+}

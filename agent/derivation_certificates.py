@@ -24,8 +24,8 @@ def evaluate_decisive_derivation_certificates(
 ) -> list[DerivationCertificate]:
     """Deterministic checks for proof-shape errors that semantic review can easily miss.
 
-    The certificates are activated by explicit task language or by a distinctive mathematical
-    derivation already present in the candidate. They do not compare against benchmark answers.
+    Certificates are activated by explicit task language or by a distinctive derivation already
+    present in the candidate. They do not compare against benchmark answers.
     """
 
     answer = str(answer_raw or "").strip()
@@ -50,10 +50,10 @@ def evaluate_decisive_derivation_certificates(
         )
     )
 
-    # Shearer/Han-style entropy proofs require a non-circular use of conditioning monotonicity.
-    # The safe chain-rule route conditions each coordinate on an ordered prefix (or the
-    # corresponding prefix restricted to a covering set). Merely writing
-    # H(Z_i|Z_-i) <= H(Z) and rearranging is not a proof of Shearer.
+    # Shearer/Han-style entropy proof. With natural chain-rule order,
+    # H(Z_j | Z_{<j}\setminus{Z_i}) >= H(Z_j | Z_{<j}) because LESS conditioning gives
+    # larger conditional entropy. A proof that explicitly says the left condition set is larger,
+    # derives <=, and then concludes sum H(Z_-i) >= (d-1)H(Z) reverses its own inequality.
     shearer_requested = _has(req + "\n" + text, r"shearer") and _has(
         req, r"条件越多.*条件熵越小|conditioning reduces entropy"
     )
@@ -68,23 +68,76 @@ def evaluate_decisive_derivation_certificates(
             text,
             r"H\s*\(\s*Z_i\s*\\?mid\s*Z_\{?-i\}?\s*\)\s*\\?le\s*H\s*\(\s*Z\s*\)",
         )
-        ok = ordered_prefix and not (suspicious_shortcut and not ordered_prefix)
+        wrong_conditioning_direction = (
+            _has(text, r"条件集合.{0,120}(?:多|larger|more variables)")
+            and _has(
+                text,
+                r"H\s*\(\s*Z_j[^\n]{0,220}\\?mid[^\n]{0,220}\)\s*\\?le\s*H\s*\(\s*Z_j[^\n]{0,140}Z_\{?j-1\}?[^\n]{0,40}\)",
+            )
+            and _has(
+                text,
+                r"\\sum_\{?i=1\}?\^?\{?d\}?\s*H\s*\(\s*Z_\{?-i\}?\s*\)\s*\\?ge|"
+                r"sum.{0,80}H\s*\(\s*Z_\{?-i\}?\s*\).{0,80}(?:>=|\\ge)",
+            )
+        )
+        safe_less_conditioning = (
+            _has(text, r"少一个条件|条件更少|less conditioning|fewer conditioning")
+            and _has(text, r"H\s*\(\s*Z_j[^\n]{0,220}\\?mid[^\n]{0,220}\)\s*\\?ge")
+        )
+        ok = ordered_prefix and not suspicious_shortcut and not wrong_conditioning_direction
+        if safe_less_conditioning:
+            ok = True
         checks.append(
             DerivationCertificate(
                 code="shearer_ordered_conditioning_chain",
                 status="pass" if ok else "fail",
                 hard_failure=not ok,
                 detail=(
-                    "ordered_prefix_chain_present"
+                    "ordered_less_conditioning_chain_present"
                     if ok
-                    else "missing_non_circular_ordered_conditioning_argument"
+                    else (
+                        "conditioning_monotonicity_direction_conflicts_with_shearer_lower_bound"
+                        if wrong_conditioning_direction
+                        else "missing_non_circular_ordered_conditioning_argument"
+                    )
+                ),
+            )
+        )
+
+    # BDF2 Taylor consistency: when expanding y(t_{n+1}) at t_{n+2}, the h^2 term is
+    # (h^2/2)y''. A later substitution that silently changes it to h^2 y'' invalidates the
+    # displayed derivation even if the final coefficient is restored by hand.
+    bdf2_like = _has(req + "\n" + text, r"BDF2|局部截断误差|local truncation") and _has(
+        text, r"3\s*y|3y|3\\?zeta\^?2"
+    )
+    if bdf2_like:
+        stated_half = _has(
+            text,
+            r"y\s*\(\s*t_\{?n\+1\}?\s*\).{0,300}\\frac\{h\^2\}\{2\}\s*y''",
+        )
+        substitution_drops_half = _has(
+            text,
+            r"-\s*4\s*\\?(?:Bigl|bigl)?\s*\([^\n]{0,180}\\frac\{h\^2\}\s*y''(?!\s*/?\s*2)",
+        ) or _has(
+            text,
+            r"-\s*4\s*\\?(?:Bigl|bigl)?\s*\([^\n]{0,180}h\^2\s*y''(?!\s*/?\s*2)",
+        )
+        conflict = stated_half and substitution_drops_half
+        checks.append(
+            DerivationCertificate(
+                code="bdf2_taylor_substitution_consistency",
+                status="fail" if conflict else "pass",
+                hard_failure=conflict,
+                detail=(
+                    "h2_over_2_lost_during_substitution"
+                    if conflict
+                    else "no_detected_taylor_substitution_conflict"
                 ),
             )
         )
 
     # If the task explicitly asks why a boundary locus cannot disconnect the stable branch,
-    # the proof needs at least one interior stable anchor in the left half-plane (or an
-    # equivalent explicit local-continuation argument). The boundary point z=0 alone is not enough.
+    # require an interior stable anchor in the left half-plane.
     bdf2_branch_requested = _has(req, r"边界轨迹|根轨迹|boundary locus|root locus") and _has(
         req, r"割裂|稳定分支|左半平面|disconnect|stable branch|left half"
     )
@@ -111,8 +164,7 @@ def evaluate_decisive_derivation_certificates(
             )
         )
 
-    # A scalar probability cannot equal a conditional expectation random variable. The valid
-    # tower-property statement is P(E)=E[E[1_E|F_t]] or directly P(E)=E[q(B_t)].
+    # A scalar probability cannot equal a conditional expectation random variable.
     conditional_scalar_mismatch = _has(
         text,
         r"\\mathbb\s*P\s*\([^\n=]{1,180}\)\s*=\s*\\mathbb\s*E\s*(?:\\Big)?\[\s*\\mathbf\s*1[^\]]{0,260}\\mid\s*\\mathcal\s*F",

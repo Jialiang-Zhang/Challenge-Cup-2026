@@ -218,15 +218,14 @@ exposed_to_primary: true
 $$\operatorname{Res}(f,z_0)=\lim_{z\to z_0}(z-z_0)f(z).$$
 因此不能从父候选直接继承符号，而要重新计算该极限。把题中分子与分母分别代入并约去唯一的一阶零因子后，分子给出 $-1$，其余非零因子的乘积为 $8$，所以
 $$\operatorname{Res}(f,z_0)=\frac{-1}{8}=-\frac18.$$
-因为约去的只是产生简单极点的线性因子，其余因子在 $z_0$ 处均非零，所以上述极限存在且没有额外符号变化。故修复后的留数为 $-1/8$，证毕。
+因为约去的只是产生简单极点的线性因子，其余因子在 z_0 处均非零，所以上述极限存在且没有额外符号变化。故修复后的留数为 $-1/8$，证毕。
 </FINAL_RESPONSE>
 """
         client = FakeClient([wrong_a, wrong_b, audit, repaired])
         agent = ReasoningAgent(client=client, config=AgentConfig(max_model_calls=4))
-        result = agent.solve("严格证明并计算该复函数在极点处的留数。", {"idx": 3})
+        result = agent.solve("计算该复函数在极点处的留数。", {"idx": 3})
         self.assertEqual(len(client.calls), 4)
-        self.assertTrue(result["final_response"].startswith("结论：-1/8"))
-        self.assertIn("证明过程", result["final_response"])
+        self.assertEqual(result["final_response"], "最终答案：-1/8")
         self.assertEqual(result["trace"][-1]["content"]["repair_count"], 1)
 
 

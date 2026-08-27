@@ -85,6 +85,10 @@ def _candidate_key(state: CaseState, record: CandidateRecord) -> tuple[int, ...]
         item.evidence_type == "red_team_adjudication" and item.status == "pass"
         for item in evidence
     )
+    repair_resolution = any(
+        item.evidence_type == "challenge_resolution" and item.status == "pass"
+        for item in evidence
+    )
     unresolved_fatal = sum(
         challenge.status == "sustained" and challenge.severity == "fatal"
         for challenge in challenges
@@ -99,6 +103,7 @@ def _candidate_key(state: CaseState, record: CandidateRecord) -> tuple[int, ...]
         int(has_attack_survival(state, candidate_id)),
         int(semantic_accept),
         int(independent_support),
+        int(repair_resolution),
         structural_passes,
         int(record.capsule.complete and not record.capsule.truncated),
         -unresolved_fatal,

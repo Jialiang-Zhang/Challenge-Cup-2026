@@ -1,0 +1,132 @@
+{
+  "idx": 58,
+  "status": "success",
+  "final_response": "最终答案：对 $0<t<T$，$g_T$ 的分布函数与密度分别为\n\n推导概要：\n**步骤 1（Markov 分解）。** 对 $0<t<T$，由 $g_T$ 的定义，\n$$\\{g_T\\le t\\}=\\{B_s\\neq0,\\ \\forall s\\in(t,T]\\}.$$\n在 $\\mathcal{F}_t$ 上取条件并利用布朗运动的 Markov 性，以 $B_t=x$ 为起点，在区间 $[t,T]$ 上不碰零的概率仅依赖于 $x$ 与长度 $T-t$：\n$$\\mathbb{P}(g_T\\le t\\mid B_t=x)=\\mathbb{P}_x\\bigl(\\tau_0>T-t\\bigr),$$\n其中 $\\tau_0=\\inf\\{s>0:B_s=0\\}$。于是\n$$\\mathbb{P}(g_T\\le t)=\\int_{\\mathbb{R}}\\mathbb{P}_x(\\tau_0>T-t)\\,\\frac{e^{-x^2/(2t)}}{\\sqrt{2\\pi t}}\\,dx. \\tag{1}$$\n\n**步骤 2（反射原理）。** 对标准布朗运动，反射原理给出首中时分布\n$$\\mathbb{P}_0\\bigl(\\max_{0\\le s\\le u}B_s\\ge a\\bigr)=2\\mathbb{P}_0(B_u\\ge a),\\qquad a>0.$$\n由对称性，对任意 $x\\neq0$，\n$$\\mathbb{P}_x(\\tau_0\\le u)=2\\mathbb{P}_0(B_u\\ge |x|)=2\\int_{|x|/\\sqrt{u}}^{\\infty}\\frac{e^{-y^2/2}}{\\sqrt{2\\pi}}\\,dy.$$\n因此\n$$\\mathbb{P}_x(\\tau_0>u)=1-2\\int_{|x|/\\sqrt{u}}^{\\infty}\\frac{e^{-y^2/2}}{\\sqrt{2\\pi}}\\,dy\n=2\\int_{0}^{|x|/\\sqrt{u}}\\frac{e^{-y^2/2}}{\\sqrt{2\\pi}}\\,dy. \\tag{2}$$\n\n**步骤 3（代入高斯积分）。** 将 $u=T-t$ 与 (2) 代入 (1)，并利用被积函数为偶函数：\n$$\\mathbb{P}(g_T\\le t)=\\frac{4}{\\pi\\sqrt{t}}\\int_{0}^{\\infty}e^{-x^2/(2t)}\\int_{0}^{x/\\sqrt{T-t}}e^{-y^2/2}\\,dy\\,dx.$$\n作换元 $x=\\sqrt{t}\\,u$，得\n$$\\mathbb{P}(g_T\\le t)=\\frac{4}{\\pi}\\int_{0}^{\\infty}e^{-u^2/2}\\int_{0}^{u\\sqrt{t/(T-t)}}e^{-y^2/2}\\,dy\\,du. \\tag{3}$$\n\n**步骤 4（计算二重积分）。** 记 $a=\\sqrt{t/(T-t)}$。对 (3) 交换积分次序（Fubini）：\n$$\\mathbb{P}(g_T\\le t)=\\frac{4}{\\pi}\\int_{0}^{\\infty}e^{-y^2/2}\\int_{y/a}^{\\infty}e^{-u^2/2}\\,du\\,dy.$$\n内层积分可写为 $\\sqrt{\\pi/2}\\,\\mathrm{erfc}(y/(a\\sqrt{2}))$，于是\n$$\\mathbb{P}(g_T\\le t)=\\sqrt{\\frac{2}{\\pi}}\\int_{0}^{\\infty}e^{-y^2/2}\\,\\mathrm{erfc}\\!\\Bigl(\\frac{y}{a\\sqrt{2}}\\Bigr)\\,dy.$$\n利用标准积分公式（可通过对参数求导或直接极坐标变换验证）\n$$\\int_{0}^{\\infty}e^{-p^2y^2}\\mathrm{erfc}(qy)\\,dy=\\frac{1}{p\\sqrt{\\pi}}\\arctan\\frac{p}{q},\\qquad p,q>0,$$\n取 $p=1/\\sqrt{2}$，$q=1/(a\\sqrt{2})$，得到\n$$\\mathbb{P}(g_T\\le t)=\\frac{2}{\\pi}\\arctan a=\\frac{2}{\\pi}\\arctan\\sqrt{\\frac{t}{T-t}}.$$\n由于 $\\arctan\\sqrt{\\frac{t}{T-t}}=\\arcsin\\sqrt{\\frac{t}{T}}$（构造直角三角形或对两边求正弦验证），故\n$$\\boxed{\\mathbb{P}(g_T\\le t)=\\frac{2}{\\pi}\\arcsin\\sqrt{\\frac{t}{T}},\\qquad 0<t<T.}$$\n\n**步骤 5（密度）。** 对 $t\\in(0,T)$ 求导：\n$$f_{g_T}(t)=\\frac{d}{dt}\\mathbb{P}(g_T\\le t)\n=\\frac{2}{\\pi}\\cdot\\frac{1}{\\sqrt{1-t/T}}\\cdot\\frac{1}{2\\sqrt{tT}}\n=\\frac{1}{\\pi\\sqrt{t(T-t)}}.$$\n这正是 Beta$(\\tfrac12,\\tfrac12)$ 在 $(0,T)$ 上的密度。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "random_process",
+        "secondary_domain_count": 2,
+        "risk": "medium",
+        "route": "R1",
+        "answer_schema": "exact_expression",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "probability",
+          "mathematical_analysis"
+        ],
+        "question_mode": "open_response",
+        "mode_confidence": 0.35,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "derivation_chain"
+        ],
+        "ambiguity_flags": [
+          "weak_mode_signal"
+        ]
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 1,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 3543,
+        "elapsed_ms": 60274
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3543,
+        "claim_count": 5,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 3416,
+        "elapsed_ms": 34955
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3416,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 968,
+        "elapsed_ms": 10698
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "B",
+        "target_claim_id": "FINAL",
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "model_calls": 3,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 2197
+      }
+    }
+  ]
+}

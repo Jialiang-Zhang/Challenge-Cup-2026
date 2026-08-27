@@ -77,10 +77,13 @@ def evaluate_cross_domain_certificates(*, answer_raw: str, response: str) -> lis
             _has(text, r"R\s*\(z\)\s*=.{0,120}1\s*\+\s*(?:z/3|\\frac\{1\}\{3\}\s*z|\\frac13\s*z)")
             and _has(text, r"1\s*-\s*(?:2z/3|\\frac\{2\}\{3\}\s*z|\\frac23\s*z).{0,100}(?:z\^2/6|\\frac\{1\}\{6\}\s*z\^2|\\frac16\s*z\^2)")
         )
+        variable = r"(?:w|\\omega|y)"
+        quadratic_ninth = rf"(?:{variable}\^2\s*/\s*9|\\frac\{{1\}}\{{9\}}\s*{variable}\^2|\\frac19\s*{variable}\^2|1/9\s*{variable}\^2)"
+        quartic_thirtysixth = rf"(?:{variable}\^4\s*/\s*36|\\frac\{{1\}}\{{36\}}\s*{variable}\^4|\\frac1\{{36\}}\s*{variable}\^4|1/36\s*{variable}\^4)"
         correct_axis = (
             _has(text, r"\|R\s*\(i(?:w|\\omega|y)\)\|\^2")
-            and _has(text, r"1\s*\+\s*(?:\\frac\{1\}\{9\}|\\frac19|1/9)\s*(?:w|\\omega|y)\^2")
-            and _has(text, r"(?:w|\\omega|y)\^4\s*/\s*36|\\frac\{1\}\{36\}\s*(?:w|\\omega|y)\^4|\\frac1\{36\}\s*(?:w|\\omega|y)\^4")
+            and _has(text, rf"1\s*\+\s*{quadratic_ninth}")
+            and _has(text, quartic_thirtysixth)
             and _has(text, r"(?:\\le|≤)\s*1")
         )
         poles_right = _has(

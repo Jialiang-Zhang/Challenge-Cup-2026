@@ -1,0 +1,109 @@
+{
+  "idx": 105,
+  "status": "success",
+  "final_response": "Consider the heat equation $u_t = u_{xx}$ on $(0,\\pi) \\times (0,T)$ with Dirichlet boundary conditions $u(0,t) = u(\\pi,t) = 0$. The eigenfunctions of the Laplacian are $\\phi_n(x) = \\sqrt{\\frac{2}{\\pi}} \\sin(nx)$, $n \\in \\mathbb{N}$, with eigenvalues $-n^2$. The general solution is\n$$\nu(x,t) = \\sum_{n=1}^\\infty \\hat{u}_n e^{-n^2 t} \\phi_n(x),\n$$\nwhere $\\hat{u}_n = \\langle u(\\cdot,0), \\phi_n \\rangle$. At time $T$, we have\n$$\ng(x) = u(x,T) = \\sum_{n=1}^\\infty \\hat{u}_n e^{-n^2 T} \\phi_n(x),\n$$\nso the Fourier coefficients of $g$ are $\\hat{g}_n = \\hat{u}_n e^{-n^2 T}$. Thus,\n$$\n\\hat{u}_n = \\hat{g}_n e^{n^2 T}.\n$$\nThe initial data $u(\\cdot,0)$ is in $L^2(0,\\pi)$ if and only if\n$$\n\\sum_{n=1}^\\infty |\\hat{u}_n|^2 = \\sum_{n=1}^\\infty e^{2n^2 T} |\\hat{g}_n|^2 < \\infty.\n$$\nThis is the necessary and sufficient condition for existence of an $L^2$ initial value.\n\nNow define the inverse map $\\mathcal{R}: g \\mapsto u(\\cdot,0)$. To show discontinuity in $L^2$, consider the sequence\n$$\ng_k(x) = e^{-k^2 T} \\phi_k(x).\n$$\nThen $\\|g_k\\|_{L^2} = e^{-k^2 T} \\to 0$ as $k \\to \\infty$. However,\n$$\n\\mathcal{R}g_k = \\phi_k, \\quad \\|\\mathcal{R}g_k\\|_{L^2} = 1.\n$$\nThus, $\\|\\mathcal{R}g_k\\|_{L^2} \\not\\to 0$ despite $\\|g_k\\|_{L^2} \\to 0$, proving that $\\mathcal{R}$ is not continuous at $0$. Since $\\mathcal{R}$ is linear, it is unbounded and hence discontinuous everywhere on its domain.\n\nTherefore, the inverse problem is ill-posed in the sense of Hadamard: while solutions exist for a dense subset of $L^2$ (those with rapidly decaying $\\hat{g}_n$), the solution map is not continuous.",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "ode_pde",
+        "secondary_domain_count": 1,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 12812,
+        "elapsed_ms": 43316
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 12812,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 1
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 3320,
+        "elapsed_ms": 13474
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": false,
+        "truncated": true,
+        "response_chars": 3320,
+        "claim_count": 6,
+        "method": "constructive",
+        "tool_channel": "brute_force",
+        "warning_count": 1
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [],
+        "invalid_candidate_ids": [
+          "A",
+          "B"
+        ]
+      }
+    },
+    {
+      "step": "rescue_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 3269,
+        "elapsed_ms": 13653
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3269,
+        "claim_count": 3,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 1
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "model_calls": 3,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 1575
+      }
+    }
+  ]
+}

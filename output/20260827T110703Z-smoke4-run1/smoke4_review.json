@@ -1,0 +1,44 @@
+{
+  "run_id": "20260827T110703Z-smoke4-run1",
+  "ids": [
+    25,
+    55,
+    90,
+    105
+  ],
+  "records": [
+    {
+      "idx": 25,
+      "subject": "数值分析",
+      "status": "error",
+      "reference_answer": "将精确解在$t_{n+2}$处展开：$y_{n+1}=y-hy'+\\frac{h^2}{2}y''-\\frac{h^3}{6}y'''+O(h^4)$，$y_n=y-2hy'+2h^2y''-\\frac{4}{3}h^3y'''+O(h^4)$。故$3y_{n+2}-4y_{n+1}+y_n=2hy'-\\frac{2}{3}h^3y'''+O(h^4)$，除以$2h$得$y'-\\frac13h^2y'''+O(h^3)$，故局部截断误差为$O(h^2)$，方法二阶。零稳定性考察$\\rho(\\xi)=3\\xi^2-4\\xi+1=(\\xi-1)(3\\xi-1)$，根为$1,1/3$，均在单位圆内或上，且单位圆上的根$1$为单根，故零稳定。对$z=h\\lambda$，稳定特征方程为$(3-2z)\\xi^2-4\\xi+1=0$。单位圆边界$\\xi=e^{i\\theta}$对应$z(\\theta)=(3-4e^{-i\\theta}+e^{-2i\\theta})/2$，其实部为$\\Re z=(3-4\\cos\\theta+\\cos2\\theta)/2=(1-\\cos\\theta)^2\\ge0$。因此根穿越单位圆只能发生在闭右半平面。取任意负实数$z<0$，例如$z=-1$，方程$5\\xi^2-4\\xi+1=0$的两根为$(2\\pm i)/5$，模均为$1/\\sqrt5<1$，故左半平面中至少一点属于稳定域。由于左半平面连通，且其内部没有任何单位圆根轨迹，根的模不可能在其中由$<1$变为$>1$而不先穿过$|\\xi|=1$；因此整个$\\Re z<0$均稳定。边界$\\Re z=0$由连续性及根条件纳入，故BDF2为A-稳定。",
+      "final_response": "",
+      "trace_steps": 0
+    },
+    {
+      "idx": 55,
+      "subject": "微分几何",
+      "status": "success",
+      "reference_answer": "环面Euler示性数$\\chi(M)=0$，故Gauss--Bonnet给出$\\int_MK\\,dA=2\\pi\\chi(M)=0$。若$K>0$处处，则积分严格为正，矛盾。若$K\\ge0$处处且在某点$p$有$K(p)>0$，由连续性存在邻域$U$及$c>0$使$K\\ge c$于$U$，于是$\\int_MK\\,dA\\ge c\\operatorname{Area}(U)>0$，仍矛盾。因此若$K\\ge0$处处，只能$K\\equiv0$。第二步额外使用连续性把一点严格正提升为正测度邻域上的正下界。",
+      "final_response": "由 Gauss-Bonnet 定理，紧致无边可定向曲面 $M \\subset \\mathbb{R}^3$ 满足 $\\int_M K \\, dA = 2\\pi \\chi(M)$。因 $M$ 为环面，$\\chi(M) = 0$，故 $\\int_M K \\, dA = 0$。若 $K > 0$ 处处成立，则积分严格大于零，矛盾；若 $K \\geq 0$ 且在某点 $p$ 处 $K(p) > 0$，由光滑性知 $K$ 在 $p$ 的邻域内正，积分仍严格大于零，亦矛盾。第二结论非第一结论的同义改写：第一结论仅排除恒正情形，第二结论排除“非负且不恒为零”情形，后者更强，需依赖连续性导出局部正性以推出积分正，逻辑上不可简化为第一结论的直接推论。",
+      "trace_steps": 10
+    },
+    {
+      "idx": 90,
+      "subject": "常微分方程",
+      "status": "error",
+      "reference_answer": "令$x=e^t$并作Emden--Fowler变换$y=x^{-1/2}v(t)$，得$v''-\\frac14v+v^5=0$。乘$v'$积分：$\\frac12(v')^2-\\frac18v^2+\\frac16v^6=C$。正则条件$x\\downarrow0$给$v,v'\\to0$，故$C=0$。于是$(v')^2=\\frac14v^2-\\frac13v^6$。取与$t\\to-\\infty$时$v\\sim e^{t/2}$一致的正支并分离变量，得$v(t)=e^{t/2}/\\sqrt{1+e^{2t}/3}$，故$y(x)=(1+x^2/3)^{-1/2}$。奇异解支不满足$t\\to-\\infty$时$v,v'\\to0$，等价于$y$在$x=0$不正则。",
+      "final_response": "",
+      "trace_steps": 0
+    },
+    {
+      "idx": 105,
+      "subject": "偏微分方程",
+      "status": "success",
+      "reference_answer": "写$g=\\sum_{n\\ge1}g_n\\sin(nx)$。若初值$u_0=\\sum a_n\\sin(nx)$，则$g_n=e^{-n^2T}a_n$，所以存在$L^2$初值当且仅当$\\sum_{n\\ge1}e^{2n^2T}|g_n|^2<\\infty$，此时$a_n=e^{n^2T}g_n$且唯一。逆映射在其值域上无界：取$g^{(N)}=e^{-N^2T}\\sin(Nx)$，则$\\|g^{(N)}\\|_2\\to0$，但对应初值为$\\sin(Nx)$，其$L^2$范数恒为$\\sqrt{\\pi/2}$。故反向热方程虽在可达数据上唯一，却对终端数据不连续，属于严重病态逆问题。",
+      "final_response": "Consider the heat equation $u_t = u_{xx}$ on $(0,\\pi) \\times (0,T)$ with Dirichlet boundary conditions $u(0,t) = u(\\pi,t) = 0$. The eigenfunctions of the Laplacian are $\\phi_n(x) = \\sqrt{\\frac{2}{\\pi}} \\sin(nx)$, $n \\in \\mathbb{N}$, with eigenvalues $-n^2$. The general solution is\n$$\nu(x,t) = \\sum_{n=1}^\\infty \\hat{u}_n e^{-n^2 t} \\phi_n(x),\n$$\nwhere $\\hat{u}_n = \\langle u(\\cdot,0), \\phi_n \\rangle$. At time $T$, we have\n$$\ng(x) = u(x,T) = \\sum_{n=1}^\\infty \\hat{u}_n e^{-n^2 T} \\phi_n(x),\n$$\nso the Fourier coefficients of $g$ are $\\hat{g}_n = \\hat{u}_n e^{-n^2 T}$. Thus,\n$$\n\\hat{u}_n = \\hat{g}_n e^{n^2 T}.\n$$\nThe initial data $u(\\cdot,0)$ is in $L^2(0,\\pi)$ if and only if\n$$\n\\sum_{n=1}^\\infty |\\hat{u}_n|^2 = \\sum_{n=1}^\\infty e^{2n^2 T} |\\hat{g}_n|^2 < \\infty.\n$$\nThis is the necessary and sufficient condition for existence of an $L^2$ initial value.\n\nNow define the inverse map $\\mathcal{R}: g \\mapsto u(\\cdot,0)$. To show discontinuity in $L^2$, consider the sequence\n$$\ng_k(x) = e^{-k^2 T} \\phi_k(x).\n$$\nThen $\\|g_k\\|_{L^2} = e^{-k^2 T} \\to 0$ as $k \\to \\infty$. However,\n$$\n\\mathcal{R}g_k = \\phi_k, \\quad \\|\\mathcal{R}g_k\\|_{L^2} = 1.\n$$\nThus, $\\|\\mathcal{R}g_k\\|_{L^2} \\not\\to 0$ despite $\\|g_k\\|_{L^2} \\to 0$, proving that $\\mathcal{R}$ is not continuous at $0$. Since $\\mathcal{R}$ is linear, it is unbounded and hence discontinuous everywhere on its domain.\n\nTherefore, the inverse problem is ill-posed in the sense of Hadamard: while solutions exist for a dense subset of $L^2$ (those with rapidly decaying $\\hat{g}_n$), the solution map is not continuous.",
+      "trace_steps": 9
+    }
+  ],
+  "warning": "Reference answers are included only in this post-run review file; they were never passed into ReasoningAgent.solve()."
+}

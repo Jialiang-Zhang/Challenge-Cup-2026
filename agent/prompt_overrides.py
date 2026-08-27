@@ -57,7 +57,12 @@ def _strict_protocol_block(response_requirement: str, contract: TaskContract) ->
         OUTPUT CONTRACT
         - Your FIRST characters must be <FINAL_CANDIDATE>. No thinking preamble is allowed.
         - Answer shape: {answer_shape_instruction(contract)}
-        - Inside FINAL_CANDIDATE write the actual mathematical conclusion, never an instruction.
+        - FINAL_CANDIDATE is a self-contained machine-judged answer, not a heading or introduction.
+        - Put every requested output object directly inside FINAL_CANDIDATE. If the problem asks for several
+          formulas/values (for example a function and its density, several blanks, or several subanswers),
+          write all of them explicitly and separate them with semicolons.
+        - NEVER end FINAL_CANDIDATE with an unfinished cue such as “为”, “如下”, “is”, “equals”, “:”, or “=”.
+        - A reader who sees only FINAL_CANDIDATE must know the complete requested conclusion.
         - Immediately after </FINAL_CANDIDATE>, emit the complete <FINAL_RESPONSE>...</FINAL_RESPONSE> block.
         - The FINAL_RESPONSE block is the submission payload: finish it before any metadata fields.
         - Keep the proof/derivation compact enough to close </FINAL_RESPONSE>; prefer equations and decisive implications.
@@ -66,7 +71,7 @@ def _strict_protocol_block(response_requirement: str, contract: TaskContract) ->
         - After FINAL_RESPONSE, emit the metadata fields below. Stop after </RISK_FLAGS>.
 
         <FINAL_CANDIDATE>
-        Write the exact mathematical answer or conclusion here.
+        Write the complete self-contained mathematical answer here; no introductory cue.
         </FINAL_CANDIDATE>
 
         <FINAL_RESPONSE>
@@ -176,13 +181,15 @@ def repair_prompt_v2(
         OUTPUT CONTRACT
         - Your FIRST characters must be <FINAL_CANDIDATE>.
         - Answer shape: {answer_shape_instruction(contract)}
+        - FINAL_CANDIDATE must be self-contained and include every requested output object explicitly.
+        - NEVER end FINAL_CANDIDATE with “为”, “如下”, “is”, “equals”, “:”, or “=”.
         - Immediately emit and close FINAL_RESPONSE after FINAL_CANDIDATE, before metadata.
         - Do not copy the parent conclusion unless your recomputation confirms it.
         - Address the challenged claim explicitly and cover every still-applicable task obligation.
         - Stop after </RISK_FLAGS>.
 
         <FINAL_CANDIDATE>
-        Write the corrected exact mathematical answer.
+        Write the complete corrected mathematical answer, with all requested outputs.
         </FINAL_CANDIDATE>
 
         <FINAL_RESPONSE>

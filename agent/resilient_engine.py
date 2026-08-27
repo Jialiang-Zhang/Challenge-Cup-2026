@@ -5,11 +5,11 @@ from contextvars import ContextVar
 from typing import Any
 
 from .adjudication import has_irreversible_evidence_failure
-from .models import AuditResult, CaseState, MethodFingerprint, SolutionCapsule
+from .models import AuditResult, CaseState, EvidenceRecord, MethodFingerprint, SolutionCapsule
 from .parsing import parse_solution_capsule
-from .prompt_overrides import blind_prompt_v2, rescue_prompt_v2
-from .prompts import primary_prompt
+from .prompt_overrides import blind_prompt_v2, primary_prompt_v2, rescue_prompt_v2
 from .protocol_validation import sanitize_solution_capsule
+from .requirement_checks import evaluate_explicit_requirement_coverage
 from .staged_engine import StagedHORAEngine
 from .submission import build_submission
 
@@ -128,6 +128,14 @@ class ResilientHORAEngine(StagedHORAEngine):
     ) -> str:
         _ACTIVE_TRACE.set(trace)
         prefix = self._requirements_prefix()
+        if step == "red_team_audit_call":
+            prefix += (
+                "EVIDENCE-BACKED AUDIT RULE\n"
+                "Actively recompute or check at least one decisive equation/theorem condition before accepting. "
+                "For ACCEPT_A, ACCEPT_B, or EQUIVALENT, WITNESS must contain that concrete check; WITNESS=none "
+                "is not a valid acceptance on a proof/high-risk task. Check every explicit completion obligation. "
+                "Also attack any unnecessary stronger claim that is false or unsupported; do not reward verbosity.\n\n"
+            )
         if prefix:
             prompt = prefix + prompt
         return super()._call_model(
@@ -141,6 +149,26 @@ class ResilientHORAEngine(StagedHORAEngine):
             thinking_mode=thinking_mode,
         )
 
+    def _apply_candidate_evidence(self, state: CaseState, capsule: SolutionCapsule) -> None:
+        super()._apply_candidate_evidence(state, capsule)
+        requirements = _REQUIREMENTS.get()
+        for index, check in enumerate(
+            evaluate_explicit_requirement_coverage(capsule.final_response, requirements),
+            start=1,
+        ):
+            record = EvidenceRecord(
+                evidence_id=f"E-req-{capsule.candidate_id}-{index}-{len(state.evidence)}",
+                candidate_id=capsule.candidate_id,
+                evidence_type=f"explicit_requirement:{check.code}",
+                status=check.status,  # type: ignore[arg-type]
+                strength="hard" if check.hard_failure else "structural",
+                checker="explicit_requirement_gate",
+                detail_code=check.detail,
+            )
+            state.add_evidence(record)
+            if check.hard_failure and check.status == "fail":
+                state.candidates[capsule.candidate_id].eligible = False
+
     def _submission_text(self, capsule: SolutionCapsule, state: CaseState) -> str:
         return build_submission(
             capsule,
@@ -150,7 +178,11 @@ class ResilientHORAEngine(StagedHORAEngine):
         )
 
     def _run_primary(self, problem, state, guard, trace):
-        reasoning_heavy = state.contract.requires_proof or state.contract.multipart_count > 1
+        reasoning_heavy = (
+            state.contract.requires_proof
+            or state.contract.multipart_count > 1
+            or "derivation_chain" in state.contract.answer_obligations
+        )
         if not reasoning_heavy:
             return super()._run_primary(problem, state, guard, trace)
 
@@ -159,7 +191,7 @@ class ResilientHORAEngine(StagedHORAEngine):
             guard=guard,
             trace=trace,
             step="primary_call",
-            prompt=primary_prompt(problem, state.contract),
+            prompt=primary_prompt_v2(problem, state.contract),
             temperature=self.config.primary_temperature,
             max_tokens=min(self.config.primary_max_tokens, 3072),
             thinking_mode=False,
@@ -271,6 +303,21 @@ class ResilientHORAEngine(StagedHORAEngine):
         self._trace_candidate(trace, capsule)
         return capsule
 
+    @staticmethod
+    def _remove_new_soft_acceptance(state: CaseState, start: int) -> None:
+        remove_ids = {
+            item.evidence_id
+            for item in state.evidence[start:]
+            if item.evidence_type == "red_team_adjudication"
+        }
+        if not remove_ids:
+            return
+        state.evidence[:] = [item for item in state.evidence if item.evidence_id not in remove_ids]
+        for candidate in state.candidates.values():
+            candidate.evidence_ids[:] = [
+                evidence_id for evidence_id in candidate.evidence_ids if evidence_id not in remove_ids
+            ]
+
     def _run_audit(
         self,
         problem: str,
@@ -280,6 +327,7 @@ class ResilientHORAEngine(StagedHORAEngine):
         candidate_a: SolutionCapsule,
         candidate_b: SolutionCapsule | None,
     ) -> AuditResult:
+        evidence_start = len(state.evidence)
         result = super()._run_audit(
             problem,
             state,
@@ -288,6 +336,41 @@ class ResilientHORAEngine(StagedHORAEngine):
             candidate_a,
             candidate_b,
         )
+
+        high_stakes_accept = (
+            result.verdict in {"ACCEPT_A", "ACCEPT_B", "EQUIVALENT"}
+            and (
+                state.contract.risk_level in {"high", "critical"}
+                or state.contract.requires_proof
+                or "derivation_chain" in state.contract.answer_obligations
+            )
+        )
+        if high_stakes_accept and not _meaningful(result.witness):
+            self._remove_new_soft_acceptance(state, evidence_start)
+            if trace and trace[-1].get("step") == "red_team_result":
+                trace[-1].setdefault("content", {})["verdict"] = "UNRESOLVED"
+            trace.append(
+                {
+                    "step": "red_team_evidence_gate",
+                    "content": {
+                        "target_candidate_id": result.target_candidate_id,
+                        "original_verdict": result.verdict,
+                        "effective_verdict": "UNRESOLVED",
+                        "reason": "acceptance_lacked_concrete_witness",
+                    },
+                }
+            )
+            return AuditResult(
+                verdict="UNRESOLVED",
+                target_candidate_id=result.target_candidate_id,
+                target_claim_id=result.target_claim_id,
+                attack_type=result.attack_type,
+                severity="minor",
+                challenge=result.challenge,
+                witness=result.witness,
+                resolver_hint=result.resolver_hint,
+            )
+
         if result.severity not in {"fatal", "major"} or self._attack_is_concrete(result):
             return result
 

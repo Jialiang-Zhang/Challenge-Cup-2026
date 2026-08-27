@@ -1,0 +1,89 @@
+{
+  "run_id": "20260827T150947Z-hard3-run34",
+  "indices": [
+    0,
+    40,
+    70
+  ],
+  "total": 3,
+  "success_count": 3,
+  "runner_exit_code": 0,
+  "warning": "Reference relation is a local heuristic. Proof quality requires manual review; this is not the official judge.",
+  "records": [
+    {
+      "idx": 0,
+      "subject": "离散数学",
+      "status": "success",
+      "requires_proof": true,
+      "risk": "high",
+      "route": "R2",
+      "reference_relation": "unknown",
+      "manual_review_required": true,
+      "response_chars": 2186,
+      "model_calls": 3,
+      "repair_count": 0,
+      "selected_candidate_id": "A",
+      "selected_source": "primary",
+      "valid_candidate_ids": [
+        "A",
+        "B"
+      ],
+      "invalid_candidate_ids": [],
+      "red_team_verdicts": [
+        "UNRESOLVED"
+      ],
+      "output_file": "0.json",
+      "error_type": null
+    },
+    {
+      "idx": 40,
+      "subject": "测度积分",
+      "status": "success",
+      "requires_proof": false,
+      "risk": "high",
+      "route": "R2",
+      "reference_relation": "equivalent",
+      "manual_review_required": false,
+      "response_chars": 10,
+      "model_calls": 3,
+      "repair_count": 0,
+      "selected_candidate_id": "A",
+      "selected_source": "primary",
+      "valid_candidate_ids": [
+        "A",
+        "B"
+      ],
+      "invalid_candidate_ids": [],
+      "red_team_verdicts": [
+        "UNRESOLVED"
+      ],
+      "output_file": "40.json",
+      "error_type": null
+    },
+    {
+      "idx": 70,
+      "subject": "抽象代数",
+      "status": "success",
+      "requires_proof": true,
+      "risk": "high",
+      "route": "R2",
+      "reference_relation": "unknown",
+      "manual_review_required": true,
+      "response_chars": 1221,
+      "model_calls": 3,
+      "repair_count": 0,
+      "selected_candidate_id": "A",
+      "selected_source": "primary",
+      "valid_candidate_ids": [
+        "A",
+        "B"
+      ],
+      "invalid_candidate_ids": [],
+      "red_team_verdicts": [
+        "EQUIVALENT"
+      ],
+      "output_file": "70.json",
+      "error_type": null
+    }
+  ]
+}

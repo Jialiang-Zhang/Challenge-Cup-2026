@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from textwrap import dedent
 
 from .models import TaskContract
@@ -25,6 +26,61 @@ def _contract_block(contract: TaskContract) -> str:
         Likely failure modes: {', '.join(contract.likely_failure_modes)}
         """
     ).strip()
+
+
+def _problem_guardrails(problem: str) -> str:
+    """Compile narrow proof/output obligations from explicit wording in the problem.
+
+    These are method guards, not benchmark-answer hints. They activate only when the statement
+    itself explicitly asks for the corresponding proof device or output objects.
+    """
+
+    text = str(problem or "")
+    blocks: list[str] = []
+
+    shearer = bool(re.search(r"shearer", text, flags=re.IGNORECASE))
+    conditioning = bool(
+        re.search(
+            r"条件越多.{0,20}条件熵越小|conditioning\s+reduces\s+entropy",
+            text,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+    )
+    if shearer and conditioning:
+        blocks.append(
+            dedent(
+                r"""
+                SHEARER PROOF OBLIGATION
+                - Fix one global coordinate order 1,...,d.
+                - For each deleted coordinate i, expand H(Z_{-i}) in that SAME induced order.
+                - For every j != i, its conditioning set is the earlier prefix with coordinate i removed,
+                  hence a SUBSET of the full prefix Z_1,...,Z_{j-1}.
+                - Because fewer conditions give larger conditional entropy,
+                  H(Z_j | earlier prefix with i removed) >= H(Z_j | Z_1,...,Z_{j-1}).
+                - Sum over i and use that each j occurs exactly d-1 times.
+                - Do NOT claim H(Z) <= H(Z_{-i}); that inequality is false in general.
+                Keep only this clean chain in the final proof; do not leave abandoned alternatives.
+                """
+            ).strip()
+        )
+
+    asks_distribution = bool(
+        re.search(r"分布函数|distribution\s+function|cdf", text, flags=re.IGNORECASE)
+    )
+    asks_density = bool(re.search(r"密度|density|pdf", text, flags=re.IGNORECASE))
+    if asks_distribution and asks_density:
+        blocks.append(
+            dedent(
+                """
+                MULTI-OBJECT FINAL CANDIDATE OBLIGATION
+                The problem asks for both a distribution function and a density. FINAL_CANDIDATE must
+                explicitly contain BOTH requested formulas as closed equations, separated by a semicolon.
+                Do not write an introductory phrase such as “the distribution function is” without the formula.
+                """
+            ).strip()
+        )
+
+    return "\n\n".join(blocks)
 
 
 def _response_requirement(contract: TaskContract, *, independent: bool = False) -> str:
@@ -105,6 +161,7 @@ def _strict_protocol_block(response_requirement: str, contract: TaskContract) ->
 
 
 def primary_prompt_v2(problem: str, contract: TaskContract) -> str:
+    guardrails = _problem_guardrails(problem)
     return dedent(
         f"""
         You are HORA-Math Blue Team Solver S1. Solve the mathematical problem rigorously using the assigned
@@ -117,12 +174,15 @@ def primary_prompt_v2(problem: str, contract: TaskContract) -> str:
         PROBLEM
         {problem}
 
+        {guardrails}
+
         {_strict_protocol_block(_response_requirement(contract), contract)}
         """
     ).strip()
 
 
 def blind_prompt_v2(problem: str, contract: TaskContract) -> str:
+    guardrails = _problem_guardrails(problem)
     return dedent(
         f"""
         You are HORA-Math Blue Team Solver S2, an ORTHOGONAL BLIND solver. You have not seen any other
@@ -137,6 +197,8 @@ def blind_prompt_v2(problem: str, contract: TaskContract) -> str:
 
         PROBLEM
         {problem}
+
+        {guardrails}
 
         {_strict_protocol_block(_response_requirement(contract, independent=True), contract)}
         """
@@ -154,6 +216,7 @@ def repair_prompt_v2(
     resolver_hint: str,
 ) -> str:
     response_requirement = _response_requirement(contract)
+    guardrails = _problem_guardrails(problem)
     return dedent(
         f"""
         You are HORA-Math one-shot Targeted Repair Solver. A red-team audit found a localized mathematical
@@ -166,6 +229,8 @@ def repair_prompt_v2(
 
         PROBLEM
         {problem}
+
+        {guardrails}
 
         PARENT ANSWER
         {parent_answer}
@@ -227,6 +292,7 @@ def repair_prompt_v2(
 
 
 def rescue_prompt_v2(problem: str, contract: TaskContract) -> str:
+    guardrails = _problem_guardrails(problem)
     return dedent(
         f"""
         You are HORA-Math Rescue Solver. Earlier candidates were invalid or unresolved. Recompute the task
@@ -238,6 +304,8 @@ def rescue_prompt_v2(problem: str, contract: TaskContract) -> str:
 
         PROBLEM
         {problem}
+
+        {guardrails}
 
         {_strict_protocol_block(_response_requirement(contract), contract)}
         """

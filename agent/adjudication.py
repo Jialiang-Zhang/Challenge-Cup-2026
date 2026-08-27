@@ -65,6 +65,32 @@ def has_irreversible_evidence_failure(state: CaseState, candidate_id: str) -> bo
     return False
 
 
+def _requires_decisive_support(state: CaseState) -> bool:
+    contract = state.contract
+    return (
+        contract.risk_level in {"high", "critical"}
+        or contract.requires_proof
+        or contract.answer_schema == "proof"
+        or "derivation_chain" in contract.answer_obligations
+    )
+
+
+def _has_decisive_support(state: CaseState, record: CandidateRecord) -> bool:
+    candidate_id = record.capsule.candidate_id
+    evidence = evidence_for_candidate(state, candidate_id)
+    if any(
+        item.status == "pass"
+        and (
+            item.evidence_type == "red_team_adjudication"
+            or item.strength == "independent"
+            or item.evidence_type == "challenge_resolution"
+        )
+        for item in evidence
+    ):
+        return True
+    return has_attack_survival(state, candidate_id)
+
+
 def _candidate_key(state: CaseState, record: CandidateRecord) -> tuple[int, ...]:
     candidate_id = record.capsule.candidate_id
     evidence = evidence_for_candidate(state, candidate_id)
@@ -159,11 +185,18 @@ def _is_safe_fallback_candidate(state: CaseState, record: CandidateRecord) -> bo
         return False
 
     contract = state.contract
-    if (
+    reasoning_heavy = (
         contract.requires_proof
         or contract.answer_schema == "proof"
         or "derivation_chain" in contract.answer_obligations
-    ):
+    )
+    if reasoning_heavy:
+        # If FINAL_RESPONSE itself was not closed, a proof/derivation is not safely recoverable.
+        if capsule.truncated:
+            return False
+        # A high-stakes unresolved Primary/Blind candidate should not bypass the evidence gate.
+        if _requires_decisive_support(state) and capsule.source not in {"rescue", "targeted_repair"}:
+            return False
         return _reasoning_recovery_is_credible(state, record)
 
     return True
@@ -196,6 +229,7 @@ def _fallback_key(state: CaseState, record: CandidateRecord) -> tuple[int, ...]:
 
 
 def select_best_candidate(state: CaseState) -> CandidateRecord | None:
+    decisive_support_required = _requires_decisive_support(state)
     strict = [
         record
         for record in state.candidates.values()
@@ -205,6 +239,11 @@ def select_best_candidate(state: CaseState) -> CandidateRecord | None:
             and record.capsule.complete
             and not record.capsule.truncated
             and not has_hard_fail(state, record.capsule.candidate_id)
+            and (
+                not decisive_support_required
+                or _has_decisive_support(state, record)
+                or record.capsule.source in {"rescue", "targeted_repair"}
+            )
         )
     ]
     if strict:

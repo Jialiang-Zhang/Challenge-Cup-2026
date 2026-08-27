@@ -41,7 +41,7 @@ jobs:
     timeout-minutes: 360
     env:
       INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
-      INTERN_MODEL: intern-s2-preview
+      INTERN_MODEL: intern-s2-preview-397b
       LOCAL_MAX_CONCURRENCY: ${{ github.event.inputs.concurrency || '3' }}
       DATASET_REF: ${{ github.event.inputs.dataset_ref || 'main' }}
       JUPYTER_PLATFORM_DIRS: "1"

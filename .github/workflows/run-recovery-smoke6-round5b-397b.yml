@@ -1,0 +1,143 @@
+name: Run verified 397B recovery smoke6 round5b
+
+on:
+  push:
+    branches:
+      - benchmark/recovery-smoke6-round5b-397b-20260827
+    paths:
+      - ".github/workflows/run-recovery-smoke6-round5b-397b.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  smoke6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
+      INTERN_MODEL: intern-s2-preview-397b
+      LOCAL_MAX_CONCURRENCY: "3"
+      PYTHONUNBUFFERED: "1"
+      JUPYTER_PLATFORM_DIRS: "1"
+
+    steps:
+      - name: Check out benchmark branch
+        uses: actions/checkout@v4
+        with:
+          ref: benchmark/recovery-smoke6-round5b-397b-20260827
+          fetch-depth: 0
+
+      - name: Check out fixed dataset
+        uses: actions/checkout@v4
+        with:
+          repository: Jialiang-Zhang/test-dataset-math
+          ref: 73722d85996fad9147aca2015b001153a4d7cbcf
+          path: _benchmark_dataset
+          fetch-depth: 1
+
+      - name: Verify API secret and model
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${INTERN_API_KEY}" || (echo "::error::Missing INTERN_API_KEY" && exit 1)
+          test "${INTERN_MODEL}" = "intern-s2-preview-397b" || (echo "::error::397B model id not pinned" && exit 1)
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run repository tests
+        run: python -m unittest discover -s tests -p "test_*.py"
+
+      - name: Build smoke input
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          ids = [5, 8, 16, 25, 58, 66]
+          source = Path("_benchmark_dataset/112")
+          target = Path(".benchmark_tmp/recovery-smoke6-round5b-397b.jsonl")
+          target.parent.mkdir(parents=True, exist_ok=True)
+          with target.open("w", encoding="utf-8") as f:
+              for idx in ids:
+                  item = json.loads((source / f"{idx}.json").read_text(encoding="utf-8"))
+                  f.write(json.dumps({"idx": item["idx"], "problem": item["problem"]}, ensure_ascii=False) + "\n")
+          print(ids)
+          PY
+
+      - name: Run verified recovery smoke6 with 397B
+        shell: bash
+        run: |
+          RUN_ID="$(date -u +'%Y%m%dT%H%M%SZ')-recovery-smoke6-round5b-397b-run${GITHUB_RUN_NUMBER}"
+          echo "RUN_ID=${RUN_ID}" >> "${GITHUB_ENV}"
+          mkdir -p "output/${RUN_ID}"
+          python main.py --input_file .benchmark_tmp/recovery-smoke6-round5b-397b.jsonl --output_dir "output/${RUN_ID}"
+
+      - name: Build diagnostic summary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from collections import Counter
+          ids = [5, 8, 16, 25, 58, 66]
+          out = Path("output") / os.environ["RUN_ID"]
+          counts = Counter()
+          records = []
+          for idx in ids:
+              result = json.loads((out / f"{idx}.json").read_text(encoding="utf-8"))
+              status = result.get("status", "unknown")
+              counts[status] += 1
+              trace = result.get("trace", []) if isinstance(result.get("trace"), list) else []
+              commit = next((x.get("content", {}) for x in reversed(trace) if x.get("step") == "transaction_commit"), {})
+              confirmations = [x.get("content", {}) for x in trace if x.get("step") == "proof_confirmation_result"]
+              records.append({
+                  "idx": idx,
+                  "status": status,
+                  "response_chars": len(result.get("final_response", "")) if isinstance(result.get("final_response"), str) else 0,
+                  "source": commit.get("source"),
+                  "candidate_id": commit.get("candidate_id"),
+                  "model_calls": commit.get("model_calls"),
+                  "repair_count": commit.get("repair_count"),
+                  "confirmation_count": len(confirmations),
+                  "confirmation_verdicts": [x.get("verdict") for x in confirmations],
+                  "error": result.get("error"),
+              })
+          summary = {
+              "run_id": os.environ["RUN_ID"],
+              "model": os.environ["INTERN_MODEL"],
+              "agent_base_commit": "7dbe2b6bc150ec24dc80d31a4dabe0e24bba8f3c",
+              "ids": ids,
+              "counts": dict(counts),
+              "records": records,
+          }
+          (out / "recovery_smoke6_round5b_397b_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps(summary, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit results
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "output/${RUN_ID}"
+          if ! git diff --cached --quiet; then
+            git commit -m "benchmark: record verified 397b smoke ${RUN_ID}"
+            git push origin HEAD:benchmark/recovery-smoke6-round5b-397b-20260827
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovery-smoke6-round5b-397b-${{ env.RUN_ID }}
+          path: output/${{ env.RUN_ID }}/
+          retention-days: 14

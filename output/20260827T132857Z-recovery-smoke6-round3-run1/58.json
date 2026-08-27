@@ -1,0 +1,127 @@
+{
+  "idx": 58,
+  "status": "error",
+  "final_response": "",
+  "error": {
+    "type": "RuntimeError",
+    "message": "HORA-Math produced no complete, hard-valid candidate"
+  },
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "random_process",
+        "secondary_domain_count": 2,
+        "risk": "medium",
+        "route": "R1",
+        "answer_schema": "exact_expression",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "probability",
+          "mathematical_analysis"
+        ],
+        "question_mode": "open_response",
+        "mode_confidence": 0.35,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "derivation_chain"
+        ],
+        "ambiguity_flags": [
+          "weak_mode_signal"
+        ]
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 1,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 5343,
+        "elapsed_ms": 33609
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": false,
+        "truncated": true,
+        "response_chars": 5343,
+        "claim_count": 4,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 4,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 5838,
+        "elapsed_ms": 32647
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 5838,
+        "claim_count": 0,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 3,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [],
+        "invalid_candidate_ids": [
+          "A",
+          "B"
+        ]
+      }
+    },
+    {
+      "step": "rescue_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 4035,
+        "elapsed_ms": 25002
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "complete": false,
+        "truncated": true,
+        "response_chars": 4035,
+        "claim_count": 6,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 4,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    }
+  ]
+}

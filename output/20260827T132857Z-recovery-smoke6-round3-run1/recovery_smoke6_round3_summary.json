@@ -1,0 +1,74 @@
+{
+  "run_id": "20260827T132857Z-recovery-smoke6-round3-run1",
+  "ids": [
+    5,
+    8,
+    16,
+    25,
+    58,
+    66
+  ],
+  "counts": {
+    "success": 5,
+    "error": 1
+  },
+  "records": [
+    {
+      "idx": 5,
+      "status": "success",
+      "response_chars": 1334,
+      "trace_steps": 11,
+      "source": "orthogonal_blind",
+      "candidate_id": "B",
+      "error": null
+    },
+    {
+      "idx": 8,
+      "status": "success",
+      "response_chars": 1240,
+      "trace_steps": 12,
+      "source": "primary",
+      "candidate_id": "A",
+      "error": null
+    },
+    {
+      "idx": 16,
+      "status": "success",
+      "response_chars": 1168,
+      "trace_steps": 15,
+      "source": "targeted_repair",
+      "candidate_id": "C",
+      "error": null
+    },
+    {
+      "idx": 25,
+      "status": "success",
+      "response_chars": 1458,
+      "trace_steps": 12,
+      "source": "primary",
+      "candidate_id": "A",
+      "error": null
+    },
+    {
+      "idx": 58,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 9,
+      "source": null,
+      "candidate_id": null,
+      "error": {
+        "type": "RuntimeError",
+        "message": "HORA-Math produced no complete, hard-valid candidate"
+      }
+    },
+    {
+      "idx": 66,
+      "status": "success",
+      "response_chars": 1126,
+      "trace_steps": 12,
+      "source": "primary",
+      "candidate_id": "A",
+      "error": null
+    }
+  ]
+}

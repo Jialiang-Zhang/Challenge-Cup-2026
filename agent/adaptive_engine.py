@@ -13,12 +13,7 @@ _CURRENT_PROBLEM: ContextVar[str] = ContextVar("hora_current_problem", default="
 
 
 def _task_driven_guardrails(problem: str) -> str:
-    """Compile narrow recovery guidance from mathematical structures visible in the statement.
-
-    The guardrails contain method obligations, never benchmark reference answers. They prevent
-    theorem-precondition, sign, endpoint, option-completeness, and output-shape failures before a
-    candidate reaches the evidence gate.
-    """
+    """Compile narrow recovery guidance from mathematical structures visible in the statement."""
 
     text = str(problem or "")
     blocks: list[str] = []
@@ -53,7 +48,9 @@ def _task_driven_guardrails(problem: str) -> str:
             "RUNGE-KUTTA ARITHMETIC GUARD: Recompute every displayed 2x2 inverse/vector product from the "
             "given Butcher coefficients. Check each row sum of (I-zA)^(-1)1 before applying b^T. On z=i*w, "
             "expand the real and imaginary parts of the denominator separately and square them term-by-term. "
-            "Every intermediate coefficient must be algebraically compatible with the final R(z)."
+            "For a complete A/L-stability proof, explicitly give: the simplified R(z), the correct |R(iw)|^2 "
+            "inequality, the pole locations or their positive real parts, the maximum-modulus/analyticity step for "
+            "the left half-plane, and lim R(z)=0 as |z|->infinity. Every intermediate coefficient must agree."
         )
 
     levy_signal = re.search(
@@ -65,9 +62,11 @@ def _task_driven_guardrails(problem: str) -> str:
         blocks.append(
             "LEVY-UPWARD GUARD: Nonnegative/L1-bounded martingale convergence alone does NOT imply L1 "
             "convergence. For M_n=E[X|F_n], explicitly establish uniform integrability of the conditional-"
-            "expectation family (for example by truncating the one integrable variable X), then use martingale "
-            "convergence and the conditional-expectation identity to identify the F_infinity-measurable limit. "
-            "Do not approximate an arbitrary X by F_N-measurable variables unless X is known F_infinity-measurable."
+            "expectation family (e.g. truncate the single integrable variable X), then use martingale convergence "
+            "and the conditional-expectation identity to identify the F_infinity-measurable limit. Do not approximate "
+            "an arbitrary X by F_N-measurable variables unless X is known F_infinity-measurable. Keep the final proof "
+            "compact in three blocks: (1) uniform integrability and convergence; (2) limit identification; "
+            "(3) the requested non-UI martingale counterexample with the filtration verified."
         )
 
     if re.search(r"平行移动|parallel transport|holonomy", text, flags=re.IGNORECASE) and re.search(
@@ -121,7 +120,6 @@ class AdaptiveVerifiedHORAEngine(VerifiedHORAEngine):
 
     @staticmethod
     def _trace_rejection_codes(state, capsule) -> None:
-        """Record only opaque checker/reason codes; never candidate values or problem snippets."""
         failed = [
             item
             for item in evidence_for_candidate(state, capsule.candidate_id)
@@ -130,7 +128,6 @@ class AdaptiveVerifiedHORAEngine(VerifiedHORAEngine):
         if not failed:
             return
         from .resilient_engine import _ACTIVE_TRACE
-
         trace = _ACTIVE_TRACE.get()
         if trace is None:
             return
@@ -155,13 +152,19 @@ class AdaptiveVerifiedHORAEngine(VerifiedHORAEngine):
             ),
             start=1,
         ):
+            strong_positive = (
+                check.code == "radau_full_stability_certificate"
+                and check.status == "pass"
+            )
             state.add_evidence(
                 EvidenceRecord(
                     evidence_id=f"E-cross-{capsule.candidate_id}-{index}-{len(state.evidence)}",
                     candidate_id=capsule.candidate_id,
                     evidence_type=f"cross_domain_certificate:{check.code}",
                     status=check.status,  # type: ignore[arg-type]
-                    strength="hard" if check.hard_failure else "structural",
+                    strength=(
+                        "hard" if check.hard_failure else ("independent" if strong_positive else "structural")
+                    ),
                     checker="cross_domain_consistency_certificate",
                     detail_code=check.detail,
                 )
@@ -176,6 +179,14 @@ class AdaptiveVerifiedHORAEngine(VerifiedHORAEngine):
         guardrails = _task_driven_guardrails(_CURRENT_PROBLEM.get())
         if guardrails:
             prompt = "TASK-DRIVEN MATHEMATICAL GUARDRAILS\n" + guardrails + "\n\n" + prompt
+        if step == "targeted_repair_call":
+            prompt = (
+                "COMPACT REPAIR PRIORITY\n"
+                "Close FINAL_CANDIDATE and FINAL_RESPONSE before any optional metadata. Use equations instead of "
+                "repeated prose. Keep the corrected proof complete but compact; do not leave an unfinished tag.\n\n"
+                + prompt
+            )
+            max_tokens = max(max_tokens, min(self.config.primary_max_tokens, 3072))
         return super()._call_model(
             state=state,
             guard=guard,
@@ -185,6 +196,28 @@ class AdaptiveVerifiedHORAEngine(VerifiedHORAEngine):
             temperature=temperature,
             max_tokens=max_tokens,
             thinking_mode=thinking_mode,
+        )
+
+    def _confirm_or_repair_rescue(self, *, problem, state, guard, trace, capsule: SolutionCapsule):
+        record = state.candidates[capsule.candidate_id]
+        if record.eligible and self._has_independent_support(state, capsule.candidate_id):
+            trace.append(
+                {
+                    "step": "deterministic_commit_support",
+                    "content": {
+                        "candidate_id": capsule.candidate_id,
+                        "source": capsule.source,
+                        "status": "independent_deterministic_certificate",
+                    },
+                }
+            )
+            return capsule
+        return super()._confirm_or_repair_rescue(
+            problem=problem,
+            state=state,
+            guard=guard,
+            trace=trace,
+            capsule=capsule,
         )
 
     def _confirmation_result(self, *, problem, state, guard, trace, selected: SolutionCapsule):

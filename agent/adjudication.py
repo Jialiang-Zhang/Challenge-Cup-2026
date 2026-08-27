@@ -68,7 +68,7 @@ def has_irreversible_evidence_failure(state: CaseState, candidate_id: str) -> bo
 def _requires_decisive_support(state: CaseState) -> bool:
     contract = state.contract
     return (
-        contract.risk_level in {"high", "critical"}
+        contract.risk_level == "critical"
         or contract.requires_proof
         or contract.answer_schema == "proof"
         or "derivation_chain" in contract.answer_obligations
@@ -191,10 +191,8 @@ def _is_safe_fallback_candidate(state: CaseState, record: CandidateRecord) -> bo
         or "derivation_chain" in contract.answer_obligations
     )
     if reasoning_heavy:
-        # If FINAL_RESPONSE itself was not closed, a proof/derivation is not safely recoverable.
         if capsule.truncated:
             return False
-        # A high-stakes unresolved Primary/Blind candidate should not bypass the evidence gate.
         if _requires_decisive_support(state) and capsule.source not in {"rescue", "targeted_repair"}:
             return False
         return _reasoning_recovery_is_credible(state, record)

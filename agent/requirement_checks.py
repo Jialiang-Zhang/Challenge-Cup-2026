@@ -29,15 +29,40 @@ def _strict_derivation_ok(text: str) -> bool:
     return len(text) >= minimum and len(_REASONING_RE.findall(text)) >= 2 and equations >= 2
 
 
+def _conflicting_local_truncation_order(text: str) -> bool:
+    """Detect an explicit first-order truncation claim inside a claimed second-order proof.
+
+    This is deliberately narrow: it fires only when a line/equation actually labels the local
+    truncation error as O(h), while the same response claims second order/O(h^2). Merely mentioning
+    O(h) in an intermediate Taylor term is not enough.
+    """
+
+    first_order_claim = bool(
+        re.search(
+            r"(?:\\tau|τ|局部截断误差|local\s+truncation)[^\n。]{0,260}(?:=|为|is)\s*O\s*\(\s*h\s*\)(?!\s*\^)",
+            text,
+            flags=re.IGNORECASE,
+        )
+    )
+    second_order_claim = bool(
+        re.search(
+            r"(?:二阶|second[- ]order|O\s*\(\s*h\s*\^\s*2\s*\))",
+            text,
+            flags=re.IGNORECASE,
+        )
+    )
+    return first_order_claim and second_order_claim
+
+
 def evaluate_explicit_requirement_coverage(
     response: str,
     requirements: tuple[str, ...],
 ) -> list[RequirementCheck]:
     """Conservative structural checks for requirements explicitly stated by the problem.
 
-    These checks never attempt to prove mathematical correctness. They only prevent a
-    candidate from claiming completion while omitting a named method, requested object,
-    requested density/relation, or the visible derivation that the statement explicitly asks for.
+    These checks never attempt to prove arbitrary mathematics. They prevent a candidate from
+    claiming completion while omitting a named method/requested object or while containing a
+    directly machine-detectable contradiction in a required derivation.
     """
 
     text = str(response or "")
@@ -67,7 +92,7 @@ def evaluate_explicit_requirement_coverage(
         (r"反射原理|reflection principle", r"反射原理|reflection principle", "reflection_method"),
         (r"高斯积分|gaussian integral", r"高斯积分|gaussian integral|\\int", "gaussian_integration"),
         (r"jensen|凸性", r"jensen|凸性|cauchy|柯西", "convexity_step"),
-        (r"局部截断误差|local truncation", r"局部截断误差|local truncation", "local_truncation"),
+        (r"局部截断误差|local truncation", r"局部截断误差|local truncation|\\tau", "local_truncation"),
         (r"零稳定|zero[- ]stabil", r"零稳定|zero[- ]stabil|根.*(?:1/3|\\frac\{1\}\{3\})", "zero_stability"),
         (r"a-稳定|a[- ]stabil", r"a-稳定|a[- ]stabil|左半平面|left half", "a_stability"),
         (r"根轨迹|边界轨迹|root locus|boundary locus", r"根轨迹|边界轨迹|root locus|boundary locus|z\s*\(.*theta", "boundary_locus"),
@@ -84,6 +109,17 @@ def evaluate_explicit_requirement_coverage(
                     detail="named_requirement_present" if ok else "named_requirement_missing",
                 )
             )
+
+    if any(_has(req, r"局部截断误差|local truncation") for req in requirements):
+        conflict = _conflicting_local_truncation_order(text)
+        checks.append(
+            RequirementCheck(
+                code="local_truncation_order_consistency",
+                status="fail" if conflict else "pass",
+                hard_failure=conflict,
+                detail="explicit_Oh_vs_second_order_conflict" if conflict else "no_direct_order_conflict",
+            )
+        )
 
     if any(_has(req, r"密度|density") for req in requirements):
         ok = _has(text, r"密度|density|f[_\{].*\(.*t")
@@ -139,9 +175,6 @@ def evaluate_explicit_requirement_coverage(
             )
         )
 
-    # If a strict Gaussian/reflection derivation is explicitly requested, a bare
-    # citation of those method names is not enough: at least one integral/conditioning
-    # equation must visibly connect the method to the claimed distribution.
     if strict_requested and any(_has(req, r"高斯积分|gaussian integral") for req in requirements):
         integral = _has(text, r"\\int|∫")
         conditional = _has(text, r"B_t\s*=|条件|condition(?:ing|al)?")

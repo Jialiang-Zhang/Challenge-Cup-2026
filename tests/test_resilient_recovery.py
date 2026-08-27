@@ -9,6 +9,7 @@ from agent.models import (
     SolutionCapsule,
     TaskContract,
 )
+from agent.requirement_checks import evaluate_explicit_requirement_coverage
 from agent.resilient_engine import ResilientHORAEngine, extract_explicit_requirements
 
 
@@ -112,6 +113,16 @@ class ResilientRecoveryTest(unittest.TestCase):
         self._add_presentation_failure(state, weak)
         self.assertIsNone(select_best_candidate(state))
 
+    def test_truncated_proof_must_end_coherently(self):
+        state = CaseState(contract=self._contract(proof=True))
+        broken = self._capsule(candidate_id="R", source="rescue", proof=True)
+        broken.final_response = (
+            "由链式法则得到等式，因为条件越多条件熵越小，所以每一项可比较。"
+            "继续整理得到关键不等式，最后需要代入 $H(Z_i\\mid"
+        )
+        self._add_presentation_failure(state, broken)
+        self.assertIsNone(select_best_candidate(state))
+
     def test_requirement_extraction_keeps_explicit_obligations(self):
         problem = (
             "证明结论成立。要求：(1) 验证边界条件；(2) 说明为什么该变换可逆；"
@@ -122,6 +133,45 @@ class ResilientRecoveryTest(unittest.TestCase):
         self.assertIn("验证边界条件", joined)
         self.assertIn("变换可逆", joined)
         self.assertIn("唯一性", joined)
+
+    def test_strict_gaussian_derivation_requires_visible_integral(self):
+        requirements = (
+            "请利用Markov性质、反射原理与高斯积分严格推导分布函数，并给出其密度",
+        )
+        summary_only = (
+            "利用Markov性质和反射原理可得结论。经过高斯积分化简，"
+            "所以分布函数为F(t)，密度为f(t)。"
+        )
+        checks = evaluate_explicit_requirement_coverage(summary_only, requirements)
+        by_code = {item.code: item for item in checks}
+        self.assertEqual(by_code["explicit_gaussian_derivation"].status, "fail")
+
+        explicit = (
+            "条件于B_t=x，由Markov性质和反射原理得不击中零的概率。"
+            "因此F(t)=\\int_{\\mathbb R} q(x)p_t(x)\\,dx。"
+            "由高斯积分可得F(t)=2\\pi^{-1}\\arcsin\\sqrt{t/T}，"
+            "所以密度f(t)=1/(\\pi\\sqrt{t(T-t)})。"
+        )
+        checks = evaluate_explicit_requirement_coverage(explicit, requirements)
+        by_code = {item.code: item for item in checks}
+        self.assertEqual(by_code["explicit_gaussian_derivation"].status, "pass")
+
+    def test_generator_requirement_needs_mappings_and_relations(self):
+        requirements = ("要求写出两个生成自同构并验证其关系，而不能只给出群名",)
+        short = "Galois群同构于D_4。"
+        checks = evaluate_explicit_requirement_coverage(short, requirements)
+        by_code = {item.code: item for item in checks}
+        self.assertEqual(by_code["two_automorphisms"].status, "fail")
+        self.assertEqual(by_code["generator_relations"].status, "fail")
+
+        complete = (
+            r"定义 r(α)\mapsto iα, r(i)\mapsto i；s(α)\mapsto α, s(i)\mapsto -i。"
+            r"并验证 r^4=1, s^2=1, srs=r^{-1}。"
+        )
+        checks = evaluate_explicit_requirement_coverage(complete, requirements)
+        by_code = {item.code: item for item in checks}
+        self.assertEqual(by_code["two_automorphisms"].status, "pass")
+        self.assertEqual(by_code["generator_relations"].status, "pass")
 
     def test_soft_fatal_label_without_basis_is_not_concrete(self):
         audit = AuditResult(

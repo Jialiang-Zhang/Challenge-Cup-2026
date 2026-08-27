@@ -1,0 +1,48 @@
+name: Export fixed 112 references
+
+on:
+  push:
+    branches:
+      - benchmark/adaptive-contract-112-manual-judge-20260827
+    paths:
+      - ".github/workflows/export-112-refs.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out benchmark branch
+        uses: actions/checkout@v4
+
+      - name: Check out exact dataset commit
+        uses: actions/checkout@v4
+        with:
+          repository: Jialiang-Zhang/test-dataset-math
+          ref: 73722d85996fad9147aca2015b001153a4d7cbcf
+          path: _benchmark_dataset
+          fetch-depth: 1
+
+      - name: Export references
+        shell: bash
+        run: |
+          mkdir -p manual_judge_refs
+          cp _benchmark_dataset/112/*.json manual_judge_refs/
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('manual_judge_refs')
+          items=[]
+          for idx in range(112):
+              items.append(json.loads((root/f'{idx}.json').read_text(encoding='utf-8')))
+          (root/'all_112.json').write_text(json.dumps(items, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+          PY
+
+      - name: Upload reference artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixed-112-reference-set
+          path: manual_judge_refs/
+          retention-days: 7

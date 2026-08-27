@@ -1,0 +1,108 @@
+{
+  "run_id": "20260827T153254Z-failure4-round11-397b-run1",
+  "model": "intern-s2-preview-397b",
+  "ids": [
+    26,
+    33,
+    42,
+    49
+  ],
+  "counts": {
+    "error": 2,
+    "success": 2
+  },
+  "records": [
+    {
+      "idx": 26,
+      "status": "error",
+      "source": null,
+      "candidate_id": null,
+      "model_calls": null,
+      "repair_count": null,
+      "rejection_gates": [
+        {
+          "candidate_id": "B",
+          "source": "orthogonal_blind",
+          "reason_codes": [
+            "derivation_certificate:explicit_final_candidate_complete"
+          ]
+        },
+        {
+          "candidate_id": "C",
+          "source": "targeted_repair",
+          "reason_codes": [
+            "explicit_requirement:strict_derivation",
+            "derivation_certificate:explicit_final_candidate_complete"
+          ]
+        },
+        {
+          "candidate_id": "R",
+          "source": "rescue",
+          "reason_codes": [
+            "decisive_confirmation_unresolved"
+          ]
+        }
+      ],
+      "error": {
+        "type": "RuntimeError",
+        "message": "HORA-Math produced no complete, hard-valid candidate"
+      }
+    },
+    {
+      "idx": 33,
+      "status": "success",
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 3,
+      "repair_count": 0,
+      "rejection_gates": [
+        {
+          "candidate_id": "A",
+          "source": "primary",
+          "reason_codes": [
+            "truncation"
+          ]
+        },
+        {
+          "candidate_id": "B",
+          "source": "orthogonal_blind",
+          "reason_codes": [
+            "truncation"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "idx": 42,
+      "status": "error",
+      "source": null,
+      "candidate_id": null,
+      "model_calls": null,
+      "repair_count": null,
+      "rejection_gates": [
+        {
+          "candidate_id": "C",
+          "source": "targeted_repair",
+          "reason_codes": [
+            "truncation"
+          ]
+        }
+      ],
+      "error": {
+        "type": "RuntimeError",
+        "message": "HORA-Math produced no complete, hard-valid candidate"
+      }
+    },
+    {
+      "idx": 49,
+      "status": "success",
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 5,
+      "repair_count": 0,
+      "rejection_gates": [],
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "idx": 62,
+  "status": "success",
+  "final_response": "结论：$M$是相对于其自然滤过$(\\mathcal F_t^M)_{t\\ge0}$的标准Brownian运动。\n\n证明过程：\n设$\\mathcal F_t^M=\\sigma(M_s:s\\le t)$为$M$的自然滤过。要证$M$是$(\\mathcal F_t^M)$-Brownian运动，只需证：对任意$0\\le s<t$及任意$u\\in\\mathbb R$，\n$$\\mathbb E\\big[e^{iu(M_t-M_s)}\\mid\\mathcal F_s^M\\big]=\\exp\\!\\Big(-\\frac{u^2}{2}(t-s)\\Big),$$\n且$M$具有连续路径、$M_0=0$（已知）。\n\n**步骤1：构造指数鞅。**\n对固定$u\\in\\mathbb R$，定义\n$$Z_t^{(u)}:=\\exp\\!\\Big(iuM_t+\\frac{u^2}{2}\\langle M\\rangle_t\\Big)=\\exp\\!\\Big(iuM_t+\\frac{u^2}{2}t\\Big),\\quad t\\ge0.$$\n因为$M$是连续局部鞅且$\\langle M\\rangle_t=t$，由Itô公式（对复值半鞅适用）：\n$$dZ_t^{(u)}=Z_t^{(u)}\\big(iu\\,dM_t\\big),$$\n即\n$$Z_t^{(u)}=1+\\int_0^t iu\\,Z_s^{(u)}\\,dM_s.$$\n由于被积过程$iu\\,Z_s^{(u)}$是局部有界可料的，$Z^{(u)}$是一个连续局部鞅。又因为$|Z_t^{(u)}|=e^{\\frac{u^2}{2}t}$在有限区间上有界，故$Z^{(u)}$是$(\\mathcal F_t^M)$-鞅。\n\n**步骤2：由指数鞅得到条件特征函数。**\n对$0\\le s<t$，利用$Z^{(u)}$的鞅性：\n$$\\mathbb E\\big[Z_t^{(u)}\\mid\\mathcal F_s^M\\big]=Z_s^{(u)}.$$\n代入定义：\n$$\\mathbb E\\Big[\\exp\\!\\Big(iuM_t+\\frac{u^2}{2}t\\Big)\\,\\Big|\\,\\mathcal F_s^M\\Big]=\\exp\\!\\Big(iuM_s+\\frac{u^2}{2}s\\Big).$$\n两边同乘$\\exp\\!\\big(-\\frac{u^2}{2}t\\big)$并整理：\n$$\\mathbb E\\big[e^{iuM_t}\\mid\\mathcal F_s^M\\big]=e^{iuM_s}\\exp\\!\\Big(-\\frac{u^2}{2}(t-s)\\Big).$$\n于是\n$$\\mathbb E\\big[e^{iu(M_t-M_s)}\\mid\\mathcal F_s^M\\big]=\\exp\\!\\Big(-\\frac{u^2}{2}(t-s)\\Big).$$\n\n**步骤3：结论。**\n上式右端为确定性常数，说明增量$M_t-M_s$与$\\mathcal F_s^M$独立，且服从均值为$0$、方差为$t-s$的正态分布。结合$M_0=0$与路径连续性，$M$是相对于其自然滤过的标准Brownian运动。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "random_process",
+        "secondary_domain_count": 2,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "probability",
+          "mathematical_analysis"
+        ],
+        "question_mode": "proof",
+        "mode_confidence": 0.9,
+        "alternate_modes": [
+          "calculation"
+        ],
+        "answer_obligations": [
+          "proof_chain"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 2,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 2878,
+        "elapsed_ms": 28745
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2878,
+        "claim_count": 4,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 2570,
+        "elapsed_ms": 25587
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2570,
+        "claim_count": 4,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A",
+          "B"
+        ],
+        "invalid_candidate_ids": []
+      }
+    },
+    {
+      "step": "orthogonal_comparison",
+      "content": {
+        "candidate_ids": [
+          "A",
+          "B"
+        ],
+        "orthogonality": "O3",
+        "equivalence": "unknown"
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 1422,
+        "elapsed_ms": 11716
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "EQUIVALENT",
+        "verdict": "UNRESOLVED",
+        "target_candidate_id": null,
+        "target_claim_id": null,
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "unknown"
+      }
+    },
+    {
+      "step": "rescue_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 2409,
+        "elapsed_ms": 23146
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2409,
+        "claim_count": 4,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "proof_confirmation_call",
+      "content": {
+        "call_id": 5,
+        "status": "completed",
+        "response_chars": 812,
+        "elapsed_ms": 8770
+      }
+    },
+    {
+      "step": "proof_confirmation_result",
+      "content": {
+        "candidate_id": "R",
+        "verdict": "ACCEPT_A",
+        "attack_type": "none",
+        "severity": "none"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "model_calls": 5,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 1325
+      }
+    }
+  ]
+}

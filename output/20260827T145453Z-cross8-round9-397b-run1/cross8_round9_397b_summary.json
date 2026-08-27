@@ -1,0 +1,178 @@
+{
+  "run_id": "20260827T145453Z-cross8-round9-397b-run1",
+  "model": "intern-s2-preview-397b",
+  "agent_base_commit": "d600c6aa36fc4b8f0fced4420840370089e4f44b",
+  "ids": [
+    26,
+    33,
+    42,
+    49,
+    62,
+    69,
+    94,
+    104
+  ],
+  "counts": {
+    "success": 6,
+    "error": 2
+  },
+  "records": [
+    {
+      "idx": 26,
+      "status": "success",
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 4,
+      "repair_count": 0,
+      "confirmation_count": 1,
+      "rejection_gates": [],
+      "error": null
+    },
+    {
+      "idx": 33,
+      "status": "error",
+      "source": null,
+      "candidate_id": null,
+      "model_calls": null,
+      "repair_count": null,
+      "confirmation_count": 0,
+      "rejection_gates": [
+        {
+          "candidate_id": "A",
+          "source": "primary",
+          "reason_codes": [
+            "answer_coverage:binary_verdict"
+          ],
+          "detail_codes": [
+            "verdict=a正确;b正确;c正确;d错误"
+          ]
+        },
+        {
+          "candidate_id": "B",
+          "source": "orthogonal_blind",
+          "reason_codes": [
+            "answer_coverage:binary_verdict"
+          ],
+          "detail_codes": [
+            "verdict=a正确;b错误;c正确;d错误"
+          ]
+        },
+        {
+          "candidate_id": "R",
+          "source": "rescue",
+          "reason_codes": [
+            "answer_coverage:binary_verdict"
+          ],
+          "detail_codes": [
+            "verdict=a、b、c正确，d错误"
+          ]
+        }
+      ],
+      "error": {
+        "type": "RuntimeError",
+        "message": "HORA-Math produced no complete, hard-valid candidate"
+      }
+    },
+    {
+      "idx": 42,
+      "status": "success",
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 6,
+      "repair_count": 1,
+      "confirmation_count": 1,
+      "rejection_gates": [
+        {
+          "candidate_id": "C",
+          "source": "targeted_repair",
+          "reason_codes": [
+            "truncation"
+          ],
+          "detail_codes": [
+            "missing_required_protocol_section"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "idx": 49,
+      "status": "success",
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 3,
+      "repair_count": 0,
+      "confirmation_count": 0,
+      "rejection_gates": [],
+      "error": null
+    },
+    {
+      "idx": 62,
+      "status": "success",
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 5,
+      "repair_count": 0,
+      "confirmation_count": 1,
+      "rejection_gates": [],
+      "error": null
+    },
+    {
+      "idx": 69,
+      "status": "error",
+      "source": null,
+      "candidate_id": null,
+      "model_calls": null,
+      "repair_count": null,
+      "confirmation_count": 1,
+      "rejection_gates": [
+        {
+          "candidate_id": "C",
+          "source": "targeted_repair",
+          "reason_codes": [
+            "truncation"
+          ],
+          "detail_codes": [
+            "missing_required_protocol_section"
+          ]
+        },
+        {
+          "candidate_id": "R",
+          "source": "rescue",
+          "reason_codes": [
+            "derivation_certificate:explicit_final_candidate_complete"
+          ],
+          "detail_codes": [
+            "dangling_answer_cue"
+          ]
+        }
+      ],
+      "error": {
+        "type": "RuntimeError",
+        "message": "HORA-Math produced no complete, hard-valid candidate"
+      }
+    },
+    {
+      "idx": 94,
+      "status": "success",
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 4,
+      "repair_count": 0,
+      "confirmation_count": 1,
+      "rejection_gates": [],
+      "error": null
+    },
+    {
+      "idx": 104,
+      "status": "success",
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 6,
+      "repair_count": 0,
+      "confirmation_count": 2,
+      "rejection_gates": [],
+      "error": null
+    }
+  ]
+}

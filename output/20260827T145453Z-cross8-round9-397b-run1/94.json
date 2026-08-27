@@ -1,0 +1,157 @@
+{
+  "idx": 94,
+  "status": "success",
+  "final_response": "最终答案：R(\\theta,\\delta_a)-R(\\theta,X)=\\mathbb{E}_\\theta\\!\\left[\\frac{a^2-2(p-2)a}{\\|X\\|^2}\\right]; 故当且仅当 0<a<2(p-2) 时，对所有 \\theta\\in\\mathbb{R}^p 有 R(\\theta,\\delta_a)\\le R(\\theta,X)，且当 \\theta\\neq 0 时严格不等式成立。\n\n推导概要：\n设 $\\delta_a(X)=\\left(1-\\frac{a}{\\|X\\|^2}\\right)X=X-g(X)$，其中 $g(X)=\\frac{a}{\\|X\\|^2}X$。平方误差风险差为\n$$R(\\theta,\\delta_a)-R(\\theta,X)=\\mathbb{E}_\\theta\\big[\\|\\delta_a(X)-\\theta\\|^2-\\|X-\\theta\\|^2\\big]=\\mathbb{E}_\\theta\\big[\\|g(X)\\|^2-2(X-\\theta)^\\top g(X)\\big].$$\n\n由 Stein 恒等式：对 $X\\sim N_p(\\theta,I_p)$ 及满足正则条件的函数 $g$，有\n$$\\mathbb{E}_\\theta\\big[(X-\\theta)^\\top g(X)\\big]=\\mathbb{E}_\\theta\\big[\\operatorname{div} g(X)\\big],$$\n其中 $\\operatorname{div} g(x)=\\sum_{i=1}^p \\frac{\\partial g_i}{\\partial x_i}(x)$。\n\n计算 $g(x)=a x/\\|x\\|^2$ 的散度：\n$$\\frac{\\partial}{\\partial x_i}\\left(\\frac{a x_i}{\\|x\\|^2}\\right)=\\frac{a}{\\|x\\|^2}-\\frac{2a x_i^2}{\\|x\\|^4},$$\n求和得\n$$\\operatorname{div} g(x)=\\frac{ap}{\\|x\\|^2}-\\frac{2a\\|x\\|^2}{\\|x\\|^4}=\\frac{a(p-2)}{\\|x\\|^2}.$$\n\n又 $\\|g(x)\\|^2=a^2/\\|x\\|^2$，代入风险差：\n$$R(\\theta,\\delta_a)-R(\\theta,X)=\\mathbb{E}_\\theta\\left[\\frac{a^2}{\\|X\\|^2}-2\\cdot\\frac{a(p-2)}{\\|X\\|^2}\\right]=\\mathbb{E}_\\theta\\left[\\frac{a^2-2(p-2)a}{\\|X\\|^2}\\right].$$\n\n由于 $p\\ge 3$ 时 $\\mathbb{E}_\\theta[1/\\|X\\|^2]>0$ 对所有 $\\theta$ 成立（且 $\\theta\\neq 0$ 时有限正），风险差不增要求分子非正：\n$$a^2-2(p-2)a\\le 0\\quad\\Longleftrightarrow\\quad 0\\le a\\le 2(p-2).$$\n\n当 $a=0$ 或 $a=2(p-2)$ 时，$\\theta=0$ 处风险差为 $0$（边界情形）；当 $0<a<2(p-2)$ 时，分子严格负，故对所有 $\\theta$ 有 $R(\\theta,\\delta_a)\\le R(\\theta,X)$，且当 $\\theta\\neq 0$ 时严格小于。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "statistical_inference",
+        "secondary_domain_count": 0,
+        "risk": "medium",
+        "route": "R1",
+        "answer_schema": "exact_expression",
+        "multipart_count": 1,
+        "secondary_domains": [],
+        "question_mode": "open_response",
+        "mode_confidence": 0.35,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "derivation_chain"
+        ],
+        "ambiguity_flags": [
+          "weak_mode_signal"
+        ]
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 0,
+        "derivation_required": false
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 2730,
+        "elapsed_ms": 24067
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2730,
+        "claim_count": 6,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 2352,
+        "elapsed_ms": 20753
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2352,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A",
+          "B"
+        ],
+        "invalid_candidate_ids": []
+      }
+    },
+    {
+      "step": "orthogonal_comparison",
+      "content": {
+        "candidate_ids": [
+          "A",
+          "B"
+        ],
+        "orthogonality": "O3",
+        "equivalence": "unknown"
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 1629,
+        "elapsed_ms": 14094
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "A",
+        "target_claim_id": "FINAL",
+        "attack_type": "theorem_precondition",
+        "severity": "none",
+        "deterministic_relation": "unknown"
+      }
+    },
+    {
+      "step": "proof_confirmation_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 567,
+        "elapsed_ms": 5967
+      }
+    },
+    {
+      "step": "proof_confirmation_result",
+      "content": {
+        "candidate_id": "A",
+        "verdict": "ACCEPT_A",
+        "attack_type": "none",
+        "severity": "none"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "model_calls": 4,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 1476
+      }
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from textwrap import dedent
 
 from .models import TaskContract
@@ -27,55 +28,145 @@ def _contract_block(contract: TaskContract) -> str:
     ).strip()
 
 
+def _problem_guardrails(problem: str) -> str:
+    """Compile narrow proof/output obligations from explicit wording in the problem.
+
+    These are method guards, not benchmark-answer hints. They activate only when the statement
+    itself explicitly asks for the corresponding proof device or output objects.
+    """
+
+    text = str(problem or "")
+    blocks: list[str] = []
+
+    shearer = bool(re.search(r"shearer", text, flags=re.IGNORECASE))
+    conditioning = bool(
+        re.search(
+            r"条件越多.{0,20}条件熵越小|conditioning\s+reduces\s+entropy",
+            text,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+    )
+    if shearer and conditioning:
+        blocks.append(
+            dedent(
+                r"""
+                SHEARER PROOF OBLIGATION
+                - Fix one global coordinate order 1,...,d.
+                - For each deleted coordinate i, expand H(Z_{-i}) in that SAME induced order.
+                - For every j != i, its conditioning set is the earlier prefix with coordinate i removed,
+                  hence a SUBSET of the full prefix Z_1,...,Z_{j-1}.
+                - Because fewer conditions give larger conditional entropy,
+                  H(Z_j | earlier prefix with i removed) >= H(Z_j | Z_1,...,Z_{j-1}).
+                - Sum over i and use that each j occurs exactly d-1 times.
+                - Do NOT claim H(Z) <= H(Z_{-i}); that inequality is false in general.
+                Keep only this clean chain in the final proof; do not leave abandoned alternatives.
+                """
+            ).strip()
+        )
+
+    asks_distribution = bool(
+        re.search(r"分布函数|distribution\s+function|cdf", text, flags=re.IGNORECASE)
+    )
+    asks_density = bool(re.search(r"密度|density|pdf", text, flags=re.IGNORECASE))
+    if asks_distribution and asks_density:
+        blocks.append(
+            dedent(
+                """
+                MULTI-OBJECT FINAL CANDIDATE OBLIGATION
+                The problem asks for both a distribution function and a density. FINAL_CANDIDATE must
+                explicitly contain BOTH requested formulas as closed equations, separated by a semicolon.
+                Do not write an introductory phrase such as “the distribution function is” without the formula.
+                """
+            ).strip()
+        )
+
+    return "\n\n".join(blocks)
+
+
+def _response_requirement(contract: TaskContract, *, independent: bool = False) -> str:
+    qualifier = "independent " if independent else ""
+    if contract.requires_proof or contract.answer_schema == "proof":
+        return (
+            f"Write a concise but complete {qualifier}proof. Cover every explicit requested step, "
+            "state theorem preconditions where used, and stop once the requested conclusion is established. "
+            "Check every inequality direction and do not add stronger claims that the task does not require."
+        )
+    if "derivation_chain" in contract.answer_obligations:
+        return (
+            f"Give the exact answer and the requested {qualifier}derivation. Show the decisive equations, "
+            "conditioning identities, Taylor coefficients, or boundary checks rather than merely naming a theorem."
+        )
+    if contract.multipart_count > 1:
+        return (
+            f"Answer all {contract.multipart_count} requested parts in order with a compact {qualifier}derivation "
+            "for each part. Do not omit a requested stability, boundary, uniqueness, or equality-condition check."
+        )
+    return (
+        f"Write the exact answer first, followed by one short {qualifier}derivation that checks the decisive "
+        "sign, domain, boundary, or theorem condition when applicable."
+    )
+
+
 def _strict_protocol_block(response_requirement: str, contract: TaskContract) -> str:
     return dedent(
         f"""
         OUTPUT CONTRACT
+        - Your FIRST characters must be <FINAL_CANDIDATE>. No thinking preamble is allowed.
         - Answer shape: {answer_shape_instruction(contract)}
-        - Start the response immediately with the opening tag <FINAL_CANDIDATE>.
-        - Inside that tag, write the actual computed mathematical answer, never an instruction.
-        - Close it with </FINAL_CANDIDATE> before writing any explanation.
-        - Never copy phrases such as "Exact independent answer", "Exact answer",
-          "First decisive claim", "Give a concise...", or "..." into any field.
-        - Emit the remaining fields in the exact order below and stop after </FINAL_RESPONSE>.
-        - Do not write analysis, a preamble, Markdown fences, or commentary outside the tags.
+        - FINAL_CANDIDATE is a self-contained machine-judged answer, not a heading or introduction.
+        - Put every requested output object directly inside FINAL_CANDIDATE. If the problem asks for several
+          formulas/values (for example a function and its density, several blanks, or several subanswers),
+          write all of them explicitly and separate them with semicolons.
+        - NEVER end FINAL_CANDIDATE with an unfinished cue such as “为”, “如下”, “is”, “equals”, “:”, or “=”.
+        - A reader who sees only FINAL_CANDIDATE must know the complete requested conclusion.
+        - Immediately after </FINAL_CANDIDATE>, emit the complete <FINAL_RESPONSE>...</FINAL_RESPONSE> block.
+        - The FINAL_RESPONSE block is the submission payload: finish it before any metadata fields.
+        - Keep the proof/derivation compact enough to close </FINAL_RESPONSE>; prefer equations and decisive implications.
+        - Never copy template phrases such as "Exact answer", "First decisive claim", or "...".
+        - Do not make optional stronger claims unless they are necessary for the requested conclusion.
+        - After FINAL_RESPONSE, emit the metadata fields below. Stop after </RISK_FLAGS>.
+
+        <FINAL_CANDIDATE>
+        Write the complete self-contained mathematical answer here; no introductory cue.
+        </FINAL_CANDIDATE>
+
+        <FINAL_RESPONSE>
+        {response_requirement}
+        Normally use at most about 1400 Chinese characters or 900 English words unless the task has many explicit parts.
+        </FINAL_RESPONSE>
 
         <METHOD_FINGERPRINT>
         paradigm: choose one of direct|contradiction|constructive|induction|counting|optimization|theorem
         representation: choose one of symbolic|geometric|graph|event|operator|coordinate|generating_function|other
-        theorem_family: write the actual short theorem or method family, or none
+        theorem_family: actual short theorem or method family, or none
         tool_channel: choose one of none|sympy|numeric|brute_force|residual|matrix
         interpretation_id: I1
         exposed_to_primary: false
         </METHOD_FINGERPRINT>
 
         <CRITICAL_CLAIMS>
-        Write one to six actual decisive claims. Each claim must use the form
-        <CLAIM id="C1">a concrete mathematical statement</CLAIM>.
+        Write one to six actual decisive claims. Map the explicit requested steps into these claims.
+        Each claim must use <CLAIM id="C1">a concrete mathematical statement</CLAIM>.
         </CRITICAL_CLAIMS>
 
         <CHECK_HINTS>
-        Write concrete checks that could falsify this route, or none.
+        Give concrete falsification checks for the decisive formulas or theorem conditions, or none.
         </CHECK_HINTS>
 
         <RISK_FLAGS>
-        Write unresolved mathematical risks, or none.
+        List genuinely unresolved mathematical risks, or none.
         </RISK_FLAGS>
-
-        <FINAL_RESPONSE>
-        {response_requirement}
-        Keep it submission-ready and compact.
-        </FINAL_RESPONSE>
         """
     ).strip()
 
 
 def primary_prompt_v2(problem: str, contract: TaskContract) -> str:
+    guardrails = _problem_guardrails(problem)
     return dedent(
         f"""
-        You are HORA-Math Blue Team Solver S1. Solve this low-risk mathematical problem with the
-        shortest rigorous route. Use the assigned primary method family: {contract.primary_method}.
-        Compute the answer before writing the protocol. Do not use external online services.
+        You are HORA-Math Blue Team Solver S1. Solve the mathematical problem rigorously using the assigned
+        primary method family: {contract.primary_method}. Compute and verify the result before emitting the
+        response. Do not use external online services.
 
         TASK CONTRACT
         {_contract_block(contract)}
@@ -83,25 +174,19 @@ def primary_prompt_v2(problem: str, contract: TaskContract) -> str:
         PROBLEM
         {problem}
 
-        {_strict_protocol_block(
-            "Write the exact answer first, followed by a short derivation that checks sign, domain, and boundary conditions.",
-            contract,
-        )}
+        {guardrails}
+
+        {_strict_protocol_block(_response_requirement(contract), contract)}
         """
     ).strip()
 
 
 def blind_prompt_v2(problem: str, contract: TaskContract) -> str:
-    response_requirement = (
-        "The FINAL_RESPONSE field must contain a concise independent proof."
-        if contract.requires_proof
-        else "The FINAL_RESPONSE field must contain the exact answer and a short independent derivation."
-    )
+    guardrails = _problem_guardrails(problem)
     return dedent(
         f"""
-        You are HORA-Math Blue Team Solver S2, an ORTHOGONAL BLIND solver.
-        You have not seen any other candidate. Solve the problem independently with the assigned
-        method family: {contract.orthogonal_method}.
+        You are HORA-Math Blue Team Solver S2, an ORTHOGONAL BLIND solver. You have not seen any other
+        candidate. Solve independently with the assigned method family: {contract.orthogonal_method}.
 
         Use a genuinely different route: definitions, construction, contradiction, an alternative
         representation, local calculation, counting, or another theorem family. State all needed
@@ -113,7 +198,9 @@ def blind_prompt_v2(problem: str, contract: TaskContract) -> str:
         PROBLEM
         {problem}
 
-        {_strict_protocol_block(response_requirement, contract)}
+        {guardrails}
+
+        {_strict_protocol_block(_response_requirement(contract, independent=True), contract)}
         """
     ).strip()
 
@@ -128,22 +215,22 @@ def repair_prompt_v2(
     witness: str,
     resolver_hint: str,
 ) -> str:
-    response_requirement = (
-        "Write the corrected conclusion and a concise complete proof addressing the challenge."
-        if contract.requires_proof
-        else "Write the corrected exact answer first and a short derivation that directly resolves the challenge."
-    )
+    response_requirement = _response_requirement(contract)
+    guardrails = _problem_guardrails(problem)
     return dedent(
         f"""
-        You are HORA-Math Targeted Repair Solver. A red-team audit found a localized fatal defect.
-        Recompute only the disputed point, preserve valid mathematics, and return a corrected
-        submission. Do not defend a value merely because it appeared in the parent candidate.
+        You are HORA-Math one-shot Targeted Repair Solver. A red-team audit found a localized mathematical
+        defect. Recompute the disputed point from first principles, preserve only independently confirmed
+        unaffected claims, and return a corrected submission. Do not defend a value merely because it
+        appeared in the parent candidate.
 
         TASK CONTRACT
         {_contract_block(contract)}
 
         PROBLEM
         {problem}
+
+        {guardrails}
 
         PARENT ANSWER
         {parent_answer}
@@ -157,56 +244,60 @@ def repair_prompt_v2(
         resolver hint: {resolver_hint or 'none'}
 
         OUTPUT CONTRACT
+        - Your FIRST characters must be <FINAL_CANDIDATE>.
         - Answer shape: {answer_shape_instruction(contract)}
-        - Start immediately with <FINAL_CANDIDATE> and put the actual corrected mathematical answer
-          inside it. Do not write analysis before the tag.
-        - Do not copy instructions, placeholders, or the parent answer unless independently confirmed.
-        - Emit the tags below in order and stop after </FINAL_RESPONSE>.
+        - FINAL_CANDIDATE must be self-contained and include every requested output object explicitly.
+        - NEVER end FINAL_CANDIDATE with “为”, “如下”, “is”, “equals”, “:”, or “=”.
+        - Immediately emit and close FINAL_RESPONSE after FINAL_CANDIDATE, before metadata.
+        - Do not copy the parent conclusion unless your recomputation confirms it.
+        - Address the challenged claim explicitly and cover every still-applicable task obligation.
+        - Stop after </RISK_FLAGS>.
+
+        <FINAL_CANDIDATE>
+        Write the complete corrected mathematical answer, with all requested outputs.
+        </FINAL_CANDIDATE>
+
+        <FINAL_RESPONSE>
+        {response_requirement}
+        Keep it concise and finish this closing tag before metadata.
+        </FINAL_RESPONSE>
+
+        <CHALLENGE_RESOLUTION>
+        State the exact equation, condition, counterexample rejection, or implication that resolves the audit.
+        </CHALLENGE_RESOLUTION>
 
         <METHOD_FINGERPRINT>
         paradigm: choose one actual corrected method family
         representation: choose one actual representation
-        theorem_family: write the actual theorem or method family, or none
+        theorem_family: actual theorem or method family, or none
         tool_channel: choose one of none|sympy|numeric|brute_force|residual|matrix
         interpretation_id: I1
         exposed_to_primary: true
         </METHOD_FINGERPRINT>
 
         <CRITICAL_CLAIMS>
-        Write one to four actual corrected decisive claims using
+        Write one to five corrected decisive claims using
         <CLAIM id="C1">a concrete mathematical statement</CLAIM>.
         </CRITICAL_CLAIMS>
 
-        <CHALLENGE_RESOLUTION>
-        State exactly why the red-team objection is resolved.
-        </CHALLENGE_RESOLUTION>
-
         <CHECK_HINTS>
-        Give one concrete falsification check, substitution, or theorem-condition check.
+        Give one concrete falsification check.
         </CHECK_HINTS>
 
         <RISK_FLAGS>
-        Write remaining risks, or none.
+        List remaining risks, or none.
         </RISK_FLAGS>
-
-        <FINAL_RESPONSE>
-        {response_requirement}
-        </FINAL_RESPONSE>
         """
     ).strip()
 
 
 def rescue_prompt_v2(problem: str, contract: TaskContract) -> str:
-    response_requirement = (
-        "Write a concise complete proof after the exact conclusion."
-        if contract.requires_proof
-        else "Write the exact answer and one decisive verification step."
-    )
+    guardrails = _problem_guardrails(problem)
     return dedent(
         f"""
-        You are HORA-Math Rescue Solver. All earlier candidates were invalid or unresolved.
-        Recompute the problem from scratch using the shortest reliable route. Do not use any
-        alleged previous answer. Do not use external online services.
+        You are HORA-Math Rescue Solver. Earlier candidates were invalid or unresolved. Recompute the task
+        from scratch using the shortest reliable route; do not inherit any alleged previous answer. Do not
+        use external online services.
 
         TASK CONTRACT
         {_contract_block(contract)}
@@ -214,37 +305,8 @@ def rescue_prompt_v2(problem: str, contract: TaskContract) -> str:
         PROBLEM
         {problem}
 
-        OUTPUT CONTRACT
-        - Answer shape: {answer_shape_instruction(contract)}
-        - Start immediately with <FINAL_CANDIDATE> containing the actual mathematical answer.
-        - Do not emit analysis or Markdown before the first tag.
-        - Do not copy placeholders such as "Exact answer" or "Minimal justification".
-        - Stop after </FINAL_RESPONSE>.
+        {guardrails}
 
-        <METHOD_FINGERPRINT>
-        paradigm: choose one actual method
-        representation: choose one actual representation
-        theorem_family: actual theorem or method family, or none
-        tool_channel: choose one of none|sympy|numeric|brute_force|residual|matrix
-        interpretation_id: I1
-        exposed_to_primary: false
-        </METHOD_FINGERPRINT>
-
-        <CRITICAL_CLAIMS>
-        Write one to four actual decisive claims using
-        <CLAIM id="C1">a concrete mathematical statement</CLAIM>.
-        </CRITICAL_CLAIMS>
-
-        <CHECK_HINTS>
-        Give one concrete independent check.
-        </CHECK_HINTS>
-
-        <RISK_FLAGS>
-        Write remaining risks, or none.
-        </RISK_FLAGS>
-
-        <FINAL_RESPONSE>
-        {response_requirement}
-        </FINAL_RESPONSE>
+        {_strict_protocol_block(_response_requirement(contract), contract)}
         """
     ).strip()

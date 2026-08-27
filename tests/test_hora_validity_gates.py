@@ -98,7 +98,7 @@ class ValidityGateTest(unittest.TestCase):
             config=AgentConfig(always_run_blind=True, max_model_calls=3),
         )
         result = agent.solve("计算有限域生成元的个数。", {"idx": 0})
-        self.assertEqual(result["final_response"], "72")
+        self.assertEqual(result["final_response"], "最终答案：72")
         red = [step for step in result["trace"] if step["step"] == "red_team_result"][-1]
         self.assertEqual(red["content"]["raw_verdict"], "ACCEPT_B")
         self.assertEqual(red["content"]["verdict"], "UNRESOLVED")
@@ -112,7 +112,7 @@ class ValidityGateTest(unittest.TestCase):
             config=AgentConfig(always_run_blind=True, max_model_calls=3),
         )
         result = agent.solve("计算有限域生成元的个数。", {"idx": 0})
-        self.assertEqual(result["final_response"], "72")
+        self.assertEqual(result["final_response"], "最终答案：72")
         red = [step for step in result["trace"] if step["step"] == "red_team_result"][-1]
         self.assertEqual(red["content"]["raw_verdict"], "EQUIVALENT")
         self.assertEqual(red["content"]["verdict"], "UNRESOLVED")
@@ -145,7 +145,7 @@ class ValidityGateTest(unittest.TestCase):
             config=AgentConfig(always_run_blind=False, max_model_calls=4),
         )
         result = agent.solve("计算 1+1。", {"idx": 9})
-        self.assertEqual(result["final_response"], "2")
+        self.assertEqual(result["final_response"], "最终答案：2")
         self.assertEqual(len(client.calls), 4)
         red_steps = [step for step in result["trace"] if step["step"] == "red_team_result"]
         self.assertEqual(len(red_steps), 2)

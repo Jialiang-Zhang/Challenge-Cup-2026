@@ -85,6 +85,9 @@ async def process_item(
         try:
             record = await asyncio.to_thread(solve_item, agent, item)
         except Exception as exc:  # noqa: BLE001 - keep one output file per input item.
+            safe_trace = getattr(exc, "trace", [])
+            if not isinstance(safe_trace, list):
+                safe_trace = []
             record = {
                 "idx": item["idx"],
                 "status": "error",
@@ -93,7 +96,7 @@ async def process_item(
                     "type": type(exc).__name__,
                     "message": str(exc),
                 },
-                "trace": [],
+                "trace": safe_trace,
             }
         await asyncio.to_thread(write_json, path, record)
         print(f"Finished idx={item['idx']}")

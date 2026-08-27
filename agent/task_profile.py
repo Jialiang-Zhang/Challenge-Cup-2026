@@ -9,12 +9,7 @@ QuestionMode = str
 
 @dataclass(frozen=True)
 class TaskProfile:
-    """Conservative, model-free description of the requested answer shape.
-
-    A profile is advisory when the wording is ambiguous.  The orchestrator uses
-    the confidence and alternate modes instead of forcing every question into a
-    single closed taxonomy.
-    """
+    """Conservative, model-free description of the requested answer shape."""
 
     mode: QuestionMode
     confidence: float
@@ -30,11 +25,28 @@ class TaskProfile:
 
 _PROOF_MARKERS = (
     "证明",
+    "严格证明",
     "严格说明",
     "给出证明",
     "prove that",
     "show that",
     "justify rigorously",
+)
+
+_DERIVATION_MARKERS = (
+    "严格推导",
+    "推导",
+    "说明为什么",
+    "解释为什么",
+    "说明理由",
+    "给出理由",
+    "验证其关系",
+    "验证关系",
+    "并验证",
+    "derive",
+    "explain why",
+    "justify",
+    "verify",
 )
 
 _ALL_SOLUTION_MARKERS = (
@@ -85,9 +97,16 @@ def _part_labels(problem: str) -> tuple[str, ...]:
 
 
 def _option_labels(problem: str) -> tuple[str, ...]:
+    """Detect common inline and line-separated A-F option labels.
+
+    Colons are accepted as boundaries because Chinese questions frequently introduce the first
+    inline option with '：A.' and continue the remaining options after semicolons.
+    """
+
     problem = problem.replace("\\n", "\n")
     pattern = re.compile(
-        r"(?m)(?:^|[；;])\s*[（(]?\s*([A-FＡ-Ｆ])\s*[)）.、:]\s*"
+        r"(?:^|[\s；;:：。])\s*[（(]?\s*([A-FＡ-Ｆ])\s*(?:[)）]|[.、:：])\s*",
+        flags=re.MULTILINE,
     )
     labels: list[str] = []
     for match in pattern.finditer(problem):
@@ -144,12 +163,13 @@ def _explicit_choice_count(text: str) -> int | None:
     return None
 
 
-def _score_modes(problem: str) -> tuple[dict[str, float], int, int, int | None, bool, bool]:
+def _score_modes(problem: str) -> tuple[dict[str, float], int, int, int | None, bool, bool, bool]:
     lowered = _flatten(problem)
     options = _option_labels(problem)
     parts = _part_labels(problem)
     blanks = _blank_count(problem)
     requires_proof = any(marker in lowered for marker in _PROOF_MARKERS)
+    requires_derivation = any(marker in lowered for marker in _DERIVATION_MARKERS)
     requires_all = any(marker in lowered for marker in _ALL_SOLUTION_MARKERS)
 
     scores = {
@@ -172,23 +192,51 @@ def _score_modes(problem: str) -> tuple[dict[str, float], int, int, int | None, 
         scores["choice"] += 0.72 + min(0.18, 0.04 * len(options))
     if re.search(r"选择题|多选|单选|正确选项|incorrect option|which of the following", lowered):
         scores["choice"] += 0.25
+    # '哪些正确/哪些错误' over labelled options is a selection task, not one binary verdict.
+    if len(options) >= 2 and re.search(
+        r"(?:哪些|哪几项|选出).{0,16}(?:正确|错误|成立|不成立)|"
+        r"which\s+(?:statements?|options?).{0,18}(?:correct|true|false|incorrect)",
+        lowered,
+        flags=re.IGNORECASE,
+    ):
+        scores["choice"] += 0.45
     if blanks:
         scores["fill"] += 0.78 + min(0.16, 0.04 * blanks)
     if re.search(r"填空|fill in the blank", lowered):
         scores["fill"] += 0.24
-    if re.search(
+    binary_signal = re.search(
         r"判断(?:下列|命题|说法)?.{0,12}(?:正误|真假|正确|错误)|true or false",
         lowered,
-    ):
+    )
+    multi_choice_wording = len(options) >= 2 and re.search(
+        r"哪些|哪几项|which\s+(?:statements?|options?)", lowered, flags=re.IGNORECASE
+    )
+    if binary_signal and not multi_choice_wording:
         scores["true_false"] += 0.86
     if len(parts) >= 2:
         scores["multipart"] += 0.82 + min(0.14, 0.03 * len(parts))
 
-    return scores, max(1, len(parts)), blanks, _explicit_choice_count(lowered), requires_proof, requires_all
+    return (
+        scores,
+        max(1, len(parts)),
+        blanks,
+        _explicit_choice_count(lowered),
+        requires_proof,
+        requires_derivation,
+        requires_all,
+    )
 
 
 def analyze_task(problem: str) -> TaskProfile:
-    scores, part_count, blanks, choice_count, requires_proof, requires_all = _score_modes(problem)
+    (
+        scores,
+        part_count,
+        blanks,
+        choice_count,
+        requires_proof,
+        requires_derivation,
+        requires_all,
+    ) = _score_modes(problem)
     ranked = sorted(scores.items(), key=lambda item: (-item[1], item[0]))
     best_mode, best_score = ranked[0]
     second_mode, second_score = ranked[1]
@@ -218,6 +266,8 @@ def analyze_task(problem: str) -> TaskProfile:
         obligations.append(f"multipart_count:{part_count}")
     if requires_proof:
         obligations.append("proof_chain")
+    elif requires_derivation:
+        obligations.append("derivation_chain")
     if requires_all:
         obligations.append("all_solutions")
     if not obligations:
@@ -237,7 +287,43 @@ def analyze_task(problem: str) -> TaskProfile:
     )
 
 
+def _positive_choice_annotations(text: str) -> tuple[str, ...]:
+    normalized = text.upper()
+    normalized = "".join(
+        chr(ord("A") + ord(char) - ord("Ａ")) if "Ａ" <= char <= "Ｆ" else char
+        for char in normalized
+    )
+    selected: list[str] = []
+
+    # A、B、C正确 / A,B,C are correct
+    for match in re.finditer(
+        r"((?:[A-F]\s*[,，、;/]\s*)*[A-F])\s*(?:均|都|皆)?\s*(?:正确|成立|TRUE|CORRECT)",
+        normalized,
+        flags=re.IGNORECASE,
+    ):
+        for letter in re.findall(r"[A-F]", match.group(1)):
+            if letter not in selected:
+                selected.append(letter)
+
+    # A正确; B错误; C正确
+    for match in re.finditer(
+        r"(?<![A-Z])([A-F])\s*(?:项)?\s*(?:[:：=]?\s*)"
+        r"(正确|成立|对|TRUE|CORRECT|错误|不成立|错|FALSE|INCORRECT)",
+        normalized,
+        flags=re.IGNORECASE,
+    ):
+        letter, verdict = match.group(1), match.group(2).upper()
+        if verdict in {"正确", "成立", "对", "TRUE", "CORRECT"} and letter not in selected:
+            selected.append(letter)
+
+    return tuple(selected)
+
+
 def normalized_choice_letters(value: str) -> tuple[str, ...]:
+    annotated = _positive_choice_annotations(value)
+    if annotated:
+        return annotated
+
     text = value.upper()
     text = "".join(
         chr(ord("A") + ord(char) - ord("Ａ")) if "Ａ" <= char <= "Ｆ" else char

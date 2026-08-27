@@ -1,4 +1,4 @@
-name: Run adaptive-contract 112 benchmark (16c strict)
+name: Run adaptive-contract 112 benchmark 16c
 
 on:
   push:
@@ -9,11 +9,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
-
-concurrency:
-  group: adaptive-contract-112-16c-${{ github.repository }}
-  cancel-in-progress: false
 
 jobs:
   benchmark:
@@ -23,10 +18,8 @@ jobs:
       INTERN_API_KEY: ${{ secrets.INTERN_API_KEY }}
       INTERN_MODEL: intern-s2-preview
       LOCAL_MAX_CONCURRENCY: "16"
-      DATASET_REF: main
-      JUPYTER_PLATFORM_DIRS: "1"
       PYTHONUNBUFFERED: "1"
-      GH_TOKEN: ${{ github.token }}
+      JUPYTER_PLATFORM_DIRS: "1"
 
     steps:
       - name: Check out benchmark branch
@@ -35,7 +28,7 @@ jobs:
           ref: benchmark/adaptive-contract-112-16c-20260827
           fetch-depth: 0
 
-      - name: Check out 112-question dataset
+      - name: Check out public dataset
         uses: actions/checkout@v4
         with:
           repository: Jialiang-Zhang/test-dataset-math
@@ -43,21 +36,13 @@ jobs:
           path: _benchmark_dataset
           fetch-depth: 1
 
-      - name: Define run identifiers
-        shell: bash
-        run: |
-          set -euo pipefail
-          RUN_ID="$(date -u +'%Y%m%dT%H%M%SZ')-adaptive16-run${GITHUB_RUN_NUMBER}"
-          DATASET_COMMIT="$(git -C _benchmark_dataset rev-parse HEAD)"
-          AGENT_COMMIT="8367b23f1c94b285b397f1de4ec0bc644387935b"
-          echo "RUN_ID=${RUN_ID}" >> "${GITHUB_ENV}"
-          echo "DATASET_COMMIT=${DATASET_COMMIT}" >> "${GITHUB_ENV}"
-          echo "AGENT_COMMIT=${AGENT_COMMIT}" >> "${GITHUB_ENV}"
-
       - name: Verify API secret
         shell: bash
         run: |
-          test -n "${INTERN_API_KEY}" || (echo "::error::Missing INTERN_API_KEY" && exit 1)
+          if [ -z "${INTERN_API_KEY}" ]; then
+            echo "::error::Missing repository Actions secret INTERN_API_KEY"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -73,220 +58,98 @@ jobs:
       - name: Run repository tests
         run: python -m unittest discover -s tests -p "test_*.py"
 
-      - name: Run 112 questions at concurrency 16
-        id: benchmark
-        continue-on-error: true
+      - name: Build 112-question input without answers
+        shell: bash
         run: |
-          python scripts/run_112_benchmark.py \
-            --dataset-dir _benchmark_dataset/112 \
-            --output-root output \
-            --run-id "${RUN_ID}" \
-            --concurrency 16 \
-            --dataset-ref main \
-            --dataset-commit "${DATASET_COMMIT}"
+          python - <<'PY'
+          import json
+          from pathlib import Path
 
-      - name: Strict double-judge all 112 results
+          source = Path("_benchmark_dataset/112")
+          target = Path(".benchmark_tmp/full112.jsonl")
+          target.parent.mkdir(parents=True, exist_ok=True)
+          with target.open("w", encoding="utf-8") as f:
+              for idx in range(112):
+                  item = json.loads((source / f"{idx}.json").read_text(encoding="utf-8"))
+                  f.write(json.dumps({"idx": item["idx"], "problem": item["problem"]}, ensure_ascii=False) + "\n")
+          print("Prepared 112 questions with idx/problem only")
+          PY
+
+      - name: Run 112 questions at concurrency 16
+        shell: bash
+        run: |
+          RUN_ID="$(date -u +'%Y%m%dT%H%M%SZ')-adaptive16-run${GITHUB_RUN_NUMBER}"
+          echo "RUN_ID=${RUN_ID}" >> "${GITHUB_ENV}"
+          mkdir -p "output/${RUN_ID}"
+          python main.py \
+            --input_file .benchmark_tmp/full112.jsonl \
+            --output_dir "output/${RUN_ID}"
+
+      - name: Build execution summary
         if: always()
         shell: bash
         run: |
           python - <<'PY'
-          from __future__ import annotations
-
           import json
           import os
-          import re
-          from collections import Counter, defaultdict
-          from concurrent.futures import ThreadPoolExecutor, as_completed
+          from collections import Counter
           from pathlib import Path
 
-          from llm_client import InternChatClient
-
-          RUN_ID = os.environ["RUN_ID"]
-          OUTPUT = Path("output") / RUN_ID
-          DATASET = Path("_benchmark_dataset/112")
-          CONCURRENCY = 16
-
-          def extract_tag(text: str, tag: str) -> str:
-              m = re.findall(rf"<{tag}>\s*(.*?)\s*</{tag}>", text, flags=re.I | re.S)
-              return m[-1].strip() if m else ""
-
-          def parse_verdict(text: str) -> tuple[str, str]:
-              verdict = extract_tag(text, "VERDICT").upper()
-              if verdict not in {"CORRECT", "INCORRECT"}:
-                  verdict = "INCORRECT"
-              reason = extract_tag(text, "REASON")
-              if not reason:
-                  reason = "judge output missing structured reason"
-              return verdict, reason[:1200]
-
-          def make_prompt(problem: str, reference: str, candidate: str, adversarial: bool) -> str:
-              mode = (
-                  "你是第二名对抗性数学审查员。优先寻找隐藏的定理条件缺失、反例、边界错误、量词错误、循环论证、"
-                  "只得到正确结论但证明错误等问题。只有找不到任何实质性错误时才判 CORRECT。"
-                  if adversarial else
-                  "你是第一名严格数学判题员。逐项核对题目所有显式要求、最终结论与关键推理。"
-              )
-              return f"""{mode}
-
-判定规则：
-1. 参考答案是一份可信的标准答案，但候选可以使用不同的等价方法。
-2. 若题目要求证明/解释/构造，候选必须完成这些要求；只给最终结论不算正确。
-3. 证明中存在会破坏有效性的数学错误，即使最终结论碰巧正确，也判 INCORRECT。
-4. 选择题/数值题要求最终选项或数学值正确；等价表达允许。
-5. 多小问必须全部回答。
-6. 若证据不足或无法确认，采取严格口径，判 INCORRECT。
-7. 不要因为文字风格、语言不同而误判；只看数学实质与题面要求。
-
-题目：
-{problem}
-
-参考答案：
-{reference}
-
-候选答案：
-{candidate}
-
-只按以下格式输出：
-<VERDICT>CORRECT 或 INCORRECT</VERDICT>
-<REASON>不超过300字，指出关键依据；若错误，明确第一个实质错误或缺失义务</REASON>
-"""
-
-          def judge_once(idx: int, pass_id: int, problem: str, reference: str, candidate: str):
-              client = InternChatClient(timeout=120, retry=3)
-              prompt = make_prompt(problem, reference, candidate, adversarial=(pass_id == 2))
-              try:
-                  raw = client.chat(
-                      [{"role": "user", "content": prompt}],
-                      temperature=0.0 if pass_id == 1 else 0.1,
-                      max_tokens=1400,
-                      thinking_mode=True,
-                  )
-                  if not isinstance(raw, str):
-                      raw = str(raw)
-                  verdict, reason = parse_verdict(raw)
-                  return idx, pass_id, verdict, reason, None
-              except Exception as exc:
-                  return idx, pass_id, "INCORRECT", f"judge error: {type(exc).__name__}: {exc}", type(exc).__name__
-
-          items = {}
-          base_records = {}
-          tasks = []
+          run_id = os.environ.get("RUN_ID")
+          if not run_id:
+              raise SystemExit("RUN_ID missing")
+          out = Path("output") / run_id
+          counts = Counter()
+          records = []
           for idx in range(112):
-              ref = json.loads((DATASET / f"{idx}.json").read_text(encoding="utf-8"))
-              items[idx] = ref
-              result_path = OUTPUT / f"{idx}.json"
-              if not result_path.exists():
-                  base_records[idx] = {
-                      "idx": idx,
-                      "subject": ref.get("subject", ""),
-                      "execution_status": "missing",
-                      "final_response": "",
-                      "judge_1": {"verdict": "INCORRECT", "reason": "missing output"},
-                      "judge_2": {"verdict": "INCORRECT", "reason": "missing output"},
-                  }
-                  continue
-              result = json.loads(result_path.read_text(encoding="utf-8"))
-              status = result.get("status", "unknown")
-              candidate = result.get("final_response", "") if isinstance(result.get("final_response", ""), str) else ""
-              base_records[idx] = {
+              path = out / f"{idx}.json"
+              if not path.exists():
+                  status = "missing"
+                  result = {}
+              else:
+                  result = json.loads(path.read_text(encoding="utf-8"))
+                  status = result.get("status", "unknown")
+              counts[status] += 1
+              trace = result.get("trace", []) if isinstance(result, dict) else []
+              records.append({
                   "idx": idx,
-                  "subject": ref.get("subject", ""),
-                  "execution_status": status,
-                  "final_response": candidate,
-              }
-              if status != "success" or not candidate.strip():
-                  base_records[idx]["judge_1"] = {"verdict": "INCORRECT", "reason": f"execution status: {status}"}
-                  base_records[idx]["judge_2"] = {"verdict": "INCORRECT", "reason": f"execution status: {status}"}
-                  continue
-              for pass_id in (1, 2):
-                  tasks.append((idx, pass_id, ref["problem"], ref.get("answer", ""), candidate))
-
-          with ThreadPoolExecutor(max_workers=CONCURRENCY) as executor:
-              future_map = {
-                  executor.submit(judge_once, *task): (task[0], task[1])
-                  for task in tasks
-              }
-              for future in as_completed(future_map):
-                  idx, pass_id, verdict, reason, error_type = future.result()
-                  base_records[idx][f"judge_{pass_id}"] = {
-                      "verdict": verdict,
-                      "reason": reason,
-                      "error_type": error_type,
-                  }
-                  print(f"strict-judge idx={idx} pass={pass_id} verdict={verdict}", flush=True)
-
-          strict_correct = 0
-          execution_success = 0
-          disagreements = []
-          per_subject = defaultdict(lambda: {"total": 0, "execution_success": 0, "strict_correct": 0})
-          final_records = []
-          for idx in range(112):
-              rec = base_records[idx]
-              j1 = rec.get("judge_1", {"verdict": "INCORRECT", "reason": "missing judge 1"})
-              j2 = rec.get("judge_2", {"verdict": "INCORRECT", "reason": "missing judge 2"})
-              rec["strict_verdict"] = "CORRECT" if j1["verdict"] == "CORRECT" and j2["verdict"] == "CORRECT" else "INCORRECT"
-              rec["judge_agreement"] = j1["verdict"] == j2["verdict"]
-              if not rec["judge_agreement"]:
-                  disagreements.append(idx)
-              if rec["execution_status"] == "success":
-                  execution_success += 1
-              if rec["strict_verdict"] == "CORRECT":
-                  strict_correct += 1
-              subject = rec.get("subject", "") or "unknown"
-              per_subject[subject]["total"] += 1
-              if rec["execution_status"] == "success":
-                  per_subject[subject]["execution_success"] += 1
-              if rec["strict_verdict"] == "CORRECT":
-                  per_subject[subject]["strict_correct"] += 1
-              # Do not duplicate long answer text in judge report; source remains idx.json.
-              rec.pop("final_response", None)
-              final_records.append(rec)
-
+                  "status": status,
+                  "response_chars": len(result.get("final_response", "")) if isinstance(result.get("final_response", ""), str) else 0,
+                  "trace_steps": len(trace) if isinstance(trace, list) else 0,
+                  "error_type": (result.get("error") or {}).get("type") if isinstance(result.get("error"), dict) else None,
+              })
           summary = {
-              "run_id": RUN_ID,
+              "run_id": run_id,
+              "agent_base_commit": "8367b23f1c94b285b397f1de4ec0bc644387935b",
+              "dataset_commit": os.popen("git -C _benchmark_dataset rev-parse HEAD").read().strip(),
+              "concurrency": 16,
               "total": 112,
-              "agent_commit": os.environ.get("AGENT_COMMIT"),
-              "dataset_commit": os.environ.get("DATASET_COMMIT"),
-              "agent_concurrency": 16,
-              "judge_concurrency": 16,
-              "strict_method": "two independent Intern-S judges; unanimous CORRECT required; execution errors count incorrect",
-              "execution_success": execution_success,
-              "execution_success_rate": execution_success / 112,
-              "strict_correct": strict_correct,
-              "strict_accuracy": strict_correct / 112,
-              "strict_incorrect": 112 - strict_correct,
-              "judge_disagreements": disagreements,
-              "judge_disagreement_count": len(disagreements),
-              "per_subject": dict(sorted(per_subject.items())),
-              "warning": "This is a conservative local double-judge diagnostic, not the official competition judge.",
+              "counts": dict(counts),
+              "execution_success_rate": counts.get("success", 0) / 112,
+              "records": records,
           }
-          (OUTPUT / "strict_judgements.json").write_text(
-              json.dumps(final_records, ensure_ascii=False, indent=2) + "\n",
-              encoding="utf-8",
-          )
-          (OUTPUT / "strict_summary.json").write_text(
-              json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
-              encoding="utf-8",
-          )
-          print(json.dumps(summary, ensure_ascii=False, indent=2), flush=True)
+          (out / "execution_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps(summary["counts"], ensure_ascii=False))
           PY
 
-      - name: Commit run results to benchmark branch
+      - name: Commit results to benchmark branch
         if: always()
         shell: bash
         run: |
           set -euo pipefail
+          if [ ! -d "output/${RUN_ID}" ]; then
+            echo "::error::No output directory"
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -d "output/${RUN_ID}" ]; then
-            git add -- "output/${RUN_ID}"
-            if ! git diff --cached --quiet; then
-              git commit -m "benchmark: adaptive-contract 112x16 strict ${RUN_ID}"
-              git push origin HEAD:benchmark/adaptive-contract-112-16c-20260827
-            fi
+          git add -- "output/${RUN_ID}"
+          if ! git diff --cached --quiet; then
+            git commit -m "benchmark: adaptive-contract 112x16 ${RUN_ID}"
+            git push origin HEAD:benchmark/adaptive-contract-112-16c-20260827
           fi
 
-      - name: Upload run artifact
+      - name: Upload result artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:

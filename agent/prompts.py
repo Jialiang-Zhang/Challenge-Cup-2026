@@ -181,6 +181,36 @@ def _candidate_context(capsule: SolutionCapsule, limit: int) -> str:
     ).strip()
 
 
+def _audit_focus(contract: TaskContract) -> str:
+    domain = contract.primary_domain
+    if domain == "numerical_analysis":
+        return (
+            "Recompute the first nonzero Taylor/local-truncation coefficient, root-condition facts, "
+            "and the direction of any stability inequality or boundary-locus argument."
+        )
+    if domain in {"probability", "probability_statistics", "random_process"}:
+        return (
+            "Recompute the decisive conditional probability or transform. Check that reflection/Markov "
+            "steps have the correct event, that any density differentiates the CDF, and that normalization is plausible."
+        )
+    if domain == "discrete_combinatorics":
+        return (
+            "Check both directions of every counting/entropy inequality. In entropy arguments, explicitly verify "
+            "which conditioning set is larger before using monotonicity; under subtraction, re-check inequality direction."
+        )
+    if domain == "abstract_algebra":
+        return (
+            "Verify that proposed maps preserve defining relations, that generators satisfy the claimed relations, "
+            "and that the generated subgroup/order argument actually exhausts the group."
+        )
+    if contract.requires_proof:
+        return (
+            "Recompute one decisive implication. Check every theorem precondition and every inequality direction; "
+            "a correct final conclusion does not rescue a false proof step."
+        )
+    return "Recompute one decisive equation or substitute a simple boundary/sanity case before accepting."
+
+
 def audit_prompt(
     problem: str,
     contract: TaskContract,
@@ -195,16 +225,17 @@ def audit_prompt(
         else "No second candidate is available. Attack candidate A only."
     )
     attacks = ", ".join(contract.mandatory_attacks)
+    focus = _audit_focus(contract)
     return dedent(
         f"""
-        You are HORA-Math Red Team and Evidence Auditor. Return ONLY the seven protocol tags
-        requested below. Your very first characters must be <VERDICT>. Do not place analysis,
-        preamble, Markdown, or a fresh solution outside the tags. Keep the entire response concise.
-        Assume each candidate may be wrong and try to falsify the earliest decisive claim using a
-        concrete mathematical challenge.
+        You are HORA-Math Red Team and Evidence Auditor. Assume each candidate may be wrong.
+        BEFORE choosing a verdict, independently recompute one decisive mathematical step.
 
-        Mandatory attack families for this task: {attacks}
-        Also check the known failure modes: {', '.join(contract.likely_failure_modes)}.
+        Required audit focus for this task:
+        {focus}
+
+        Mandatory attack families: {attacks}
+        Known failure modes: {', '.join(contract.likely_failure_modes)}.
         Prefer theorem-precondition failures, counterexamples, boundary/degenerate cases,
         non-equivalent transformations, quantifier errors, interpretation errors, numerical
         stress, and missing answer parts. A generic statement such as “looks wrong” is invalid.
@@ -221,7 +252,7 @@ def audit_prompt(
         CANDIDATE B
         {second}
 
-        Decide one verdict:
+        Verdict meanings:
         - ACCEPT_A: A is best supported and no fatal challenge survives.
         - ACCEPT_B: B is best supported and no fatal challenge survives.
         - EQUIVALENT: A and B are mathematically equivalent and both survive applicable attacks.
@@ -229,16 +260,19 @@ def audit_prompt(
         - REPAIR_B: B is preferable but contains a localized repairable fatal error.
         - UNRESOLVED: evidence is genuinely insufficient.
 
-        REQUIRED OUTPUT — start immediately with the first tag and stop after the last tag:
+        REQUIRED OUTPUT — return ONLY these seven tags. Your FIRST characters must be <WITNESS>.
+        For ACCEPT_A, ACCEPT_B, or EQUIVALENT on a proof/high-risk task, WITNESS MUST contain the concrete
+        recomputation that supports acceptance; WITNESS=none is invalid.
+
+        <WITNESS>Give the decisive recomputation, substitution, checked inequality direction, failed condition, or counterexample.</WITNESS>
         <VERDICT>ACCEPT_A|ACCEPT_B|EQUIVALENT|REPAIR_A|REPAIR_B|UNRESOLVED</VERDICT>
         <TARGET_CANDIDATE>A|B|none</TARGET_CANDIDATE>
         <TARGET_CLAIM>C1|C2|...|FINAL|none</TARGET_CLAIM>
         <ATTACK_TYPE>assumption|theorem_precondition|counterexample|boundary|transformation|quantifier|interpretation|numerical_stress|completeness|none</ATTACK_TYPE>
         <SEVERITY>fatal|major|minor|none</SEVERITY>
-        <CHALLENGE>State the smallest concrete challenge or write none.</CHALLENGE>
-        <WITNESS>Give a counterexample, failed condition, substitution, or write none.</WITNESS>
+        <CHALLENGE>State the smallest concrete surviving challenge, or none if the witness supports acceptance.</CHALLENGE>
         <RESOLVER_HINT>State the shortest check that resolves the dispute or write none.</RESOLVER_HINT>
-        Do not output anything else. Keep CHALLENGE and WITNESS below 120 words each.
+        Keep WITNESS and CHALLENGE below 140 words each and output nothing else.
         """
     ).strip()
 

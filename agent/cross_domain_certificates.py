@@ -26,7 +26,6 @@ def evaluate_cross_domain_certificates(*, answer_raw: str, response: str) -> lis
     text = str(response or "")
     checks: list[CrossDomainCertificate] = []
 
-    # A proof conclusion ending with a bare connective is not self-contained.
     dangling_has = bool(answer and re.search(r"(?:则.{0,100})?有\s*$", answer))
     if dangling_has:
         checks.append(
@@ -38,12 +37,10 @@ def evaluate_cross_domain_certificates(*, answer_raw: str, response: str) -> lis
             )
         )
 
-    # Two-stage Radau IIA: the row sums of the displayed inverse and |R(iw)|^2
-    # must be arithmetically compatible with the final rational function.
     radau = _has(text, r"Radau\s*IIA") or (
-        _has(text, r"1\s*\+\s*\\frac\{1\}\{3\}\s*z")
-        and _has(text, r"1\s*-\s*\\frac\{2\}\{3\}\s*z")
-        and _has(text, r"\\frac\{1\}\{6\}\s*z\^2")
+        _has(text, r"1\s*\+\s*(?:z/3|\\frac\{1\}\{3\}\s*z|\\frac13\s*z)")
+        and _has(text, r"1\s*-\s*(?:2z/3|\\frac\{2\}\{3\}\s*z|\\frac23\s*z)")
+        and _has(text, r"(?:z\^2/6|\\frac\{1\}\{6\}\s*z\^2|\\frac16\s*z\^2)")
     )
     if radau:
         wrong_second_component = _has(
@@ -59,7 +56,7 @@ def evaluate_cross_domain_certificates(*, answer_raw: str, response: str) -> lis
         )
         wrong_modulus = _has(
             text,
-            r"\|R\s*\(i(?:w|\\omega|y)\)\|\^2[^\n]{0,260}"
+            r"\|R\s*\(i(?:w|\\omega|y)\)\|\^2[^\n]{0,320}"
             r"1\s*\+\s*\\frac\{10\}\{9\}\s*(?:w|\\omega|y)\^2",
         )
         conflict = wrong_second_component or inconsistent_weighted_sum or wrong_modulus
@@ -76,8 +73,52 @@ def evaluate_cross_domain_certificates(*, answer_raw: str, response: str) -> lis
             )
         )
 
-    # Levy upward theorem: L1-bounded martingale convergence alone gives a.s. convergence,
-    # not L1 convergence. Conditional expectations of one L1 variable are UI, which is the missing step.
+        correct_r = (
+            _has(text, r"R\s*\(z\)\s*=.{0,120}1\s*\+\s*(?:z/3|\\frac\{1\}\{3\}\s*z|\\frac13\s*z)")
+            and _has(text, r"1\s*-\s*(?:2z/3|\\frac\{2\}\{3\}\s*z|\\frac23\s*z).{0,100}(?:z\^2/6|\\frac\{1\}\{6\}\s*z\^2|\\frac16\s*z\^2)")
+        )
+        correct_axis = (
+            _has(text, r"\|R\s*\(i(?:w|\\omega|y)\)\|\^2")
+            and _has(text, r"1\s*\+\s*(?:\\frac\{1\}\{9\}|\\frac19|1/9)\s*(?:w|\\omega|y)\^2")
+            and _has(text, r"(?:w|\\omega|y)\^4\s*/\s*36|\\frac\{1\}\{36\}\s*(?:w|\\omega|y)\^4|\\frac1\{36\}\s*(?:w|\\omega|y)\^4")
+            and _has(text, r"(?:\\le|≤)\s*1")
+        )
+        poles_right = _has(
+            text,
+            r"2\s*\\pm\s*i\s*\\sqrt\{?2\}?|2\s*±\s*i\s*√?2|"
+            r"极点[^。\n]{0,100}(?:右半平面|实部[^。\n]{0,30}(?:正|>\s*0))|"
+            r"poles?[^.\n]{0,120}(?:right half|positive real part)",
+        )
+        l_stable = _has(
+            text,
+            r"R\s*\(z\)\s*(?:\\to|→)\s*0[^。\n]{0,80}(?:z|\|z\|)[^。\n]{0,30}(?:\\to|→)\s*\\infty|"
+            r"\\lim_\{?z[^}]*\\to[^}]*\\infty\}?\s*R\s*\(z\)\s*=\s*0|L-?稳定|L[- ]stable",
+        )
+        maximum_principle = _has(
+            text,
+            r"最大模原理|maximum modulus|解析[^。\n]{0,100}左半平面|analytic[^.\n]{0,100}left half",
+        )
+        full_certificate = (
+            correct_r
+            and correct_axis
+            and poles_right
+            and maximum_principle
+            and l_stable
+            and not conflict
+        )
+        checks.append(
+            CrossDomainCertificate(
+                code="radau_full_stability_certificate",
+                status="pass" if full_certificate else "unknown",
+                hard_failure=False,
+                detail=(
+                    "stability_function_axis_poles_and_limit_verified"
+                    if full_certificate
+                    else "full_mechanical_certificate_not_established"
+                ),
+            )
+        )
+
     levy_candidate = _has(text, r"M_?n\s*=\s*\\mathbb\s*E\s*\[\s*X") or (
         _has(text, r"\\mathcal\s*F_?\\infty") and _has(text, r"Doob|鞅收敛")
     )
@@ -103,7 +144,6 @@ def evaluate_cross_domain_certificates(*, answer_raw: str, response: str) -> lis
             )
         )
 
-    # Holonomy: parallel transport around a curved loop need not return a vector to its original direction.
     holonomy_candidate = (
         _has(text, r"holonomy|平行移动")
         or (_has(text, r"d\\theta|d\s*theta|\\Delta\\theta") and _has(text, r"d\\omega|K\\,?dA|K\s*dA"))

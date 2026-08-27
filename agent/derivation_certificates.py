@@ -52,8 +52,8 @@ def evaluate_decisive_derivation_certificates(
 
     # Shearer/Han-style entropy proof. With natural chain-rule order,
     # H(Z_j | Z_{<j}\setminus{Z_i}) >= H(Z_j | Z_{<j}) because LESS conditioning gives
-    # larger conditional entropy. A proof that explicitly says the left condition set is larger,
-    # derives <=, and then concludes sum H(Z_-i) >= (d-1)H(Z) reverses its own inequality.
+    # larger conditional entropy. A proof that explicitly leaves the generally false shortcut
+    # H(Z) <= H(Z_-i) in the final submission is rejected even if a later paragraph restarts.
     shearer_requested = _has(req + "\n" + text, r"shearer") and _has(
         req, r"条件越多.*条件熵越小|conditioning reduces entropy"
     )
@@ -64,9 +64,10 @@ def evaluate_decisive_derivation_certificates(
             or _has(text, r"前\s*j-1\s*个坐标|previous\s+j-1\s+coordinates")
             or _has(text, r"固定坐标顺序|fix(?:ed)?\s+(?:a\s+)?coordinate\s+order")
         )
-        suspicious_shortcut = _has(
+        false_marginal_domination = _has(
             text,
-            r"H\s*\(\s*Z_i\s*\\?mid\s*Z_\{?-i\}?\s*\)\s*\\?le\s*H\s*\(\s*Z\s*\)",
+            r"(?:得到|推出|故|因此|hence|therefore)[^\n。]{0,80}"
+            r"H\s*\(\s*Z\s*\)\s*(?:<=|≤|\\le)\s*H\s*\(\s*Z_\{?-i\}?\s*\)",
         )
         wrong_conditioning_direction = (
             _has(text, r"条件集合.{0,120}(?:多|larger|more variables)")
@@ -84,8 +85,8 @@ def evaluate_decisive_derivation_certificates(
             _has(text, r"少一个条件|条件更少|less conditioning|fewer conditioning")
             and _has(text, r"H\s*\(\s*Z_j[^\n]{0,220}\\?mid[^\n]{0,220}\)\s*\\?ge")
         )
-        ok = ordered_prefix and not suspicious_shortcut and not wrong_conditioning_direction
-        if safe_less_conditioning:
+        ok = ordered_prefix and not false_marginal_domination and not wrong_conditioning_direction
+        if safe_less_conditioning and not false_marginal_domination:
             ok = True
         checks.append(
             DerivationCertificate(
@@ -96,9 +97,13 @@ def evaluate_decisive_derivation_certificates(
                     "ordered_less_conditioning_chain_present"
                     if ok
                     else (
-                        "conditioning_monotonicity_direction_conflicts_with_shearer_lower_bound"
-                        if wrong_conditioning_direction
-                        else "missing_non_circular_ordered_conditioning_argument"
+                        "false_HZ_le_HZminus_i_shortcut_present"
+                        if false_marginal_domination
+                        else (
+                            "conditioning_monotonicity_direction_conflicts_with_shearer_lower_bound"
+                            if wrong_conditioning_direction
+                            else "missing_non_circular_ordered_conditioning_argument"
+                        )
                     )
                 ),
             )
@@ -137,18 +142,21 @@ def evaluate_decisive_derivation_certificates(
         )
 
     # If the task explicitly asks why a boundary locus cannot disconnect the stable branch,
-    # require an interior stable anchor in the left half-plane.
+    # require an interior stable anchor in the left half-plane. This can be a checked finite
+    # point (e.g. z=-1) or a negative-real asymptotic whose roots are explicitly shown to tend
+    # inside the unit disk.
     bdf2_branch_requested = _has(req, r"边界轨迹|根轨迹|boundary locus|root locus") and _has(
         req, r"割裂|稳定分支|左半平面|disconnect|stable branch|left half"
     )
     if bdf2_branch_requested and _has(text, r"BDF2|3\s*y_\{?n\+2\}?|3\s*-\s*4e"):
         negative_anchor = _has(
             text,
-            r"z\s*=\s*-\s*\d|z\s*<\s*0|负实数|负实轴|negative real",
+            r"z\s*=\s*-\s*\d|z\s*<\s*0|负实数|负实轴|negative real|z\s*\\to\s*-\\infty|z\s*→\s*-∞",
         )
         anchor_verified = _has(
             text,
-            r"模(?:均|都)?.{0,60}(?:<|小于)\s*1|\|\\?(?:xi|zeta|ξ|ζ).{0,20}\|\s*<\s*1|inside the unit (?:disk|circle)",
+            r"模(?:均|都)?.{0,60}(?:<|小于)\s*1|\|\\?(?:xi|zeta|ξ|ζ).{0,20}\|\s*<\s*1|"
+            r"inside the unit (?:disk|circle)|根.{0,80}(?:趋于|趋近|tend(?:s|ing)? to)\s*0",
         )
         ok = negative_anchor and anchor_verified
         checks.append(

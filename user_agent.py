@@ -17,7 +17,9 @@ class ReasoningAgent:
         **kwargs: Any,
     ) -> None:
         del args, kwargs
-        self.config = config or AgentConfig(always_run_blind=False)
+        # Normal routes still stop early. The fifth slot is reserved for the
+        # repair route so a repaired candidate can be re-audited before commit.
+        self.config = config or AgentConfig(always_run_blind=False, max_model_calls=5)
         self.engine = ResilientHORAEngine(client=client, config=self.config)
 
     def solve(self, problem: str, metadata: dict) -> dict:

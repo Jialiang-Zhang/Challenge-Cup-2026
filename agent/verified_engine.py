@@ -12,11 +12,18 @@ from .verification_prompts import decisive_confirmation_prompt
 
 _REVISION_PATTERNS: tuple[tuple[str, str], ...] = (
     ("more_accurately", r"更准确地|更严格地|more accurately|more precisely"),
+    ("more_directly", r"更直接地|更简洁地|more directly|more simply"),
     ("actually", r"实际上|事实上|actually|in fact"),
     ("instead", r"改为|我们改用|instead|replace this with"),
     ("standard_restart", r"标准(?:论证|证明)(?:如下|是)|经典(?:论证|证明)(?:如下|是)|standard (?:argument|proof)"),
     ("does_not_directly", r"不直接(?:给出|得到|使用)|不能直接|does not directly|cannot directly"),
     ("correction", r"前(?:面|述).{0,40}(?:错误|不成立|不准确)|修正(?:为|如下)|correction|the previous .* (?:was|is) (?:wrong|incorrect)"),
+)
+_STRONG_RETRACTION_RE = re.compile(
+    r"(?:不[，,]?应|不对|这里错|上述.*(?:错误|不成立)|前(?:面|述).*(?:错误|不成立)|"
+    r"重新整理|需仔细验证|严格.*修正|正确结论[:：]?|"
+    r"that was wrong|this is wrong|incorrect above|recompute from scratch|the correct conclusion is)",
+    flags=re.IGNORECASE | re.DOTALL,
 )
 
 
@@ -29,7 +36,9 @@ def proof_revision_markers(text: str) -> tuple[str, ...]:
         for code, pattern in _REVISION_PATTERNS
         if re.search(pattern, value, flags=re.IGNORECASE | re.DOTALL)
     ]
-    return tuple(found)
+    if _STRONG_RETRACTION_RE.search(value):
+        found.append("explicit_retraction")
+    return tuple(dict.fromkeys(found))
 
 
 def _meaningful(value: str | None) -> bool:
@@ -88,7 +97,9 @@ class VerifiedHORAEngine(ResilientHORAEngine):
             return
 
         markers = proof_revision_markers(capsule.final_response)
-        if len(markers) < 2:
+        strong_retraction = "explicit_retraction" in markers
+        too_many_revisions = len(markers) >= 3
+        if not strong_retraction and not too_many_revisions:
             return
 
         state.add_evidence(
@@ -99,7 +110,11 @@ class VerifiedHORAEngine(ResilientHORAEngine):
                 status="fail",
                 strength="hard",
                 checker="proof_chain_consistency_gate",
-                detail_code=f"revision_markers={len(markers)}",
+                detail_code=(
+                    "explicit_retraction_present"
+                    if strong_retraction
+                    else f"revision_markers={len(markers)}"
+                ),
             )
         )
         state.candidates[capsule.candidate_id].eligible = False

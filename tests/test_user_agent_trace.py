@@ -144,8 +144,8 @@ exposed_to_primary: false
 <ATTACK_TYPE>theorem_precondition</ATTACK_TYPE>
 <SEVERITY>none</SEVERITY>
 <CHALLENGE>none</CHALLENGE>
-<WITNESS>none</WITNESS>
-<RESOLVER_HINT>none</RESOLVER_HINT>
+<WITNESS>DCT applies because the sequence converges a.e. and is dominated by an integrable function.</WITNESS>
+<RESOLVER_HINT>check domination and a.e. convergence</RESOLVER_HINT>
 """
         client = FakeClient([primary, blind, audit])
         agent = ReasoningAgent(client=client)
@@ -206,11 +206,20 @@ tool_channel: none
 interpretation_id: I1
 exposed_to_primary: true
 </METHOD_FINGERPRINT>
-<CRITICAL_CLAIMS><CLAIM id="C1">The corrected coefficient is negative.</CLAIM></CRITICAL_CLAIMS>
-<CHALLENGE_RESOLUTION>Direct substitution preserves the negative sign.</CHALLENGE_RESOLUTION>
-<CHECK_HINTS>direct limit</CHECK_HINTS>
+<CRITICAL_CLAIMS>
+<CLAIM id="C1">At a simple pole z0, the residue is lim_{z->z0}(z-z0)f(z).</CLAIM>
+<CLAIM id="C2">Direct substitution gives the numerator -1 and denominator 8.</CLAIM>
+</CRITICAL_CLAIMS>
+<CHALLENGE_RESOLUTION>The sign is fixed by recomputing the simple-pole limit instead of inheriting the parent value.</CHALLENGE_RESOLUTION>
+<CHECK_HINTS>substitute the pole and simplify numerator and denominator separately</CHECK_HINTS>
 <RISK_FLAGS>none</RISK_FLAGS>
-<FINAL_RESPONSE>由留数的极限公式直接代入可得局部系数为负，因此留数为 -1/8。证毕。</FINAL_RESPONSE>
+<FINAL_RESPONSE>
+由简单极点的留数公式，若极点为 z_0，则
+$$\operatorname{Res}(f,z_0)=\lim_{z\to z_0}(z-z_0)f(z).$$
+因此不能从父候选直接继承符号，而要重新计算该极限。把题中分子与分母分别代入并约去唯一的一阶零因子后，分子给出 $-1$，其余非零因子的乘积为 $8$，所以
+$$\operatorname{Res}(f,z_0)=\frac{-1}{8}=-\frac18.$$
+因为约去的只是产生简单极点的线性因子，其余因子在 $z_0$ 处均非零，所以上述极限存在且没有额外符号变化。故修复后的留数为 $-1/8$，证毕。
+</FINAL_RESPONSE>
 """
         client = FakeClient([wrong_a, wrong_b, audit, repaired])
         agent = ReasoningAgent(client=client, config=AgentConfig(max_model_calls=4))

@@ -25,6 +25,7 @@ from .parsing import coerce_text, parse_audit_result, parse_solution_capsule, st
 from .prompts import audit_prompt, blind_prompt, primary_prompt, repair_prompt, rescue_prompt
 from .routing import build_task_contract
 from .runtime import RuntimeGuard
+from .task_profile import normalized_choice_letters
 
 
 class HORAEngine:
@@ -157,6 +158,8 @@ class HORAEngine:
                     "method": capsule.fingerprint.paradigm,
                     "tool_channel": capsule.fingerprint.tool_channel,
                     "warning_count": len(capsule.parse_warnings),
+                    "protocol_complete": capsule.protocol_complete,
+                    "recovery_source": capsule.recovery_source,
                 },
             }
         )
@@ -458,6 +461,14 @@ class HORAEngine:
             value = capsule.answer_raw.strip() or capsule.final_response.strip()
 
         value = strip_protocol_tags(value).strip()
+        if contract.question_mode == "choice":
+            letters = normalized_choice_letters(capsule.answer_raw)
+            if letters:
+                value = ",".join(letters)
+        elif contract.question_mode == "true_false":
+            compact = capsule.answer_raw.strip().rstrip("。.!！")
+            if compact:
+                value = compact
         if not value:
             raise ValueError("selected candidate has an empty submission text")
 
@@ -489,6 +500,12 @@ class HORAEngine:
                     "route": contract.route_hint,
                     "answer_schema": contract.answer_schema,
                     "multipart_count": contract.multipart_count,
+                    "secondary_domains": list(contract.secondary_domains),
+                    "question_mode": contract.question_mode,
+                    "mode_confidence": contract.mode_confidence,
+                    "alternate_modes": list(contract.alternate_modes),
+                    "answer_obligations": list(contract.answer_obligations),
+                    "ambiguity_flags": list(contract.ambiguity_flags),
                 },
             }
         ]

@@ -66,6 +66,13 @@ class TaskContract:
     route_hint: str
     primary_method: str
     orthogonal_method: str
+    question_mode: str = "open_response"
+    mode_confidence: float = 0.5
+    alternate_modes: tuple[str, ...] = ()
+    blank_count: int = 0
+    choice_count: int | None = None
+    answer_obligations: tuple[str, ...] = ("explicit_final_answer",)
+    ambiguity_flags: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -114,6 +121,8 @@ class SolutionCapsule:
     parse_warnings: tuple[str, ...] = ()
     parent_candidate_id: str | None = None
     challenge_resolution: str | None = None
+    protocol_complete: bool = True
+    recovery_source: str | None = None
 
 
 @dataclass(frozen=True)

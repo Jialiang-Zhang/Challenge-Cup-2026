@@ -1339,6 +1339,9 @@ Repair 成功率
 https://github.com/Jialiang-Zhang/test-dataset-math/tree/main/112
 ```
 
+静态 Task Contract 的设计、十八方向 Top-2 回放与协议恢复门见
+[`docs/ADAPTIVE_TASK_CONTRACT.md`](docs/ADAPTIVE_TASK_CONTRACT.md)。该回放不调用模型，也不会把 `answer`、`subject`、`source` 传入智能体。
+
 工作流会：
 
 1. 检出本仓库 `main`；

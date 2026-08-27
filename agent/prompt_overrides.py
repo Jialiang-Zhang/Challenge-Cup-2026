@@ -3,16 +3,22 @@ from __future__ import annotations
 from textwrap import dedent
 
 from .models import TaskContract
+from .prompts import answer_shape_instruction
 
 
 def _contract_block(contract: TaskContract) -> str:
     secondary = ", ".join(contract.secondary_domains) or "none"
+    alternates = ", ".join(contract.alternate_modes) or "none"
+    obligations = ", ".join(contract.answer_obligations) or "explicit_final_answer"
     return dedent(
         f"""
         Domain: {contract.primary_domain}
         Secondary domains: {secondary}
         Problem kind: {contract.problem_kind}
+        Question mode: {contract.question_mode} (confidence={contract.mode_confidence:.2f})
+        Alternate modes: {alternates}
         Answer schema: {contract.answer_schema}
+        Answer obligations: {obligations}
         Requires proof: {contract.requires_proof}
         Multipart count: {contract.multipart_count}
         Risk: {contract.risk_level}
@@ -21,10 +27,11 @@ def _contract_block(contract: TaskContract) -> str:
     ).strip()
 
 
-def _strict_protocol_block(response_requirement: str) -> str:
+def _strict_protocol_block(response_requirement: str, contract: TaskContract) -> str:
     return dedent(
         f"""
         OUTPUT CONTRACT
+        - Answer shape: {answer_shape_instruction(contract)}
         - Start the response immediately with the opening tag <FINAL_CANDIDATE>.
         - Inside that tag, write the actual computed mathematical answer, never an instruction.
         - Close it with </FINAL_CANDIDATE> before writing any explanation.
@@ -77,7 +84,8 @@ def primary_prompt_v2(problem: str, contract: TaskContract) -> str:
         {problem}
 
         {_strict_protocol_block(
-            "Write the exact answer first, followed by a short derivation that checks sign, domain, and boundary conditions."
+            "Write the exact answer first, followed by a short derivation that checks sign, domain, and boundary conditions.",
+            contract,
         )}
         """
     ).strip()
@@ -105,7 +113,7 @@ def blind_prompt_v2(problem: str, contract: TaskContract) -> str:
         PROBLEM
         {problem}
 
-        {_strict_protocol_block(response_requirement)}
+        {_strict_protocol_block(response_requirement, contract)}
         """
     ).strip()
 
@@ -149,6 +157,7 @@ def repair_prompt_v2(
         resolver hint: {resolver_hint or 'none'}
 
         OUTPUT CONTRACT
+        - Answer shape: {answer_shape_instruction(contract)}
         - Start immediately with <FINAL_CANDIDATE> and put the actual corrected mathematical answer
           inside it. Do not write analysis before the tag.
         - Do not copy instructions, placeholders, or the parent answer unless independently confirmed.
@@ -206,6 +215,7 @@ def rescue_prompt_v2(problem: str, contract: TaskContract) -> str:
         {problem}
 
         OUTPUT CONTRACT
+        - Answer shape: {answer_shape_instruction(contract)}
         - Start immediately with <FINAL_CANDIDATE> containing the actual mathematical answer.
         - Do not emit analysis or Markdown before the first tag.
         - Do not copy placeholders such as "Exact answer" or "Minimal justification".

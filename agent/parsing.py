@@ -129,13 +129,13 @@ def extract_asserted_answer(text: str) -> str | None:
     return max(matches, key=lambda item: item[0])[1]
 
 
-def extract_final_candidate(text: str) -> str | None:
+def extract_final_candidate_with_source(text: str) -> tuple[str | None, str]:
     tagged = extract_tag(text, "FINAL_CANDIDATE")
     if tagged:
-        return _compact_candidate(tagged)
+        return _compact_candidate(tagged), "tag"
 
     patterns = (
-        r"(?:FINAL_CANDIDATE|FINAL ANSWER|Final Answer|最终答案|答案)\s*[:：]\s*(.+)",
+        r"(?:FINAL_CANDIDATE|FINAL ANSWER|Final Answer|最终答案|最终结论|答案|结论)\s*[:：]\s*(.+)",
         r"(?:因此|故)\s*(?:答案为|结果为)\s*(.+)",
     )
     for pattern in patterns:
@@ -143,22 +143,90 @@ def extract_final_candidate(text: str) -> str | None:
         if matches:
             candidate = matches[-1].strip().splitlines()[0].strip()
             if candidate:
-                return _compact_candidate(candidate)
+                return _compact_candidate(candidate), "label"
 
     asserted = extract_asserted_answer(text)
     if asserted:
-        return asserted
+        return asserted, "assertion"
 
     boxed = _extract_balanced_boxed(text)
     if boxed:
-        return boxed
+        return boxed, "boxed"
 
     nonempty = [line.strip() for line in text.splitlines() if line.strip()]
     if nonempty:
         last = nonempty[-1]
         if len(last) <= 300:
-            return last
-    return None
+            return last, "tail"
+    return None, "none"
+
+
+def extract_final_candidate(text: str) -> str | None:
+    value, _ = extract_final_candidate_with_source(text)
+    return value
+
+
+def _outside_protocol_text(text: str) -> str:
+    """Return prose that is not inside a completed transaction field."""
+
+    cleaned = re.sub(
+        r"<([A-Z_]+)(?:\s+[^>]*)?>.*?</\1\s*>",
+        " ",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    cleaned = re.sub(r"</?[A-Z_]+(?:\s+[^>]*)?>", " ", cleaned, flags=re.IGNORECASE)
+    return re.sub(r"\s+", " ", cleaned).strip()
+
+
+def _coherent_ending(text: str) -> bool:
+    tail = text.rstrip()
+    if not tail:
+        return False
+    if tail.endswith(("。", ".", "!", "！", "?", "？", ")", "]", "}")):
+        return True
+    return bool(re.search(r"(?:成立|得证|证毕|therefore|hence|as required)\s*$", tail, re.IGNORECASE))
+
+
+def _can_recover_protocol(
+    *,
+    text: str,
+    answer: str,
+    answer_source: str,
+    requires_proof: bool,
+) -> tuple[bool, str]:
+    """Distinguish a missing XML envelope from a mathematically cut-off answer.
+
+    Recovery requires a strongly asserted conclusion.  A bare tail line or a
+    lone FINAL_CANDIDATE is deliberately insufficient.
+    """
+
+    outside = _outside_protocol_text(text)
+    strong_source = answer_source in {"label", "assertion", "boxed"}
+    if answer_source == "tag":
+        strong_source = bool(
+            len(outside) >= 140
+            and re.search(
+                r"(?:therefore|thus|hence|consequently|所以|因此|故|从而|可得|结论)",
+                outside,
+                flags=re.IGNORECASE,
+            )
+        )
+    ending_target = outside if answer_source == "tag" and outside else text
+    if not answer or not strong_source or not _coherent_ending(ending_target):
+        return False, outside
+
+    if requires_proof:
+        proof_text = outside if outside else strip_protocol_tags(text)
+        minimum_length = 80 if re.search(r"[\u4e00-\u9fff]", proof_text) else 160
+        proof_signal = re.search(
+            r"(?:because|since|by |therefore|hence|contradiction|由|因为|根据|所以|故|矛盾|得证)",
+            proof_text,
+            flags=re.IGNORECASE,
+        )
+        if len(proof_text) < minimum_length or not proof_signal:
+            return False, outside
+    return True, outside
 
 
 def _parse_bool(value: str | None, default: bool = False) -> bool:
@@ -250,16 +318,29 @@ def parse_solution_capsule(
 ) -> SolutionCapsule:
     warnings: list[str] = []
     tagged_answer = extract_tag(text, "FINAL_CANDIDATE")
-    answer = _compact_candidate(tagged_answer) if tagged_answer else extract_final_candidate(text)
+    answer, answer_source = extract_final_candidate_with_source(text)
     if not answer:
         warnings.append("missing_final_candidate")
         answer = ""
 
     tagged_final_response = extract_tag(text, "FINAL_RESPONSE")
+    protocol_complete = bool(tagged_answer and tagged_final_response)
+    recovered = False
+    outside_text = ""
+    if not protocol_complete:
+        recovered, outside_text = _can_recover_protocol(
+            text=text,
+            answer=answer or "",
+            answer_source=answer_source,
+            requires_proof=requires_proof,
+        )
     final_response = tagged_final_response
     if not final_response:
         warnings.append("missing_final_response")
-        final_response = strip_protocol_tags(text) if requires_proof else answer
+        if recovered and requires_proof and outside_text:
+            final_response = outside_text
+        else:
+            final_response = strip_protocol_tags(text) if requires_proof else answer
 
     challenge_resolution = extract_tag(text, "CHALLENGE_RESOLUTION")
     fingerprint = parse_method_fingerprint(text, fallback_fingerprint)
@@ -271,7 +352,13 @@ def parse_solution_capsule(
     check_hints = _parse_list_block(text, "CHECK_HINTS")
 
     complete = bool(answer.strip() and final_response.strip())
-    truncated = tagged_answer is None or tagged_final_response is None
+    truncated = not protocol_complete and not recovered
+    recovery_source = None
+    if recovered:
+        recovery_source = answer_source
+        warnings.append(f"protocol_recovered:{answer_source}")
+    elif not protocol_complete:
+        warnings.append("suspected_content_truncation")
 
     return SolutionCapsule(
         candidate_id=candidate_id,
@@ -288,6 +375,8 @@ def parse_solution_capsule(
         parse_warnings=tuple(warnings),
         parent_candidate_id=parent_candidate_id,
         challenge_resolution=challenge_resolution,
+        protocol_complete=protocol_complete,
+        recovery_source=recovery_source,
     )
 
 

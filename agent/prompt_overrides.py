@@ -27,44 +27,70 @@ def _contract_block(contract: TaskContract) -> str:
     ).strip()
 
 
+def _response_requirement(contract: TaskContract, *, independent: bool = False) -> str:
+    qualifier = "independent " if independent else ""
+    if contract.requires_proof or contract.answer_schema == "proof":
+        return (
+            f"Write a concise but complete {qualifier}proof. Cover every explicit requested step, "
+            "state theorem preconditions where used, and stop once the requested conclusion is established. "
+            "Do not add stronger classification/existence claims that the problem did not ask for."
+        )
+    if "derivation_chain" in contract.answer_obligations:
+        return (
+            f"Give the exact answer and the requested {qualifier}derivation. Show the decisive equations or "
+            "conditional identities rather than merely naming a theorem or saying that a calculation simplifies."
+        )
+    if contract.multipart_count > 1:
+        return (
+            f"Answer all {contract.multipart_count} requested parts in order with a compact {qualifier}derivation "
+            "for each part. Do not omit a requested stability, boundary, uniqueness, or equality-condition check."
+        )
+    return (
+        f"Write the exact answer first, followed by one short {qualifier}derivation that checks the decisive "
+        "sign, domain, boundary, or theorem condition when applicable."
+    )
+
+
 def _strict_protocol_block(response_requirement: str, contract: TaskContract) -> str:
     return dedent(
         f"""
         OUTPUT CONTRACT
+        - Your FIRST characters must be <FINAL_CANDIDATE>. No thinking preamble is allowed.
         - Answer shape: {answer_shape_instruction(contract)}
-        - Start the response immediately with the opening tag <FINAL_CANDIDATE>.
-        - Inside that tag, write the actual computed mathematical answer, never an instruction.
-        - Close it with </FINAL_CANDIDATE> before writing any explanation.
-        - Never copy phrases such as "Exact independent answer", "Exact answer",
-          "First decisive claim", "Give a concise...", or "..." into any field.
-        - Emit the remaining fields in the exact order below and stop after </FINAL_RESPONSE>.
-        - Do not write analysis, a preamble, Markdown fences, or commentary outside the tags.
+        - Inside FINAL_CANDIDATE write the actual mathematical conclusion, never an instruction.
+        - Keep FINAL_CANDIDATE compact; detailed reasoning belongs only in FINAL_RESPONSE.
+        - Emit every remaining field in the exact order below and stop immediately after </FINAL_RESPONSE>.
+        - Never copy template phrases such as "Exact answer", "First decisive claim", or "...".
+        - Prefer equations and decisive implications over prose. Avoid repeating the same derivation.
+        - Do not make optional stronger claims (classification, uniqueness, equality existence, historical facts)
+          unless they are required for the requested conclusion.
 
         <METHOD_FINGERPRINT>
         paradigm: choose one of direct|contradiction|constructive|induction|counting|optimization|theorem
         representation: choose one of symbolic|geometric|graph|event|operator|coordinate|generating_function|other
-        theorem_family: write the actual short theorem or method family, or none
+        theorem_family: actual short theorem or method family, or none
         tool_channel: choose one of none|sympy|numeric|brute_force|residual|matrix
         interpretation_id: I1
         exposed_to_primary: false
         </METHOD_FINGERPRINT>
 
         <CRITICAL_CLAIMS>
-        Write one to six actual decisive claims. Each claim must use the form
-        <CLAIM id="C1">a concrete mathematical statement</CLAIM>.
+        Write one to six actual decisive claims. Map the explicit requested steps into these claims.
+        Each claim must use <CLAIM id="C1">a concrete mathematical statement</CLAIM>.
         </CRITICAL_CLAIMS>
 
         <CHECK_HINTS>
-        Write concrete checks that could falsify this route, or none.
+        Give concrete falsification checks for the decisive formulas or theorem conditions, or none.
         </CHECK_HINTS>
 
         <RISK_FLAGS>
-        Write unresolved mathematical risks, or none.
+        List genuinely unresolved mathematical risks, or none.
         </RISK_FLAGS>
 
         <FINAL_RESPONSE>
         {response_requirement}
-        Keep it submission-ready and compact.
+        Keep the proof/derivation compact enough to finish the closing tag. Normally use at most about
+        1400 Chinese characters or 900 English words unless the task has many explicit parts.
         </FINAL_RESPONSE>
         """
     ).strip()
@@ -73,9 +99,9 @@ def _strict_protocol_block(response_requirement: str, contract: TaskContract) ->
 def primary_prompt_v2(problem: str, contract: TaskContract) -> str:
     return dedent(
         f"""
-        You are HORA-Math Blue Team Solver S1. Solve this low-risk mathematical problem with the
-        shortest rigorous route. Use the assigned primary method family: {contract.primary_method}.
-        Compute the answer before writing the protocol. Do not use external online services.
+        You are HORA-Math Blue Team Solver S1. Solve the mathematical problem rigorously using the assigned
+        primary method family: {contract.primary_method}. Compute and verify the result before emitting the
+        response. Do not use external online services.
 
         TASK CONTRACT
         {_contract_block(contract)}
@@ -83,25 +109,16 @@ def primary_prompt_v2(problem: str, contract: TaskContract) -> str:
         PROBLEM
         {problem}
 
-        {_strict_protocol_block(
-            "Write the exact answer first, followed by a short derivation that checks sign, domain, and boundary conditions.",
-            contract,
-        )}
+        {_strict_protocol_block(_response_requirement(contract), contract)}
         """
     ).strip()
 
 
 def blind_prompt_v2(problem: str, contract: TaskContract) -> str:
-    response_requirement = (
-        "The FINAL_RESPONSE field must contain a concise independent proof."
-        if contract.requires_proof
-        else "The FINAL_RESPONSE field must contain the exact answer and a short independent derivation."
-    )
     return dedent(
         f"""
-        You are HORA-Math Blue Team Solver S2, an ORTHOGONAL BLIND solver.
-        You have not seen any other candidate. Solve the problem independently with the assigned
-        method family: {contract.orthogonal_method}.
+        You are HORA-Math Blue Team Solver S2, an ORTHOGONAL BLIND solver. You have not seen any other
+        candidate. Solve independently with the assigned method family: {contract.orthogonal_method}.
 
         Use a genuinely different route: definitions, construction, contradiction, an alternative
         representation, local calculation, counting, or another theorem family. State all needed
@@ -113,7 +130,7 @@ def blind_prompt_v2(problem: str, contract: TaskContract) -> str:
         PROBLEM
         {problem}
 
-        {_strict_protocol_block(response_requirement, contract)}
+        {_strict_protocol_block(_response_requirement(contract, independent=True), contract)}
         """
     ).strip()
 
@@ -128,16 +145,13 @@ def repair_prompt_v2(
     witness: str,
     resolver_hint: str,
 ) -> str:
-    response_requirement = (
-        "Write the corrected conclusion and a concise complete proof addressing the challenge."
-        if contract.requires_proof
-        else "Write the corrected exact answer first and a short derivation that directly resolves the challenge."
-    )
+    response_requirement = _response_requirement(contract)
     return dedent(
         f"""
-        You are HORA-Math Targeted Repair Solver. A red-team audit found a localized fatal defect.
-        Recompute only the disputed point, preserve valid mathematics, and return a corrected
-        submission. Do not defend a value merely because it appeared in the parent candidate.
+        You are HORA-Math one-shot Targeted Repair Solver. A red-team audit found a localized mathematical
+        defect. Recompute the disputed point from first principles, preserve only independently confirmed
+        unaffected claims, and return a corrected submission. Do not defend a value merely because it
+        appeared in the parent candidate.
 
         TASK CONTRACT
         {_contract_block(contract)}
@@ -157,56 +171,53 @@ def repair_prompt_v2(
         resolver hint: {resolver_hint or 'none'}
 
         OUTPUT CONTRACT
+        - Your FIRST characters must be <FINAL_CANDIDATE>.
         - Answer shape: {answer_shape_instruction(contract)}
-        - Start immediately with <FINAL_CANDIDATE> and put the actual corrected mathematical answer
-          inside it. Do not write analysis before the tag.
-        - Do not copy instructions, placeholders, or the parent answer unless independently confirmed.
-        - Emit the tags below in order and stop after </FINAL_RESPONSE>.
+        - Do not copy the parent conclusion unless your recomputation confirms it.
+        - Address the challenged claim explicitly and cover every still-applicable task obligation.
+        - Do not introduce stronger claims not requested by the problem.
+        - Emit the fields below in order and stop after </FINAL_RESPONSE>.
 
         <METHOD_FINGERPRINT>
         paradigm: choose one actual corrected method family
         representation: choose one actual representation
-        theorem_family: write the actual theorem or method family, or none
+        theorem_family: actual theorem or method family, or none
         tool_channel: choose one of none|sympy|numeric|brute_force|residual|matrix
         interpretation_id: I1
         exposed_to_primary: true
         </METHOD_FINGERPRINT>
 
         <CRITICAL_CLAIMS>
-        Write one to four actual corrected decisive claims using
+        Write one to five corrected decisive claims using
         <CLAIM id="C1">a concrete mathematical statement</CLAIM>.
         </CRITICAL_CLAIMS>
 
         <CHALLENGE_RESOLUTION>
-        State exactly why the red-team objection is resolved.
+        State the exact equation, condition, counterexample rejection, or implication that resolves the audit.
         </CHALLENGE_RESOLUTION>
 
         <CHECK_HINTS>
-        Give one concrete falsification check, substitution, or theorem-condition check.
+        Give one concrete falsification check.
         </CHECK_HINTS>
 
         <RISK_FLAGS>
-        Write remaining risks, or none.
+        List remaining risks, or none.
         </RISK_FLAGS>
 
         <FINAL_RESPONSE>
         {response_requirement}
+        Keep it concise and finish the closing tag.
         </FINAL_RESPONSE>
         """
     ).strip()
 
 
 def rescue_prompt_v2(problem: str, contract: TaskContract) -> str:
-    response_requirement = (
-        "Write a concise complete proof after the exact conclusion."
-        if contract.requires_proof
-        else "Write the exact answer and one decisive verification step."
-    )
     return dedent(
         f"""
-        You are HORA-Math Rescue Solver. All earlier candidates were invalid or unresolved.
-        Recompute the problem from scratch using the shortest reliable route. Do not use any
-        alleged previous answer. Do not use external online services.
+        You are HORA-Math Rescue Solver. Earlier candidates were invalid or unresolved. Recompute the task
+        from scratch using the shortest reliable route; do not inherit any alleged previous answer. Do not
+        use external online services.
 
         TASK CONTRACT
         {_contract_block(contract)}
@@ -214,37 +225,6 @@ def rescue_prompt_v2(problem: str, contract: TaskContract) -> str:
         PROBLEM
         {problem}
 
-        OUTPUT CONTRACT
-        - Answer shape: {answer_shape_instruction(contract)}
-        - Start immediately with <FINAL_CANDIDATE> containing the actual mathematical answer.
-        - Do not emit analysis or Markdown before the first tag.
-        - Do not copy placeholders such as "Exact answer" or "Minimal justification".
-        - Stop after </FINAL_RESPONSE>.
-
-        <METHOD_FINGERPRINT>
-        paradigm: choose one actual method
-        representation: choose one actual representation
-        theorem_family: actual theorem or method family, or none
-        tool_channel: choose one of none|sympy|numeric|brute_force|residual|matrix
-        interpretation_id: I1
-        exposed_to_primary: false
-        </METHOD_FINGERPRINT>
-
-        <CRITICAL_CLAIMS>
-        Write one to four actual decisive claims using
-        <CLAIM id="C1">a concrete mathematical statement</CLAIM>.
-        </CRITICAL_CLAIMS>
-
-        <CHECK_HINTS>
-        Give one concrete independent check.
-        </CHECK_HINTS>
-
-        <RISK_FLAGS>
-        Write remaining risks, or none.
-        </RISK_FLAGS>
-
-        <FINAL_RESPONSE>
-        {response_requirement}
-        </FINAL_RESPONSE>
+        {_strict_protocol_block(_response_requirement(contract), contract)}
         """
     ).strip()

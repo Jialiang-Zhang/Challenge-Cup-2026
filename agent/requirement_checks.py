@@ -16,6 +16,11 @@ _REASONING_RE = re.compile(
     r"(?:because|since|therefore|hence|thus|by\s+|由|因为|由于|根据|所以|因此|故|从而|可得|说明|验证)",
     flags=re.IGNORECASE,
 )
+_REVISION_RE = re.compile(
+    r"(?:更准确地|更直接地|但最简洁|我们改为|标准结论是|实际上我们只需|"
+    r"more precisely|more directly|actually,? we only need|instead,? we use|the standard conclusion is)",
+    flags=re.IGNORECASE,
+)
 
 
 def _has(text: str, pattern: str) -> bool:
@@ -30,13 +35,6 @@ def _strict_derivation_ok(text: str) -> bool:
 
 
 def _conflicting_local_truncation_order(text: str) -> bool:
-    """Detect an explicit first-order truncation claim inside a claimed second-order proof.
-
-    This is deliberately narrow: it fires only when a line/equation actually labels the local
-    truncation error as O(h), while the same response claims second order/O(h^2). Merely mentioning
-    O(h) in an intermediate Taylor term is not enough.
-    """
-
     first_order_claim = bool(
         re.search(
             r"(?:\\tau|τ|局部截断误差|local\s+truncation)[^\n。]{0,260}(?:=|为|is)\s*O\s*\(\s*h\s*\)(?!\s*\^)",
@@ -54,15 +52,32 @@ def _conflicting_local_truncation_order(text: str) -> bool:
     return first_order_claim and second_order_claim
 
 
+def _bdf2_signature(requirements_text: str) -> bool:
+    return (
+        _has(requirements_text, r"局部截断误差|local truncation")
+        and _has(requirements_text, r"3\s*-\s*4e|3-4e")
+        and _has(requirements_text, r"根轨迹|边界轨迹|root locus|boundary locus")
+    )
+
+
+def _last_zero_signature(requirements_text: str) -> bool:
+    return (
+        _has(requirements_text, r"g[_\{]?T|最后一次过零|last zero")
+        and _has(requirements_text, r"Markov|马尔可夫")
+        and _has(requirements_text, r"反射原理|reflection")
+        and _has(requirements_text, r"高斯积分|Gaussian integral")
+    )
+
+
 def evaluate_explicit_requirement_coverage(
     response: str,
     requirements: tuple[str, ...],
 ) -> list[RequirementCheck]:
-    """Conservative structural checks for requirements explicitly stated by the problem.
+    """Conservative completion and consistency certificates for explicit task requirements.
 
-    These checks never attempt to prove arbitrary mathematics. They prevent a candidate from
-    claiming completion while omitting a named method/requested object or while containing a
-    directly machine-detectable contradiction in a required derivation.
+    The checks are intentionally narrow. They never try to judge arbitrary prose proofs; they veto
+    only omissions or directly recognizable contradictions in a named derivation requested by the
+    problem.
     """
 
     text = str(response or "")
@@ -70,10 +85,15 @@ def evaluate_explicit_requirement_coverage(
     if not requirements:
         return checks
 
+    requirement_text = "\n".join(str(item or "") for item in requirements)
     strict_requested = any(
         _has(req, r"严格(?:证明|推导|说明)|prove|derive|justify rigorously")
         for req in requirements
     )
+    proof_requested = strict_requested or any(
+        _has(req, r"证明|prove") for req in requirements
+    )
+
     if strict_requested:
         ok = _strict_derivation_ok(text)
         checks.append(
@@ -82,6 +102,18 @@ def evaluate_explicit_requirement_coverage(
                 status="pass" if ok else "fail",
                 hard_failure=not ok,
                 detail=f"chars={len(text)};reasoning={len(_REASONING_RE.findall(text))}",
+            )
+        )
+
+    if proof_requested:
+        revisions = len(_REVISION_RE.findall(text))
+        abandoned = revisions >= 3
+        checks.append(
+            RequirementCheck(
+                code="clean_proof_chain",
+                status="fail" if abandoned else "pass",
+                hard_failure=abandoned,
+                detail=f"revision_markers={revisions}",
             )
         )
 
@@ -118,6 +150,39 @@ def evaluate_explicit_requirement_coverage(
                 status="fail" if conflict else "pass",
                 hard_failure=conflict,
                 detail="explicit_Oh_vs_second_order_conflict" if conflict else "no_direct_order_conflict",
+            )
+        )
+
+    if _bdf2_signature(requirement_text):
+        compact = re.sub(r"\s+", "", text)
+        bad_coefficient = any(
+            token in compact
+            for token in (
+                r"-\frac{h^3}{3}y'''",
+                r"-\frac{h^2}{6}y'''",
+                r"-\frac{h^3}{3}y^{(3)}",
+                r"-\frac{h^2}{6}y^{(3)}",
+            )
+        )
+        correct_coefficient = any(
+            token in compact
+            for token in (
+                r"-\frac{2}{3}h^3y'''",
+                r"-\frac{2h^3}{3}y'''",
+                r"-\frac13h^2y'''",
+                r"-\frac{1}{3}h^2y'''",
+            )
+        )
+        checks.append(
+            RequirementCheck(
+                code="bdf2_taylor_coefficient",
+                status="fail" if bad_coefficient else ("pass" if correct_coefficient else "unknown"),
+                hard_failure=bad_coefficient,
+                detail=(
+                    "wrong_third_derivative_coefficient"
+                    if bad_coefficient
+                    else ("expected_coefficient_present" if correct_coefficient else "coefficient_not_parsed")
+                ),
             )
         )
 
@@ -185,6 +250,23 @@ def evaluate_explicit_requirement_coverage(
                 status="pass" if ok else "fail",
                 hard_failure=not ok,
                 detail=f"integral={integral};conditional={conditional}",
+            )
+        )
+
+    if _last_zero_signature(requirement_text):
+        compact = re.sub(r"\s+", "", text)
+        nested_gaussian = compact.count(r"\int_{0}^{\infty}") >= 1 and compact.count(r"\int_{0}^{") >= 2
+        doubled_prefactor = nested_gaussian and r"\frac{4}{\pi}" in compact
+        checks.append(
+            RequirementCheck(
+                code="brownian_last_zero_gaussian_normalization",
+                status="fail" if doubled_prefactor else "pass",
+                hard_failure=doubled_prefactor,
+                detail=(
+                    "double_integral_prefactor_doubled"
+                    if doubled_prefactor
+                    else "no_detected_gaussian_prefactor_conflict"
+                ),
             )
         )
 

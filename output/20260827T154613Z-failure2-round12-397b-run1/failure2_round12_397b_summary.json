@@ -1,0 +1,43 @@
+{
+  "run_id": "20260827T154613Z-failure2-round12-397b-run1",
+  "model": "intern-s2-preview-397b",
+  "ids": [
+    26,
+    42
+  ],
+  "counts": {
+    "success": 2
+  },
+  "records": [
+    {
+      "idx": 26,
+      "status": "success",
+      "source": "orthogonal_blind",
+      "candidate_id": "B",
+      "model_calls": 4,
+      "repair_count": 1,
+      "rejection_gates": [
+        {
+          "candidate_id": "C",
+          "source": "targeted_repair",
+          "reason_codes": [
+            "derivation_certificate:explicit_final_candidate_complete"
+          ]
+        }
+      ],
+      "deterministic_support": [],
+      "error": null
+    },
+    {
+      "idx": 42,
+      "status": "success",
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 4,
+      "repair_count": 0,
+      "rejection_gates": [],
+      "deterministic_support": [],
+      "error": null
+    }
+  ]
+}

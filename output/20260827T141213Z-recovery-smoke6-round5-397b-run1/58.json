@@ -1,0 +1,121 @@
+{
+  "idx": 58,
+  "status": "success",
+  "final_response": "最终答案：对 $0<t<T$，$g_T$ 的分布函数为\n\n推导概要：\n设 $B$ 为标准布朗运动，$g_T=\\sup\\{0\\le s\\le T:B_s=0\\}$。对 $0<t<T$，事件 $\\{g_T\\le t\\}$ 等价于“布朗运动在 $(t,T]$ 内不再经过零点”。利用 Markov 性质在时刻 $t$ 条件化：\n$$\\mathbb{P}(g_T\\le t)=\\mathbb{E}\\Bigl[\\mathbb{P}\\bigl(\\inf_{u\\in[0,T-t]}(B_{t+u}-B_t)\\neq -B_t\\;\\big|\\;B_t\\bigr)\\Bigr].$$\n记 $x=B_t$，$W_u=B_{t+u}-B_t$ 为独立于 $\\mathcal{F}_t$ 的标准布朗运动。则需计算\n$$h(x)=\\mathbb{P}\\Bigl(\\inf_{0\\le u\\le T-t}W_u\\neq -x\\Bigr).$$\n由反射原理（或对 hitting time 的分布），对 $x>0$ 有\n$$\\mathbb{P}\\Bigl(\\inf_{0\\le u\\le s}W_u\\le -x\\Bigr)=2\\mathbb{P}(W_s\\le -x)=2\\Phi\\!\\Bigl(-\\frac{x}{\\sqrt{s}}\\Bigr),$$\n其中 $s=T-t$，$\\Phi$ 为标准正态分布函数。于是\n$$h(x)=1-2\\Phi\\!\\Bigl(-\\frac{|x|}{\\sqrt{s}}\\Bigr)=2\\Phi\\!\\Bigl(\\frac{|x|}{\\sqrt{s}}\\Bigr)-1.$$\n因为 $B_t\\sim N(0,t)$，其密度为 $p_t(x)=\\frac{1}{\\sqrt{2\\pi t}}e^{-x^2/(2t)}$，故\n$$\\mathbb{P}(g_T\\le t)=\\int_{-\\infty}^{\\infty}h(x)p_t(x)\\,dx\n=2\\int_{-\\infty}^{\\infty}\\Phi\\!\\Bigl(\\frac{|x|}{\\sqrt{s}}\\Bigr)p_t(x)\\,dx-1.$$\n利用偶性化为 $x\\ge 0$ 并令 $y=x/\\sqrt{t}$，得\n$$\\mathbb{P}(g_T\\le t)=4\\int_0^\\infty\\Phi\\!\\Bigl(y\\sqrt{\\frac{t}{s}}\\Bigr)\\phi(y)\\,dy-1,$$\n其中 $\\phi$ 为标准正态密度。对一般 $a>0$，有恒等式\n$$I(a):=\\int_0^\\infty\\Phi(ay)\\phi(y)\\,dy=\\frac{1}{2\\pi}\\arctan a+\\frac{1}{8}.$$\n（证明：对 $a$ 求导得 $I'(a)=\\frac{1}{2\\pi(1+a^2)}$，且 $I(0)=1/4$，积分即得。）\n取 $a=\\sqrt{t/s}$，则\n$$4I(a)-1=\\frac{2}{\\pi}\\arctan\\sqrt{\\frac{t}{s}}+\\frac{1}{2}-1\n=\\frac{2}{\\pi}\\arctan\\sqrt{\\frac{t}{T-t}}.$$\n利用 $\\arctan\\sqrt{\\frac{t}{T-t}}=\\arcsin\\sqrt{\\frac{t}{T}}$（由直角三角形关系），得到\n$$\\mathbb{P}(g_T\\le t)=\\frac{2}{\\pi}\\arcsin\\sqrt{\\frac{t}{T}},\\qquad 0<t<T.$$\n对 $t$ 求导即得密度\n$$f_{g_T}(t)=\\frac{d}{dt}\\frac{2}{\\pi}\\arcsin\\sqrt{\\frac{t}{T}}\n=\\frac{1}{\\pi\\sqrt{t(T-t)}},\\qquad 0<t<T.$$\n这正是 Lévy 反正弦律的分布，但此处仅通过 Markov 性质、反射原理与高斯积分严格推导得到。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "random_process",
+        "secondary_domain_count": 2,
+        "risk": "medium",
+        "route": "R1",
+        "answer_schema": "exact_expression",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "probability",
+          "mathematical_analysis"
+        ],
+        "question_mode": "open_response",
+        "mode_confidence": 0.35,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "derivation_chain"
+        ],
+        "ambiguity_flags": [
+          "weak_mode_signal"
+        ]
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 1,
+        "derivation_required": true
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 2851,
+        "elapsed_ms": 35313
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2851,
+        "claim_count": 6,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 3451,
+        "elapsed_ms": 39931
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3451,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A",
+          "B"
+        ],
+        "invalid_candidate_ids": []
+      }
+    },
+    {
+      "step": "orthogonal_comparison",
+      "content": {
+        "candidate_ids": [
+          "A",
+          "B"
+        ],
+        "orthogonality": "O3",
+        "equivalence": "equivalent"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "model_calls": 2,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 1654
+      }
+    }
+  ]
+}

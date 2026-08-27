@@ -1,0 +1,102 @@
+{
+  "run_id": "20260827T123241Z-recovery-smoke8-run1",
+  "ids": [
+    1,
+    5,
+    8,
+    25,
+    6,
+    16,
+    58,
+    66
+  ],
+  "counts": {
+    "success": 7,
+    "error": 1
+  },
+  "records": [
+    {
+      "idx": 1,
+      "status": "success",
+      "response_chars": 2879,
+      "trace_steps": 10,
+      "source": "orthogonal_blind",
+      "candidate_id": "B",
+      "explicit_requirement_count": 2,
+      "error": null
+    },
+    {
+      "idx": 5,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "source": null,
+      "candidate_id": null,
+      "explicit_requirement_count": 0,
+      "error": {
+        "type": "RuntimeError",
+        "message": "HORA-Math produced no complete, hard-valid candidate"
+      }
+    },
+    {
+      "idx": 8,
+      "status": "success",
+      "response_chars": 989,
+      "trace_steps": 11,
+      "source": "orthogonal_blind",
+      "candidate_id": "B",
+      "explicit_requirement_count": 2,
+      "error": null
+    },
+    {
+      "idx": 25,
+      "status": "success",
+      "response_chars": 650,
+      "trace_steps": 11,
+      "source": "orthogonal_blind",
+      "candidate_id": "B",
+      "explicit_requirement_count": 5,
+      "error": null
+    },
+    {
+      "idx": 6,
+      "status": "success",
+      "response_chars": 1558,
+      "trace_steps": 13,
+      "source": "targeted_repair",
+      "candidate_id": "C",
+      "explicit_requirement_count": 1,
+      "error": null
+    },
+    {
+      "idx": 16,
+      "status": "success",
+      "response_chars": 3188,
+      "trace_steps": 10,
+      "source": "orthogonal_blind",
+      "candidate_id": "B",
+      "explicit_requirement_count": 2,
+      "error": null
+    },
+    {
+      "idx": 58,
+      "status": "success",
+      "response_chars": 183,
+      "trace_steps": 10,
+      "source": "orthogonal_blind",
+      "candidate_id": "B",
+      "explicit_requirement_count": 1,
+      "error": null
+    },
+    {
+      "idx": 66,
+      "status": "success",
+      "response_chars": 106,
+      "trace_steps": 11,
+      "source": "primary",
+      "candidate_id": "A",
+      "explicit_requirement_count": 1,
+      "error": null
+    }
+  ]
+}

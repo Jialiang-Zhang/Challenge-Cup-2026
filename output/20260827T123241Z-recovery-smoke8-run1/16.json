@@ -1,0 +1,135 @@
+{
+  "idx": 16,
+  "status": "success",
+  "final_response": "对于任意离散随机变量 $Z_1, \\dots, Z_d$，满足 $(d-1)H(Z_1,\\dots,Z_d)\\le\\sum_{i=1}^dH(Z_{-i})$，其中 $Z_{-i}$ 表示除第 $i$ 个坐标外的所有坐标。\n若 $Z$ 在有限集合 $A \\subseteq X_1 \\times \\cdots \\times X_d$ 上均匀分布，则 $H(Z) = \\log |A|$，且 $H(Z_{-i}) = \\log |\\pi_{-i}(A)|$。\n由C1和C2可推出离散Loomis–Whitney不等式：$|A|^{d-1} \\le \\prod_{i=1}^d |\\pi_{-i}(A)|$。\n\n对于任意离散随机变量 $Z_1, \\dots, Z_d$，满足 $(d-1)H(Z_1,\\dots,Z_d)\\le\\sum_{i=1}^dH(Z_{-i})$，其中 $Z_{-i}$ 表示除第 $i$ 个坐标外的所有坐标。\n若 $Z$ 在有限集合 $A \\subseteq X_1 \\times \\cdots \\times X_d$ 上均匀分布，则 $H(Z) = \\log |A|$，且 $H(Z_{-i}) = \\log |\\pi_{-i}(A)|$。\n由C1和C2可推出离散Loomis–Whitney不等式：$|A|^{d-1} \\le \\prod_{i=1}^d |\\pi_{-i}(A)|$。\n\n检查步骤：1. 验证熵不等式推导中是否明确使用了“条件越多，条件熵越小”；2. 验证均匀分布下熵与集合大小对数关系是否正确应用；3. 验证从熵不等式到集合不等式的代数变换是否无误。\n\n无。\n\n证明如下：\n\n设 $Z = (Z_1, \\dots, Z_d)$ 为离散随机变量。根据链式法则，联合熵可展开为：\n$$\nH(Z_1, \\dots, Z_d) = \\sum_{i=1}^d H(Z_i \\mid Z_1, \\dots, Z_{i-1}).\n$$\n对每个 $i$，由于条件越多条件熵越小（即 $H(Z_i \\mid Z_{-i}) \\le H(Z_i \\mid Z_{-i} \\setminus \\{Z_j\\})$ 对任意 $j \\ne i$ 成立），特别地，有：\n$$\nH(Z_i \\mid Z_{-i}) \\le H(Z_i \\mid Z_{-i} \\setminus \\{Z_j\\}) \\quad \\text{对所有 } j \\ne i.\n$$\n但更直接地，注意到 $H(Z_{-i}) = H(Z_1, \\dots, Z_{i-1}, Z_{i+1}, \\dots, Z_d)$，而由熵的非负性和条件熵单调性：\n$$\nH(Z_1, \\dots, Z_d) = H(Z_{-i}) + H(Z_i \\mid Z_{-i}) \\le H(Z_{-i}) + H(Z_i),\n$$\n但这不是所需形式。我们采用标准Shearer不等式证明思路：考虑所有 $d$ 个子集 $S_i = \\{1, \\dots, d\\} \\setminus \\{i\\}$，每个坐标 $j$ 恰好出现在 $d-1$ 个这样的子集中。根据Shearer引理（或直接用熵的次可加性与条件熵单调性）：\n$$\n(d-1)H(Z_1, \\dots, Z_d) = \\sum_{i=1}^d H(Z_{-i}) - \\sum_{i=1}^d \\left[ H(Z_{-i}) - H(Z_1, \\dots, Z_d) \\right].\n$$\n但更严谨地，利用“条件越多，条件熵越小”这一性质：对任意 $i$，有\n$$\nH(Z_i \\mid Z_{-i}) \\le H(Z_i \\mid Z_j) \\quad \\text{对任意 } j \\ne i,\n$$\n但这仍不直接。正确路径是：注意到\n$$\n\\sum_{i=1}^d H(Z_{-i}) = \\sum_{i=1}^d \\sum_{j \\ne i} H(Z_j \\mid Z_{<j} \\text{ in } -i) \\ge \\sum_{i=1}^d \\sum_{j \\ne i} H(Z_j \\mid Z_{<j}) = (d-1) \\sum_{j=1}^d H(Z_j \\mid Z_{<j}) = (d-1) H(Z_1, \\dots, Z_d),\n$$\n其中关键步骤在于：当我们在 $Z_{-i}$ 中条件时，缺少了 $Z_i$，因此条件更少，条件熵更大，即 $H(Z_j \\mid Z_{<j} \\text{ in } -i) \\ge H(Z_j \\mid Z_{<j})$，因为后者条件更多（包含了 $Z_i$ 如果 $i<j$ 或其他依赖）。严格来说，应使用如下标准论证：\n\n对每个 $j$，考虑所有包含 $j$ 的 $Z_{-i}$，即 $i \\ne j$。共有 $d-1$ 个这样的 $i$。对于每个这样的 $i$，有：\n$$\nH(Z_j \\mid Z_{-i}) \\ge H(Z_j \\mid Z_{-i}, Z_i) = H(Z_j \\mid Z_{-i} \\cup \\{Z_i\\}) = H(Z_j \\mid \\text{all others}) \\le H(Z_j \\mid Z_{<j}),\n$$\n但这方向反了。正确方式是引用已知结论：在Shearer不等式中，若覆盖族 $\\mathcal{F}$ 覆盖每个元素恰好 $k$ 次，则 $k H(Z) \\le \\sum_{S \\in \\mathcal{F}} H(Z_S)$。此处 $\\mathcal{F} = \\{ S_i = [d] \\setminus \\{i\\} \\}_{i=1}^d$，每个元素 $j$ 出现在所有 $S_i$ 中当 $i \\ne j$，即 $d-1$ 次。因此：\n$$\n(d-1) H(Z_1, \\dots, Z_d) \\le \\sum_{i=1}^d H(Z_{-i}),\n$$\n且此不等式的证明依赖于熵的次可加性及条件熵的单调性——具体地，在展开 $\\sum H(Z_{-i})$ 时，每个 $H(Z_j)$ 被计算了 $d-1$ 次，而交叉项因条件更多而熵更小，从而总和至少为 $(d-1)H(Z)$。为明确使用“条件越多，条件熵越小”，我们写：\n\n对任意 $i$，$H(Z_{-i}) = H(Z_1, \\dots, Z_{i-1}, Z_{i+1}, \\dots, Z_d) \\ge H(Z_1, \\dots, Z_d) - H(Z_i \\mid Z_{-i})$，但这不直接。标准证明如下：\n\n注意到：\n$$\n\\sum_{i=1}^d H(Z_{-i}) = \\sum_{i=1}^d \\left( H(Z_1, \\dots, Z_d) - H(Z_i \\mid Z_{-i}) \\right) = d H(Z) - \\sum_{i=1}^d H(Z_i \\mid Z_{-i}).\n$$\n因此，要证 $(d-1)H(Z) \\le \\sum H(Z_{-i})$，等价于证：\n$$\n(d-1)H(Z) \\le d H(Z) - \\sum_{i=1}^d H(Z_i \\mid Z_{-i}) \\iff \\sum_{i=1}^d H(Z_i \\mid Z_{-i}) \\le H(Z).\n$$\n但 $\\sum H(Z_i \\mid Z_{-i}) \\le H(Z)$ 是否成立？实际上，由链式法则 $H(Z) = \\sum_{i=1}^d H(Z_i \\mid Z_{<i})$，而由于条件越多条件熵越小，对每个 $i$，有 $H(Z_i \\mid Z_{-i}) \\le H(Z_i \\mid Z_{<i})$，因为 $Z_{",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "discrete_combinatorics",
+        "secondary_domain_count": 0,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1,
+        "secondary_domains": [],
+        "question_mode": "proof",
+        "mode_confidence": 0.9,
+        "alternate_modes": [
+          "calculation"
+        ],
+        "answer_obligations": [
+          "proof_chain"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "explicit_requirements",
+      "content": {
+        "count": 2,
+        "requirements": [
+          "先证明Shearer熵不等式的特例",
+          "要求在熵证明中明确使用“条件越多，条件熵越小”"
+        ]
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 11690,
+        "elapsed_ms": 38635
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 11690,
+        "claim_count": 0,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 3,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 3473,
+        "elapsed_ms": 19094
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 3473,
+        "claim_count": 3,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 2,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [],
+        "invalid_candidate_ids": [
+          "A",
+          "B"
+        ]
+      }
+    },
+    {
+      "step": "rescue_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 2483,
+        "elapsed_ms": 14611
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "R",
+        "source": "rescue",
+        "complete": false,
+        "truncated": true,
+        "response_chars": 2483,
+        "claim_count": 0,
+        "method": "direct",
+        "tool_channel": "none",
+        "warning_count": 4,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "model_calls": 3,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 3188
+      }
+    }
+  ]
+}

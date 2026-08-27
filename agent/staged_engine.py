@@ -427,6 +427,12 @@ class StagedHORAEngine(HORAEngine):
                     "route": contract.route_hint,
                     "answer_schema": contract.answer_schema,
                     "multipart_count": contract.multipart_count,
+                    "secondary_domains": list(contract.secondary_domains),
+                    "question_mode": contract.question_mode,
+                    "mode_confidence": contract.mode_confidence,
+                    "alternate_modes": list(contract.alternate_modes),
+                    "answer_obligations": list(contract.answer_obligations),
+                    "ambiguity_flags": list(contract.ambiguity_flags),
                 },
             }
         ]

@@ -7,18 +7,41 @@ from .models import AuditResult, SolutionCapsule, TaskContract
 
 def _contract_block(contract: TaskContract) -> str:
     secondary = ", ".join(contract.secondary_domains) or "none"
+    alternates = ", ".join(contract.alternate_modes) or "none"
+    obligations = ", ".join(contract.answer_obligations) or "explicit_final_answer"
     return dedent(
         f"""
         Domain: {contract.primary_domain}
         Secondary domains: {secondary}
         Problem kind: {contract.problem_kind}
+        Question mode: {contract.question_mode} (confidence={contract.mode_confidence:.2f})
+        Alternate modes: {alternates}
         Answer schema: {contract.answer_schema}
+        Answer obligations: {obligations}
         Requires proof: {contract.requires_proof}
         Multipart count: {contract.multipart_count}
         Risk: {contract.risk_level}
         Likely failure modes: {', '.join(contract.likely_failure_modes)}
         """
     ).strip()
+
+
+def answer_shape_instruction(contract: TaskContract) -> str:
+    if contract.question_mode == "choice":
+        count = f" exactly {contract.choice_count}" if contract.choice_count else " all selected"
+        return f"FINAL_CANDIDATE must contain{count} option letter(s), with no option prose."
+    if contract.question_mode == "fill":
+        count = contract.blank_count or contract.multipart_count
+        return f"FINAL_CANDIDATE must list {count} blank value(s) in question order, separated by semicolons."
+    if contract.question_mode == "true_false":
+        return "FINAL_CANDIDATE must be exactly True/False or 正确/错误."
+    if contract.multipart_count > 1:
+        return f"Label and answer all {contract.multipart_count} requested parts in order."
+    if contract.requires_proof:
+        return "State the conclusion first, then provide a closed proof chain with all hypotheses checked."
+    if "all_solutions" in contract.answer_obligations:
+        return "State the full solution set and justify that no other solutions exist."
+    return "Put one explicit, parseable mathematical answer in FINAL_CANDIDATE."
 
 
 def primary_prompt(problem: str, contract: TaskContract) -> str:
@@ -42,6 +65,9 @@ def primary_prompt(problem: str, contract: TaskContract) -> str:
         {problem}
 
         REQUIRED OUTPUT — use these tags exactly and in this order:
+
+        ANSWER SHAPE
+        {answer_shape_instruction(contract)}
 
         <FINAL_CANDIDATE>
         Put the exact final value, expression, set, conclusion, or compact multipart answer here.
@@ -100,6 +126,9 @@ def blind_prompt(problem: str, contract: TaskContract) -> str:
         {problem}
 
         REQUIRED OUTPUT — use these tags exactly and in this order:
+
+        ANSWER SHAPE
+        {answer_shape_instruction(contract)}
 
         <FINAL_CANDIDATE>
         Exact independent answer.

@@ -53,6 +53,12 @@
 
 README 记录赛事入口、目标架构概览、112 题运行方式、输出目录和分支管理规则。
 
+### 4. 自适应任务契约
+
+阅读：[`docs/ADAPTIVE_TASK_CONTRACT.md`](docs/ADAPTIVE_TASK_CONTRACT.md)
+
+内容：十八方向 Top-2 软路由、非强制题型画像、答案覆盖义务、协议恢复门与 112 题离线画像结果。
+
 ---
 
 ## 核心架构
@@ -121,26 +127,23 @@ Transaction Commit
 
 ## 当前实现状态
 
-当前 `user_agent.py` 仍是 generate–verify–select baseline。HORA-Math 需要按照以下阶段逐步落地：
+当前 `user_agent.py` 已接入 `StagedHORAEngine`，已实现：
 
 ```text
-Phase 1
-答案协议、数学等价、Candidate Ledger、Transaction Commit
-
-Phase 2
-符号、代回、residual、数值、枚举和多小问证书
-
-Phase 3
-MethodFingerprint、Orthogonality Gate、Blind Solver
-
-Phase 4
-Red-Team Attack Scheduler、Challenge Ledger、Local Resolver
-
-Phase 5
-Claim Graph、Cross Examination、Targeted Repair
-
-Phase 6
-112 题消融、静态 Route Policy 和正式版本冻结
+Task Profile（18 方向 Top-2 + 非强制题型候选）
+→ Answer Obligations
+→ Primary / Orthogonal Blind
+→ Candidate Hard Gate
+→ Orthogonality + Equivalence
+→ Red-Team Evidence Audit
+→ One-shot Targeted Repair + Reaudit
+→ Rescue
+→ Answer Normalization
+→ Transaction Commit
 ```
+
+协议完整性与数学完整性已经分离：只有带明确结论、完整收尾和足够推理信号的无标签输出可以恢复；单独答案标签、占位符和真正截断仍被硬拒绝。
+
+尚未实现的目标能力主要是通用符号工具证书、可执行 residual/枚举检查和完整 Claim Dependency Graph。它们必须通过独立功能分支和 112 题消融进入主线。
 
 任何阶段都必须通过独立功能分支、Pull Request 和 112 题消融进入 `main`。

@@ -3,6 +3,7 @@ from __future__ import annotations
 import itertools
 
 from .canonicalize import compare_answers, numeric_value
+from .coverage import evaluate_answer_coverage
 from .models import (
     CaseState,
     Challenge,
@@ -52,6 +53,18 @@ def evaluate_candidate(
                 detail_code="missing_required_protocol_section",
             )
         )
+    elif not capsule.protocol_complete:
+        records.append(
+            EvidenceRecord(
+                evidence_id=_evidence_id(),
+                candidate_id=capsule.candidate_id,
+                evidence_type="protocol_recovery",
+                status="pass",
+                strength="structural",
+                checker="conclusion_recovery_gate",
+                detail_code=f"source={capsule.recovery_source or 'unknown'}",
+            )
+        )
 
     response_answer = leading_response_answer(capsule.final_response)
     relation = (
@@ -75,7 +88,7 @@ def evaluate_candidate(
         )
     )
 
-    if contract.primary_domain in {"probability_statistics", "random_process"}:
+    if contract.primary_domain in {"probability", "probability_statistics", "random_process"}:
         numeric = numeric_value(capsule.answer_raw)
         if numeric is not None:
             in_range = -1e-12 <= numeric <= 1.0 + 1e-12
@@ -106,6 +119,19 @@ def evaluate_candidate(
                 strength="structural",
                 checker="multipart_checker",
                 detail_code=None if markers else "multipart_markers_not_confirmed",
+            )
+        )
+
+    for coverage in evaluate_answer_coverage(capsule, contract):
+        records.append(
+            EvidenceRecord(
+                evidence_id=_evidence_id(),
+                candidate_id=capsule.candidate_id,
+                evidence_type=f"answer_coverage:{coverage.obligation}",
+                status=coverage.status,  # type: ignore[arg-type]
+                strength="hard" if coverage.hard_failure else "structural",
+                checker="task_contract_coverage",
+                detail_code=coverage.detail,
             )
         )
 

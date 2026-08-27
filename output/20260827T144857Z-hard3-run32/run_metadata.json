@@ -1,0 +1,24 @@
+{
+  "run_id": "20260827T144857Z-hard3-run32",
+  "started_at_utc": "2026-08-27T14:49:09.964184Z",
+  "finished_at_utc": "2026-08-27T14:51:57.057876Z",
+  "duration_seconds": 167.094,
+  "model": "intern-s2-preview-397b",
+  "concurrency": 1,
+  "repository_commit": "d600c6aa36fc4b8f0fced4420840370089e4f44b",
+  "dataset": {
+    "repository": "Jialiang-Zhang/test-dataset-math",
+    "ref": "main",
+    "commit": "73722d85996fad9147aca2015b001153a4d7cbcf",
+    "path": "112",
+    "indices": [
+      0,
+      40,
+      70
+    ],
+    "sha256": "fdecbc208b425a45f9fa59e34ea07b59d6f4541d6fcf0af57c1b4ad306c3a8c3"
+  },
+  "runner_exit_code": 0,
+  "runner_error": null,
+  "output_directory": "output/20260827T144857Z-hard3-run32"
+}

@@ -1,0 +1,798 @@
+{
+  "run_id": "20260827T115117Z-adaptive16-run2",
+  "agent_base_commit": "8367b23f1c94b285b397f1de4ec0bc644387935b",
+  "dataset_commit": "73722d85996fad9147aca2015b001153a4d7cbcf",
+  "concurrency": 16,
+  "total": 112,
+  "counts": {
+    "success": 56,
+    "error": 56
+  },
+  "execution_success_rate": 0.5,
+  "records": [
+    {
+      "idx": 0,
+      "status": "success",
+      "response_chars": 313,
+      "trace_steps": 10,
+      "error_type": null
+    },
+    {
+      "idx": 1,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 2,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 3,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 4,
+      "status": "success",
+      "response_chars": 1062,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 5,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 6,
+      "status": "success",
+      "response_chars": 784,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 7,
+      "status": "success",
+      "response_chars": 878,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 8,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 9,
+      "status": "success",
+      "response_chars": 885,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 10,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 11,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 12,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 13,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 14,
+      "status": "success",
+      "response_chars": 649,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 15,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 16,
+      "status": "success",
+      "response_chars": 2024,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 17,
+      "status": "success",
+      "response_chars": 446,
+      "trace_steps": 10,
+      "error_type": null
+    },
+    {
+      "idx": 18,
+      "status": "success",
+      "response_chars": 362,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 19,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 20,
+      "status": "success",
+      "response_chars": 1016,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 21,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 22,
+      "status": "success",
+      "response_chars": 507,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 23,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 24,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 25,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 26,
+      "status": "success",
+      "response_chars": 498,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 27,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 28,
+      "status": "success",
+      "response_chars": 1557,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 29,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 30,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 31,
+      "status": "success",
+      "response_chars": 7,
+      "trace_steps": 8,
+      "error_type": null
+    },
+    {
+      "idx": 32,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 33,
+      "status": "success",
+      "response_chars": 2,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 34,
+      "status": "success",
+      "response_chars": 540,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 35,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 36,
+      "status": "success",
+      "response_chars": 1490,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 37,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 38,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 39,
+      "status": "success",
+      "response_chars": 727,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 40,
+      "status": "success",
+      "response_chars": 5,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 41,
+      "status": "success",
+      "response_chars": 32,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 42,
+      "status": "success",
+      "response_chars": 718,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 43,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 44,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 45,
+      "status": "success",
+      "response_chars": 3,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 46,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 47,
+      "status": "success",
+      "response_chars": 1,
+      "trace_steps": 10,
+      "error_type": null
+    },
+    {
+      "idx": 48,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 49,
+      "status": "success",
+      "response_chars": 1335,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 50,
+      "status": "success",
+      "response_chars": 988,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 51,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 52,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 53,
+      "status": "success",
+      "response_chars": 320,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 54,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 55,
+      "status": "success",
+      "response_chars": 242,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 56,
+      "status": "success",
+      "response_chars": 480,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 57,
+      "status": "success",
+      "response_chars": 760,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 58,
+      "status": "success",
+      "response_chars": 73,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 59,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 60,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 61,
+      "status": "success",
+      "response_chars": 19,
+      "trace_steps": 7,
+      "error_type": null
+    },
+    {
+      "idx": 62,
+      "status": "success",
+      "response_chars": 855,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 63,
+      "status": "success",
+      "response_chars": 162,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 64,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 65,
+      "status": "success",
+      "response_chars": 946,
+      "trace_steps": 10,
+      "error_type": null
+    },
+    {
+      "idx": 66,
+      "status": "success",
+      "response_chars": 106,
+      "trace_steps": 10,
+      "error_type": null
+    },
+    {
+      "idx": 67,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 68,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 69,
+      "status": "success",
+      "response_chars": 1338,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 70,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 71,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 72,
+      "status": "success",
+      "response_chars": 456,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 73,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 74,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 75,
+      "status": "success",
+      "response_chars": 136,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 76,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 77,
+      "status": "success",
+      "response_chars": 261,
+      "trace_steps": 7,
+      "error_type": null
+    },
+    {
+      "idx": 78,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 79,
+      "status": "success",
+      "response_chars": 416,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 80,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 81,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 82,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 83,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 84,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 85,
+      "status": "success",
+      "response_chars": 1553,
+      "trace_steps": 10,
+      "error_type": null
+    },
+    {
+      "idx": 86,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 87,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 88,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 89,
+      "status": "success",
+      "response_chars": 195,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 90,
+      "status": "success",
+      "response_chars": 656,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 91,
+      "status": "success",
+      "response_chars": 60,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 92,
+      "status": "success",
+      "response_chars": 1110,
+      "trace_steps": 10,
+      "error_type": null
+    },
+    {
+      "idx": 93,
+      "status": "success",
+      "response_chars": 41,
+      "trace_steps": 7,
+      "error_type": null
+    },
+    {
+      "idx": 94,
+      "status": "success",
+      "response_chars": 6,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 95,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 96,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 97,
+      "status": "success",
+      "response_chars": 1319,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 98,
+      "status": "success",
+      "response_chars": 5,
+      "trace_steps": 10,
+      "error_type": null
+    },
+    {
+      "idx": 99,
+      "status": "success",
+      "response_chars": 5,
+      "trace_steps": 10,
+      "error_type": null
+    },
+    {
+      "idx": 100,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 101,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 102,
+      "status": "success",
+      "response_chars": 235,
+      "trace_steps": 13,
+      "error_type": null
+    },
+    {
+      "idx": 103,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 104,
+      "status": "success",
+      "response_chars": 1785,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 105,
+      "status": "success",
+      "response_chars": 1664,
+      "trace_steps": 9,
+      "error_type": null
+    },
+    {
+      "idx": 106,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 107,
+      "status": "success",
+      "response_chars": 7,
+      "trace_steps": 13,
+      "error_type": null
+    },
+    {
+      "idx": 108,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 109,
+      "status": "error",
+      "response_chars": 0,
+      "trace_steps": 0,
+      "error_type": "RuntimeError"
+    },
+    {
+      "idx": 110,
+      "status": "success",
+      "response_chars": 1135,
+      "trace_steps": 12,
+      "error_type": null
+    },
+    {
+      "idx": 111,
+      "status": "success",
+      "response_chars": 564,
+      "trace_steps": 9,
+      "error_type": null
+    }
+  ]
+}

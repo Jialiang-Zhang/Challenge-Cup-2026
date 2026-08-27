@@ -1,0 +1,95 @@
+{
+  "idx": 77,
+  "status": "success",
+  "final_response": "p^*(x) = \\frac{1}{\\Gamma(\\nu)} \\left( \\frac{2\\kappa}{\\sigma^2} \\right)^\\nu x^{\\nu-1} e^{-\\frac{2\\kappa}{\\sigma^2} x}, \\quad \\nu = \\frac{2\\kappa\\theta}{\\sigma^2} - \\frac{1}{2}, \\quad \\mathbb{E}[X] = \\theta, \\quad \\mathrm{Var}(X) = \\frac{\\sigma^2 \\theta}{2\\kappa}",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "random_process",
+        "secondary_domain_count": 1,
+        "risk": "low",
+        "route": "R0",
+        "answer_schema": "exact_expression",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "probability"
+        ],
+        "question_mode": "calculation",
+        "mode_confidence": 0.68,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "explicit_final_answer"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 4742,
+        "elapsed_ms": 18780
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 4742,
+        "claim_count": 6,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A"
+        ],
+        "invalid_candidate_ids": []
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 247,
+        "elapsed_ms": 2089
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "A",
+        "target_claim_id": "FINAL",
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "model_calls": 2,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 261
+      }
+    }
+  ]
+}

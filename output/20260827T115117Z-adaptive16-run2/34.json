@@ -1,0 +1,124 @@
+{
+  "idx": 34,
+  "status": "success",
+  "final_response": "若$x_k$与$q_1$夹角为$\\theta_k$，则Rayleigh商误差$\\rho_k - \\lambda_1 = O(\\theta_k^2)$。\n逆迭代一步将误差从$O(\\theta_k^2)$缩小至$O(\\theta_k^3)$，即$\\theta_{k+1} = O(\\theta_k^3)$。\n实对称矩阵$A$的特征向量系正交，且单特征值$\\lambda_1$对应的单位特征向量$q_1$唯一（符号除外）。\n当$x_k$充分接近$q_1$时，可分解为$x_k = \\cos\\theta_k \\cdot q_1 + \\sin\\theta_k \\cdot v$，其中$v \\perp q_1, \\|v\\|_2=1$。\nRayleigh商满足$\\rho_k = x_k^T A x_k = \\lambda_1 + O(\\theta_k^2)$，因$A q_1 = \\lambda_1 q_1$且$v \\perp q_1$导致交叉项消失。\n逆迭代解$(A - \\rho_k I)y_k = x_k$后，$y_k$在$q_1$方向的分量被放大$1/(\\lambda_1 - \\rho_k) \\sim 1/O(\\theta_k^2)$，而正交分量被抑制，归一化后角度误差降为立方阶。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "higher_algebra",
+        "secondary_domain_count": 1,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "numerical_analysis"
+        ],
+        "question_mode": "proof",
+        "mode_confidence": 0.9,
+        "alternate_modes": [
+          "calculation"
+        ],
+        "answer_obligations": [
+          "proof_chain"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 10441,
+        "elapsed_ms": 39622
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": false,
+        "truncated": true,
+        "response_chars": 10441,
+        "claim_count": 0,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 4,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 2730,
+        "elapsed_ms": 15743
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2730,
+        "claim_count": 6,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 251,
+        "elapsed_ms": 2177
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "B",
+        "target_claim_id": null,
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "model_calls": 3,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 540
+      }
+    }
+  ]
+}

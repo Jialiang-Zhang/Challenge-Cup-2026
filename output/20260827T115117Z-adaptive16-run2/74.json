@@ -1,0 +1,10 @@
+{
+  "idx": 74,
+  "status": "error",
+  "final_response": "",
+  "error": {
+    "type": "RuntimeError",
+    "message": "Chat completion failed after 3 attempts: 400 Client Error: Bad Request for url: https://chat.intern-ai.org.cn/api/v1/chat/completions"
+  },
+  "trace": []
+}

@@ -1,0 +1,120 @@
+{
+  "idx": 45,
+  "status": "success",
+  "final_response": "A,C",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "measure_theory",
+        "secondary_domain_count": 0,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "choice_letters",
+        "multipart_count": 1,
+        "secondary_domains": [],
+        "question_mode": "choice",
+        "mode_confidence": 0.84,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "choice_letters"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 3556,
+        "elapsed_ms": 21211
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 3556,
+        "claim_count": 5,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 2,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 1124,
+        "elapsed_ms": 7145
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 1124,
+        "claim_count": 4,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 247,
+        "elapsed_ms": 2035
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "B",
+        "target_claim_id": "FINAL",
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "model_calls": 3,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 3
+      }
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "idx": 14,
+  "status": "success",
+  "final_response": "结论：二分图 $G=(X\\sqcup Y,E)$ 中最大匹配覆盖的 $X$ 中顶点数恰为 $|X|-\\delta(G)$，其中 $\\delta(G)=\\max_{S\\subseteq X}(|S|-|N(S)|)$。\n\n证明：\n（下界）设 $S_0 \\subseteq X$ 是使 $|S_0| - |N(S_0)| = \\delta(G)$ 的极小集合。在任意匹配中，$N(S_0)$ 最多与 $|N(S_0)|$ 个 $S_0$ 中的顶点匹配，故 $S_0$ 中至少有 $|S_0| - |N(S_0)| = \\delta(G)$ 个顶点未被匹配。因此，匹配覆盖的 $X$ 中顶点数 $\\leq |X| - \\delta(G)$。\n\n（上界）设 $M$ 是 $G$ 的一个最大匹配，$U \\subseteq X$ 为未被 $M$ 覆盖的顶点集。对任意 $S \\subseteq X$，$M$ 在 $S$ 中匹配的顶点数 $\\leq |N(S)|$，故 $|S \\setminus U| \\leq |N(S)|$，即 $|U| \\geq |S| - |N(S)|$。取 $S = X$，得 $|U| \\geq \\max_{S \\subseteq X} (|S| - |N(S)|) = \\delta(G)$。因此，被覆盖的 $X$ 中顶点数 $= |X| - |U| \\leq |X| - \\delta(G)$。\n\n综上，最大匹配覆盖的 $X$ 中顶点数 $= |X| - \\delta(G)$。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "discrete_combinatorics",
+        "secondary_domain_count": 0,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1,
+        "secondary_domains": [],
+        "question_mode": "proof",
+        "mode_confidence": 0.9,
+        "alternate_modes": [
+          "calculation"
+        ],
+        "answer_obligations": [
+          "proof_chain"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 13351,
+        "elapsed_ms": 42618
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": false,
+        "truncated": true,
+        "response_chars": 13351,
+        "claim_count": 3,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 3,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 1866,
+        "elapsed_ms": 11268
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 1866,
+        "claim_count": 3,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 1605,
+        "elapsed_ms": 6726
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "REPAIR_A",
+        "verdict": "REPAIR_A",
+        "target_candidate_id": "B",
+        "target_claim_id": "C2",
+        "attack_type": "theorem_precondition",
+        "severity": "fatal",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "targeted_repair_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 2526,
+        "elapsed_ms": 15019
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2526,
+        "claim_count": 3,
+        "method": "corrected-counting",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "repair_result",
+      "content": {
+        "candidate_id": "C",
+        "parent_candidate_id": "B",
+        "challenge_resolution_present": true,
+        "eligible": true
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "model_calls": 4,
+        "tool_calls": 0,
+        "repair_count": 1,
+        "status": "committed",
+        "final_response_chars": 649
+      }
+    }
+  ]
+}

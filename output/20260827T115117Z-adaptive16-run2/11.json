@@ -1,0 +1,10 @@
+{
+  "idx": 11,
+  "status": "error",
+  "final_response": "",
+  "error": {
+    "type": "RuntimeError",
+    "message": "HORA-Math produced no complete, hard-valid candidate"
+  },
+  "trace": []
+}

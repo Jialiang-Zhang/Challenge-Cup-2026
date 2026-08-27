@@ -1,0 +1,132 @@
+{
+  "idx": 98,
+  "status": "success",
+  "final_response": "A,B,D",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "functional_analysis",
+        "secondary_domain_count": 1,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "choice_letters",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "higher_algebra"
+        ],
+        "question_mode": "choice",
+        "mode_confidence": 0.84,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "choice_letters"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 1082,
+        "elapsed_ms": 6308
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 1082,
+        "claim_count": 4,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 789,
+        "elapsed_ms": 5621
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 789,
+        "claim_count": 4,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A",
+          "B"
+        ],
+        "invalid_candidate_ids": []
+      }
+    },
+    {
+      "step": "orthogonal_comparison",
+      "content": {
+        "candidate_ids": [
+          "A",
+          "B"
+        ],
+        "orthogonality": "O3",
+        "equivalence": "equivalent"
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 251,
+        "elapsed_ms": 2112
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "EQUIVALENT",
+        "verdict": "EQUIVALENT",
+        "target_candidate_id": null,
+        "target_claim_id": null,
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "equivalent"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "model_calls": 3,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 5
+      }
+    }
+  ]
+}

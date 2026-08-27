@@ -1,0 +1,127 @@
+{
+  "idx": 63,
+  "status": "success",
+  "final_response": "A正确：条件i.i.d.下强律大数定理保证样本均值收敛至条件期望Θ。  \nB正确：协方差等于Θ的方差，由全期望公式推导。  \nC正确：零协方差推出Θ退化，序列退化为i.i.d. Bernoulli。  \nD错误：同分布不保证独立，反例存在。  \nE正确：尾σ域包含Θ，当Θ非平凡时信息非退化。  \n答案：A, B, C, E",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "probability",
+        "secondary_domain_count": 2,
+        "risk": "medium",
+        "route": "R1",
+        "answer_schema": "multipart",
+        "multipart_count": 5,
+        "secondary_domains": [
+          "measure_theory",
+          "abstract_algebra"
+        ],
+        "question_mode": "multipart",
+        "mode_confidence": 0.96,
+        "alternate_modes": [
+          "choice"
+        ],
+        "answer_obligations": [
+          "multipart_count:5"
+        ],
+        "ambiguity_flags": [
+          "overlapping_mode_signals"
+        ]
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 15296,
+        "elapsed_ms": 41870
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 15296,
+        "claim_count": 0,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 3,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 1106,
+        "elapsed_ms": 7564
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 1106,
+        "claim_count": 5,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 247,
+        "elapsed_ms": 2305
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "B",
+        "target_claim_id": "FINAL",
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "model_calls": 3,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 162
+      }
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "idx": 18,
+  "status": "success",
+  "final_response": "证明：设$G$有$2n$个顶点，Tutte矩阵$T$如题设。由Pfaffian理论，$\\det T = (\\mathrm{Pf}\\, T)^2$，其中$\\mathrm{Pf}\\, T = \\sum_{M \\in \\mathcal{M}} \\mathrm{sgn}(M) \\prod_{ij \\in M} x_{ij}$，$\\mathcal{M}$为$G$的完美匹配集。因每条边对应唯一独立不定元$x_{ij}$，不同匹配$M_1 \\neq M_2$产生不同单项式，故展开中无抵消项，$\\mathrm{Pf}\\, T \\neq 0$当且仅当$\\mathcal{M} \\neq \\emptyset$。于是$\\det T \\neq 0$当且仅当$\\mathrm{Pf}\\, T \\neq 0$，即当且仅当$G$存在完美匹配。证毕。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "discrete_combinatorics",
+        "secondary_domain_count": 1,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "higher_algebra"
+        ],
+        "question_mode": "proof",
+        "mode_confidence": 0.9,
+        "alternate_modes": [
+          "calculation"
+        ],
+        "answer_obligations": [
+          "proof_chain"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 13087,
+        "elapsed_ms": 42051
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 13087,
+        "claim_count": 5,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 2,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 2432,
+        "elapsed_ms": 13599
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2432,
+        "claim_count": 5,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 244,
+        "elapsed_ms": 2003
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "B",
+        "target_claim_id": "C4",
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "model_calls": 3,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 362
+      }
+    }
+  ]
+}

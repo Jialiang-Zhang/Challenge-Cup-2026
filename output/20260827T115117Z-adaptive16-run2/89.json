@@ -1,0 +1,154 @@
+{
+  "idx": 89,
+  "status": "success",
+  "final_response": "y(x) = \\frac{d}{dx} \\ln \\left( C_1 J_1(2\\sqrt{x}) + C_2 Y_1(2\\sqrt{x}) \\right) = \\frac{C_1 J_1'(2\\sqrt{x}) + C_2 Y_1'(2\\sqrt{x})}{C_1 J_1(2\\sqrt{x}) + C_2 Y_1(2\\sqrt{x})} \\cdot \\frac{1}{\\sqrt{x}}",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "ordinary_differential_equations",
+        "secondary_domain_count": 0,
+        "risk": "low",
+        "route": "R0",
+        "answer_schema": "exact_expression",
+        "multipart_count": 1,
+        "secondary_domains": [],
+        "question_mode": "calculation",
+        "mode_confidence": 0.68,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "explicit_final_answer"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 2182,
+        "elapsed_ms": 9854
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": false,
+        "truncated": true,
+        "response_chars": 2182,
+        "claim_count": 4,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 2,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 3974,
+        "elapsed_ms": 16671
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3974,
+        "claim_count": 6,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 922,
+        "elapsed_ms": 4498
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "REPAIR_A",
+        "verdict": "REPAIR_A",
+        "target_candidate_id": "B",
+        "target_claim_id": "C2",
+        "attack_type": "transformation",
+        "severity": "fatal",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "targeted_repair_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 2955,
+        "elapsed_ms": 14612
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2955,
+        "claim_count": 3,
+        "method": "substitution_to_linear_ode",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "repair_result",
+      "content": {
+        "candidate_id": "C",
+        "parent_candidate_id": "B",
+        "challenge_resolution_present": true,
+        "eligible": true
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "model_calls": 4,
+        "tool_calls": 0,
+        "repair_count": 1,
+        "status": "committed",
+        "final_response_chars": 195
+      }
+    }
+  ]
+}

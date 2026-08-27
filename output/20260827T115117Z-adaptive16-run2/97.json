@@ -1,0 +1,120 @@
+{
+  "idx": 97,
+  "status": "success",
+  "final_response": "证明：设$H$为无限维Hilbert空间，$K:H\\to H$为紧算子，$\\lambda\\ne0$。\n\n(1) 由Riesz-Schauder理论，紧算子非零特征值的特征空间有限维，故$\\ker(\\lambda I-K)$有限维。\n\n(2) 考虑算子$T = \\lambda I - K$。因$K$紧，$T$是Fredholm算子，其值域$\\operatorname{Ran}(T)$闭（紧扰动恒等算子保持值域闭性）。\n\n(3) 对任意$x\\in H$，$y\\in \\ker(\\bar\\lambda I - K^*)$，有\n$$\n\\langle (\\lambda I - K)x, y \\rangle = \\langle x, (\\bar\\lambda I - K^*)y \\rangle = 0,\n$$\n故$\\operatorname{Ran}(\\lambda I-K) \\perp \\ker(\\bar\\lambda I - K^*)$。反之，若$y \\perp \\operatorname{Ran}(\\lambda I-K)$，则对任意$x$，$\\langle (\\lambda I-K)x, y \\rangle = 0$，即$\\langle x, (\\bar\\lambda I - K^*)y \\rangle = 0$，故$(\\bar\\lambda I - K^*)y = 0$，即$y \\in \\ker(\\bar\\lambda I - K^*)$。因此$\\operatorname{Ran}(\\lambda I-K)^\\perp = \\ker(\\bar\\lambda I - K^*)$。\n\n若$\\lambda I-K$单射，则$\\ker(\\lambda I-K)=\\{0}$，由(1)知有限维成立；由(3)知$\\operatorname{Ran}(\\lambda I-K)^\\perp = \\ker(\\bar\\lambda I - K^*)$。若$\\bar\\lambda$也是$K^*$的特征值，则$\\ker(\\bar\\lambda I - K^*) \\ne \\{0}$，但由对称性（$K$紧则$K^*$紧），$\\ker(\\bar\\lambda I - K^*)$亦有限维。然而，若$\\lambda I-K$单射，则$\\lambda$不是$K$的特征值，由Fredholm择性，$\\bar\\lambda$也不是$K^*$的特征值，故$\\ker(\\bar\\lambda I - K^*) = \\{0}$，从而$\\operatorname{Ran}(\\lambda I-K)^\\perp = \\{0}$，即$\\operatorname{Ran}(\\lambda I-K)$稠密。又由(2)知值域闭，故$\\operatorname{Ran}(\\lambda I-K) = H$，即满射。\n\n若令$\\lambda=0$，则$\\ker(-K)=\\ker(K)$可能无限维（如$K=0$时），且$\\operatorname{Ran}(K)$未必闭（如$K$为无限维空间上的紧非闭值域算子），故(1)(2)均失效，Fredholm择性不成立。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "functional_analysis",
+        "secondary_domain_count": 0,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1,
+        "secondary_domains": [],
+        "question_mode": "proof",
+        "mode_confidence": 0.9,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "proof_chain"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 14715,
+        "elapsed_ms": 47252
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 14715,
+        "claim_count": 0,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 3,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 2679,
+        "elapsed_ms": 15397
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2679,
+        "claim_count": 5,
+        "method": "counting",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 248,
+        "elapsed_ms": 1918
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "B",
+        "target_claim_id": null,
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "model_calls": 3,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 1319
+      }
+    }
+  ]
+}

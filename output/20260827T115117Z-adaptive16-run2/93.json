@@ -1,0 +1,95 @@
+{
+  "idx": 93,
+  "status": "success",
+  "final_response": "\\frac{1}{2}\\delta_0 + \\frac{1}{2}\\chi_1^2",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "statistical_inference",
+        "secondary_domain_count": 1,
+        "risk": "low",
+        "route": "R0",
+        "answer_schema": "exact_expression",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "mathematical_analysis"
+        ],
+        "question_mode": "calculation",
+        "mode_confidence": 0.68,
+        "alternate_modes": [],
+        "answer_obligations": [
+          "explicit_final_answer"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 2432,
+        "elapsed_ms": 10811
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2432,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "A"
+        ],
+        "invalid_candidate_ids": []
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 247,
+        "elapsed_ms": 2179
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "ACCEPT_A",
+        "verdict": "ACCEPT_A",
+        "target_candidate_id": "A",
+        "target_claim_id": "FINAL",
+        "attack_type": "none",
+        "severity": "none",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "model_calls": 2,
+        "tool_calls": 0,
+        "repair_count": 0,
+        "status": "committed",
+        "final_response_chars": 41
+      }
+    }
+  ]
+}

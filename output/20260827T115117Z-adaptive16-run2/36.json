@@ -1,0 +1,159 @@
+{
+  "idx": 36,
+  "status": "success",
+  "final_response": "**结论**：Peaceman-Rachford ADI格式对任意$h>0$在离散$\\ell^2$范数下无条件稳定；当$A,B$与时间无关时，全局时间精度为二阶。\n\n**证明**：\n\n1. **同时正交对角化**：由$A,B$实对称且$AB=BA$，存在正交矩阵$Q$使得$Q^TAQ=\\Lambda_A$，$Q^TBQ=\\Lambda_B$，其中$\\Lambda_A=\\text{diag}(\\lambda_i(A))$，$\\Lambda_B=\\text{diag}(\\lambda_i(B))$，且$\\lambda_i(A),\\lambda_i(B)\\le0$（半负定）。\n\n2. **放大算子推导**：ADI格式两步合并得：\n   $$\n   u^{n+1} = \\underbrace{(I-\\frac{h}{2}B)^{-1}(I+\\frac{h}{2}A)(I-\\frac{h}{2}A)^{-1}(I+\\frac{h}{2}B)}_{G(h)} u^n\n   $$\n   在$Q$基下，$G(h)$对角化，第$i$个特征值为：\n   $$\n   g_i(h) = \\frac{(1+\\frac{h}{2}\\lambda_i(B))(1+\\frac{h}{2}\\lambda_i(A))}{(1-\\frac{h}{2}\\lambda_i(A))(1-\\frac{h}{2}\\lambda_i(B))}\n   $$\n\n3. **无条件稳定性**：因$\\lambda_i(A),\\lambda_i(B)\\le0$且$h>0$，有$1+\\frac{h}{2}\\lambda \\le 1$且$1-\\frac{h}{2}\\lambda \\ge 1$，故$|1+\\frac{h}{2}\\lambda| \\le |1-\\frac{h}{2}\\lambda|$，从而$|g_i(h)| \\le 1$。因此$\\|G(h)\\|_{\\ell^2} = \\max_i |g_i(h)| \\le 1$，格式无条件稳定。\n\n4. **二阶精度**：利用$A,B$可交换性，展开$G(h)$：\n   $$\n   \\begin{aligned}\n   G(h) &= \\left(I+\\frac{h}{2}A\\right)\\left(I-\\frac{h}{2}A\\right)^{-1} \\left(I-\\frac{h}{2}B\\right)^{-1}\\left(I+\\frac{h}{2}B\\right) \\\\\n   &= \\left[I + \\frac{h}{2}(A+B) + \\frac{h^2}{4}AB\\right] \\left[I - \\frac{h}{2}(A+B) + \\frac{h^2}{4}AB\\right]^{-1} \\\\\n   &= \\left[I + \\frac{h}{2}(A+B) + \\frac{h^2}{4}AB\\right] \\left[I + \\frac{h}{2}(A+B) - \\frac{h^2}{4}AB + \\frac{h^2}{4}(A+B)^2\\right] + O(h^3) \\\\\n   &= I + h(A+B) + \\frac{h^2}{4}(A+B)^2 + O(h^3)\n   \\end{aligned}\n   $$\n   精确解$u(t_{n+1}) = e^{h(A+B)}u^n = I + h(A+B) + \\frac{h^2}{2}(A+B)^2 + O(h^3)$。局部截断误差为$O(h^3)$，故全局精度为二阶。证毕。",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "numerical_analysis",
+        "secondary_domain_count": 2,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "partial_differential_equations",
+          "discrete_combinatorics"
+        ],
+        "question_mode": "proof",
+        "mode_confidence": 0.9,
+        "alternate_modes": [
+          "calculation"
+        ],
+        "answer_obligations": [
+          "proof_chain"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 11601,
+        "elapsed_ms": 41381
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 11601,
+        "claim_count": 0,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 3,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 3064,
+        "elapsed_ms": 19286
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3064,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "brute_force",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 1461,
+        "elapsed_ms": 7533
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "REPAIR_A",
+        "verdict": "REPAIR_A",
+        "target_candidate_id": "B",
+        "target_claim_id": "C5",
+        "attack_type": "transformation",
+        "severity": "fatal",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "targeted_repair_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 3502,
+        "elapsed_ms": 19262
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3502,
+        "claim_count": 4,
+        "method": "simultaneous diagonalization of commuting symmetric matrices",
+        "tool_channel": "none",
+        "warning_count": 1,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "repair_result",
+      "content": {
+        "candidate_id": "C",
+        "parent_candidate_id": "B",
+        "challenge_resolution_present": true,
+        "eligible": true
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "model_calls": 4,
+        "tool_calls": 0,
+        "repair_count": 1,
+        "status": "committed",
+        "final_response_chars": 1490
+      }
+    }
+  ]
+}

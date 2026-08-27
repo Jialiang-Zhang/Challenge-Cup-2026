@@ -1,0 +1,156 @@
+{
+  "idx": 90,
+  "status": "success",
+  "final_response": "The Lane–Emden IVP $y'' + \\frac{2}{x}y' + y^5 = 0$, $y(0)=1$, $y'(0)=0$ has a unique radial regular solution $y(x) = (1 + x^2/3)^{-1/2}$. This is proven by transforming the equation via $z = xy$, yielding $z'' + \\frac{z^5}{x^5} = 0$, and deriving the energy integral $\\frac{1}{2}(z')^2 + \\frac{1}{6} \\int \\frac{z^5}{x^5} dx = C$. The ansatz $z(x) = x(1 + x^2/3)^{-1/2}$ satisfies this integral and the initial conditions $z(0)=0$, $z'(0)=1$. The regularity at $x=0$ is ensured by $y'(0)=0$, which eliminates singular branches, and uniqueness follows from the analyticity of the solution. Substitution into the original ODE confirms the solution is correct.",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "ordinary_differential_equations",
+        "secondary_domain_count": 0,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1,
+        "secondary_domains": [],
+        "question_mode": "proof",
+        "mode_confidence": 0.9,
+        "alternate_modes": [
+          "calculation"
+        ],
+        "answer_obligations": [
+          "proof_chain"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 9271,
+        "elapsed_ms": 42773
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 9271,
+        "claim_count": 0,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 3,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 4884,
+        "elapsed_ms": 16639
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 4884,
+        "claim_count": 5,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 939,
+        "elapsed_ms": 5059
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "REPAIR_A",
+        "verdict": "REPAIR_A",
+        "target_candidate_id": "B",
+        "target_claim_id": "C2",
+        "attack_type": "transformation",
+        "severity": "fatal",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "targeted_repair_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 3724,
+        "elapsed_ms": 12499
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 3724,
+        "claim_count": 4,
+        "method": "corrected-constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "repair_result",
+      "content": {
+        "candidate_id": "C",
+        "parent_candidate_id": "B",
+        "challenge_resolution_present": true,
+        "eligible": true
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "model_calls": 4,
+        "tool_calls": 0,
+        "repair_count": 1,
+        "status": "committed",
+        "final_response_chars": 656
+      }
+    }
+  ]
+}

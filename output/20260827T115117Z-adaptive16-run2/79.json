@@ -1,0 +1,159 @@
+{
+  "idx": 79,
+  "status": "success",
+  "final_response": "The Doob $h$-transform of the killed Brownian motion with $h(x)=x$ yields the 3D Bessel process with generator $\\mathcal{A}^h f(x) = \\frac{1}{2} f''(x) + \\frac{1}{2x} f'(x)$ and SDE $dX_t = \\frac{1}{2X_t} dt + dW_t$. The scale function $s(x) = 2\\sqrt{x}$ is strictly increasing and finite at $0$, confirming that $0$ is an inaccessible boundary. Thus, the process starting from $x>0$ never reaches $0$ almost surely.",
+  "trace": [
+    {
+      "step": "profile",
+      "content": {
+        "domain": "random_process",
+        "secondary_domain_count": 2,
+        "risk": "high",
+        "route": "R2",
+        "answer_schema": "proof",
+        "multipart_count": 1,
+        "secondary_domains": [
+          "abstract_algebra",
+          "ordinary_differential_equations"
+        ],
+        "question_mode": "proof",
+        "mode_confidence": 0.9,
+        "alternate_modes": [
+          "calculation"
+        ],
+        "answer_obligations": [
+          "proof_chain"
+        ],
+        "ambiguity_flags": []
+      }
+    },
+    {
+      "step": "primary_call",
+      "content": {
+        "call_id": 1,
+        "status": "completed",
+        "response_chars": 11977,
+        "elapsed_ms": 43717
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "A",
+        "source": "primary",
+        "complete": true,
+        "truncated": true,
+        "response_chars": 11977,
+        "claim_count": 0,
+        "method": "theorem",
+        "tool_channel": "none",
+        "warning_count": 3,
+        "protocol_complete": false,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "orthogonal_blind_call",
+      "content": {
+        "call_id": 2,
+        "status": "completed",
+        "response_chars": 1541,
+        "elapsed_ms": 10068
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "B",
+        "source": "orthogonal_blind",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 1541,
+        "claim_count": 3,
+        "method": "constructive",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "candidate_gate",
+      "content": {
+        "valid_candidate_ids": [
+          "B"
+        ],
+        "invalid_candidate_ids": [
+          "A"
+        ]
+      }
+    },
+    {
+      "step": "red_team_audit_call",
+      "content": {
+        "call_id": 3,
+        "status": "completed",
+        "response_chars": 1088,
+        "elapsed_ms": 6498
+      }
+    },
+    {
+      "step": "red_team_result",
+      "content": {
+        "raw_verdict": "REPAIR_A",
+        "verdict": "REPAIR_A",
+        "target_candidate_id": "B",
+        "target_claim_id": "C1",
+        "attack_type": "transformation",
+        "severity": "fatal",
+        "deterministic_relation": "not_applicable"
+      }
+    },
+    {
+      "step": "targeted_repair_call",
+      "content": {
+        "call_id": 4,
+        "status": "completed",
+        "response_chars": 2328,
+        "elapsed_ms": 11876
+      }
+    },
+    {
+      "step": "candidate_parsed",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "complete": true,
+        "truncated": false,
+        "response_chars": 2328,
+        "claim_count": 3,
+        "method": "doob_h_transform",
+        "tool_channel": "none",
+        "warning_count": 0,
+        "protocol_complete": true,
+        "recovery_source": null
+      }
+    },
+    {
+      "step": "repair_result",
+      "content": {
+        "candidate_id": "C",
+        "parent_candidate_id": "B",
+        "challenge_resolution_present": true,
+        "eligible": true
+      }
+    },
+    {
+      "step": "transaction_commit",
+      "content": {
+        "candidate_id": "C",
+        "source": "targeted_repair",
+        "model_calls": 4,
+        "tool_calls": 0,
+        "repair_count": 1,
+        "status": "committed",
+        "final_response_chars": 416
+      }
+    }
+  ]
+}

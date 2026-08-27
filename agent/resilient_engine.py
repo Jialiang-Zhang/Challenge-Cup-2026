@@ -5,12 +5,20 @@ from contextvars import ContextVar
 from typing import Any
 
 from .adjudication import has_irreversible_evidence_failure
-from .models import AuditResult, CaseState, SolutionCapsule
+from .models import AuditResult, CaseState, MethodFingerprint, SolutionCapsule
+from .parsing import parse_solution_capsule
+from .prompt_overrides import blind_prompt_v2, rescue_prompt_v2
+from .prompts import primary_prompt
+from .protocol_validation import sanitize_solution_capsule
 from .staged_engine import StagedHORAEngine
+from .submission import build_submission
 
 
 _REQUIREMENTS: ContextVar[tuple[str, ...]] = ContextVar(
     "hora_explicit_requirements", default=()
+)
+_ACTIVE_TRACE: ContextVar[list[dict[str, Any]] | None] = ContextVar(
+    "hora_active_trace", default=None
 )
 
 _REQUIREMENT_MARKERS = re.compile(
@@ -20,16 +28,14 @@ _REQUIREMENT_MARKERS = re.compile(
 _NUMBERED_CLAUSE = re.compile(
     r"(?:^|[；;。\n])\s*(?:\(\d+\)|（\d+）|\d+[.)、])\s*([^；;。\n]{4,220})"
 )
+_DERIVATION_REQUIREMENT = re.compile(
+    r"(?:证明|推导|说明为什么|解释为什么|说明理由|给出理由|验证(?:其)?关系|并验证|"
+    r"严格说明|严格推导|prove|derive|explain\s+why|justify|verify)",
+    flags=re.IGNORECASE,
+)
 
 
 def extract_explicit_requirements(problem: str, limit: int = 8) -> tuple[str, ...]:
-    """Extract user-visible proof/derivation obligations without solving the problem.
-
-    The extractor is deliberately lexical.  It does not invent mathematical facts;
-    it only preserves explicit requests already present in the statement so every
-    solver and auditor sees the same completion checklist.
-    """
-
     text = str(problem or "").strip()
     if not text:
         return ()
@@ -70,13 +76,7 @@ def _meaningful(value: str | None) -> bool:
 
 
 class ResilientHORAEngine(StagedHORAEngine):
-    """Staged HORA engine with evidence-authenticated vetoes and safe recovery.
-
-    This layer keeps the strict path unchanged.  It only intervenes when a semantic
-    red-team veto lacks concrete mathematical support, or when the strict path has
-    exhausted rescue and a usable non-contradicted candidate would otherwise be
-    discarded for presentation/protocol reasons.
-    """
+    """Staged HORA engine with evidence-authenticated vetoes and safe recovery."""
 
     @staticmethod
     def _attack_is_concrete(result: AuditResult) -> bool:
@@ -126,6 +126,7 @@ class ResilientHORAEngine(StagedHORAEngine):
         max_tokens: int,
         thinking_mode: bool | None = None,
     ) -> str:
+        _ACTIVE_TRACE.set(trace)
         prefix = self._requirements_prefix()
         if prefix:
             prompt = prefix + prompt
@@ -139,6 +140,136 @@ class ResilientHORAEngine(StagedHORAEngine):
             max_tokens=max_tokens,
             thinking_mode=thinking_mode,
         )
+
+    def _submission_text(self, capsule: SolutionCapsule, state: CaseState) -> str:
+        return build_submission(
+            capsule,
+            state.contract,
+            explicit_requirements=_REQUIREMENTS.get(),
+            max_chars=self.config.max_submit_chars,
+        )
+
+    def _run_primary(self, problem, state, guard, trace):
+        reasoning_heavy = state.contract.requires_proof or state.contract.multipart_count > 1
+        if not reasoning_heavy:
+            return super()._run_primary(problem, state, guard, trace)
+
+        text = self._call_model(
+            state=state,
+            guard=guard,
+            trace=trace,
+            step="primary_call",
+            prompt=primary_prompt(problem, state.contract),
+            temperature=self.config.primary_temperature,
+            max_tokens=min(self.config.primary_max_tokens, 3072),
+            thinking_mode=False,
+        )
+        capsule = parse_solution_capsule(
+            text,
+            candidate_id="A",
+            source="primary",
+            fallback_fingerprint=self._primary_fingerprint(state.contract.primary_method),
+            requires_proof=state.contract.requires_proof,
+        )
+        capsule = sanitize_solution_capsule(
+            capsule,
+            requires_proof=state.contract.requires_proof,
+        )
+        state.add_candidate(capsule)
+        self._apply_candidate_evidence(state, capsule)
+        self._trace_candidate(trace, capsule)
+        return capsule
+
+    def _run_blind(self, problem, state, guard, trace):
+        reasoning_heavy = (
+            state.contract.requires_proof
+            or state.contract.multipart_count > 1
+            or "derivation_chain" in state.contract.answer_obligations
+        )
+        text = self._call_model(
+            state=state,
+            guard=guard,
+            trace=trace,
+            step="orthogonal_blind_call",
+            prompt=blind_prompt_v2(problem, state.contract),
+            temperature=self.config.blind_temperature,
+            max_tokens=min(self.config.blind_max_tokens, 3072 if reasoning_heavy else 2048),
+            thinking_mode=False,
+        )
+        planned = self._blind_fingerprint(state.contract.orthogonal_method)
+        capsule = parse_solution_capsule(
+            text,
+            candidate_id="B",
+            source="orthogonal_blind",
+            fallback_fingerprint=planned,
+            requires_proof=state.contract.requires_proof,
+        )
+        capsule = sanitize_solution_capsule(
+            capsule,
+            requires_proof=state.contract.requires_proof,
+        )
+        capsule.fingerprint = MethodFingerprint(
+            paradigm=planned.paradigm,
+            representation=planned.representation,
+            theorem_family=planned.theorem_family,
+            tool_channel=(
+                capsule.fingerprint.tool_channel
+                if capsule.fingerprint.tool_channel not in {"", "none", "unknown", "..."}
+                else planned.tool_channel
+            ),
+            interpretation_id=(
+                capsule.fingerprint.interpretation_id
+                if capsule.fingerprint.interpretation_id not in {"", "..."}
+                else "I1"
+            ),
+            exposed_to_primary=False,
+        )
+        state.add_candidate(capsule)
+        self._apply_candidate_evidence(state, capsule)
+        self._trace_candidate(trace, capsule)
+        return capsule
+
+    def _run_rescue(self, problem, state, guard, trace):
+        if not guard.allow_model_call(state):
+            return None
+        reasoning_heavy = (
+            state.contract.requires_proof
+            or state.contract.multipart_count > 1
+            or "derivation_chain" in state.contract.answer_obligations
+        )
+        try:
+            text = self._call_model(
+                state=state,
+                guard=guard,
+                trace=trace,
+                step="rescue_call",
+                prompt=rescue_prompt_v2(problem, state.contract),
+                temperature=0.0,
+                max_tokens=min(self.config.primary_max_tokens, 2304 if reasoning_heavy else 1536),
+                thinking_mode=False,
+            )
+        except Exception:
+            return None
+        capsule = parse_solution_capsule(
+            text,
+            candidate_id="R",
+            source="rescue",
+            fallback_fingerprint=MethodFingerprint(
+                paradigm="direct",
+                representation="symbolic",
+                theorem_family="none",
+                tool_channel="none",
+            ),
+            requires_proof=state.contract.requires_proof,
+        )
+        capsule = sanitize_solution_capsule(
+            capsule,
+            requires_proof=state.contract.requires_proof,
+        )
+        state.add_candidate(capsule)
+        self._apply_candidate_evidence(state, capsule)
+        self._trace_candidate(trace, capsule)
+        return capsule
 
     def _run_audit(
         self,
@@ -200,21 +331,47 @@ class ResilientHORAEngine(StagedHORAEngine):
         )
 
     def solve(self, problem: str, metadata: dict[str, Any] | None = None) -> dict[str, Any]:
-        token = _REQUIREMENTS.set(extract_explicit_requirements(problem))
+        requirements = extract_explicit_requirements(problem)
+        requirements_token = _REQUIREMENTS.set(requirements)
+        trace_token = _ACTIVE_TRACE.set([])
         try:
             result = super().solve(problem=problem, metadata=metadata)
-            requirements = _REQUIREMENTS.get()
-            if requirements and isinstance(result.get("trace"), list):
+            if isinstance(result.get("trace"), list):
                 result["trace"].insert(
                     1,
                     {
                         "step": "explicit_requirements",
                         "content": {
                             "count": len(requirements),
-                            "requirements": list(requirements),
+                            "derivation_required": any(
+                                _DERIVATION_REQUIREMENT.search(item or "")
+                                for item in requirements
+                            ),
                         },
                     },
                 )
             return result
+        except Exception as exc:
+            trace = list(_ACTIVE_TRACE.get() or [])
+            if trace:
+                trace.insert(
+                    1,
+                    {
+                        "step": "explicit_requirements",
+                        "content": {
+                            "count": len(requirements),
+                            "derivation_required": any(
+                                _DERIVATION_REQUIREMENT.search(item or "")
+                                for item in requirements
+                            ),
+                        },
+                    },
+                )
+                try:
+                    setattr(exc, "trace", trace)
+                except Exception:
+                    pass
+            raise
         finally:
-            _REQUIREMENTS.reset(token)
+            _ACTIVE_TRACE.reset(trace_token)
+            _REQUIREMENTS.reset(requirements_token)

@@ -1,0 +1,86 @@
+{
+  "run_id": "20260827T143027Z-recovery-smoke5-round6-397b-run1",
+  "model": "intern-s2-preview-397b",
+  "agent_base_commit": "55f06b728a6b2dc5cdc5154023fe8e8aa5a88123",
+  "ids": [
+    5,
+    16,
+    25,
+    58,
+    66
+  ],
+  "counts": {
+    "success": 3,
+    "error": 2
+  },
+  "records": [
+    {
+      "idx": 5,
+      "status": "success",
+      "response_chars": 1624,
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 3,
+      "repair_count": 0,
+      "confirmation_count": 0,
+      "confirmation_verdicts": [],
+      "error": null
+    },
+    {
+      "idx": 16,
+      "status": "success",
+      "response_chars": 1623,
+      "source": "primary",
+      "candidate_id": "A",
+      "model_calls": 4,
+      "repair_count": 0,
+      "confirmation_count": 1,
+      "confirmation_verdicts": [
+        "ACCEPT_A"
+      ],
+      "error": null
+    },
+    {
+      "idx": 25,
+      "status": "error",
+      "response_chars": 0,
+      "source": null,
+      "candidate_id": null,
+      "model_calls": null,
+      "repair_count": null,
+      "confirmation_count": 0,
+      "confirmation_verdicts": [],
+      "error": {
+        "type": "RuntimeError",
+        "message": "HORA-Math produced no complete, hard-valid candidate"
+      }
+    },
+    {
+      "idx": 58,
+      "status": "error",
+      "response_chars": 0,
+      "source": null,
+      "candidate_id": null,
+      "model_calls": null,
+      "repair_count": null,
+      "confirmation_count": 0,
+      "confirmation_verdicts": [],
+      "error": {
+        "type": "RuntimeError",
+        "message": "HORA-Math produced no complete, hard-valid candidate"
+      }
+    },
+    {
+      "idx": 66,
+      "status": "success",
+      "response_chars": 1710,
+      "source": "rescue",
+      "candidate_id": "R",
+      "model_calls": 4,
+      "repair_count": 0,
+      "confirmation_count": 0,
+      "confirmation_verdicts": [],
+      "error": null
+    }
+  ]
+}

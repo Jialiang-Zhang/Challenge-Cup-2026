@@ -33,12 +33,12 @@ def _response_requirement(contract: TaskContract, *, independent: bool = False) 
         return (
             f"Write a concise but complete {qualifier}proof. Cover every explicit requested step, "
             "state theorem preconditions where used, and stop once the requested conclusion is established. "
-            "Do not add stronger classification/existence claims that the problem did not ask for."
+            "Check every inequality direction and do not add stronger claims that the task does not require."
         )
     if "derivation_chain" in contract.answer_obligations:
         return (
-            f"Give the exact answer and the requested {qualifier}derivation. Show the decisive equations or "
-            "conditional identities rather than merely naming a theorem or saying that a calculation simplifies."
+            f"Give the exact answer and the requested {qualifier}derivation. Show the decisive equations, "
+            "conditioning identities, Taylor coefficients, or boundary checks rather than merely naming a theorem."
         )
     if contract.multipart_count > 1:
         return (
@@ -58,12 +58,21 @@ def _strict_protocol_block(response_requirement: str, contract: TaskContract) ->
         - Your FIRST characters must be <FINAL_CANDIDATE>. No thinking preamble is allowed.
         - Answer shape: {answer_shape_instruction(contract)}
         - Inside FINAL_CANDIDATE write the actual mathematical conclusion, never an instruction.
-        - Keep FINAL_CANDIDATE compact; detailed reasoning belongs only in FINAL_RESPONSE.
-        - Emit every remaining field in the exact order below and stop immediately after </FINAL_RESPONSE>.
+        - Immediately after </FINAL_CANDIDATE>, emit the complete <FINAL_RESPONSE>...</FINAL_RESPONSE> block.
+        - The FINAL_RESPONSE block is the submission payload: finish it before any metadata fields.
+        - Keep the proof/derivation compact enough to close </FINAL_RESPONSE>; prefer equations and decisive implications.
         - Never copy template phrases such as "Exact answer", "First decisive claim", or "...".
-        - Prefer equations and decisive implications over prose. Avoid repeating the same derivation.
-        - Do not make optional stronger claims (classification, uniqueness, equality existence, historical facts)
-          unless they are required for the requested conclusion.
+        - Do not make optional stronger claims unless they are necessary for the requested conclusion.
+        - After FINAL_RESPONSE, emit the metadata fields below. Stop after </RISK_FLAGS>.
+
+        <FINAL_CANDIDATE>
+        Write the exact mathematical answer or conclusion here.
+        </FINAL_CANDIDATE>
+
+        <FINAL_RESPONSE>
+        {response_requirement}
+        Normally use at most about 1400 Chinese characters or 900 English words unless the task has many explicit parts.
+        </FINAL_RESPONSE>
 
         <METHOD_FINGERPRINT>
         paradigm: choose one of direct|contradiction|constructive|induction|counting|optimization|theorem
@@ -86,12 +95,6 @@ def _strict_protocol_block(response_requirement: str, contract: TaskContract) ->
         <RISK_FLAGS>
         List genuinely unresolved mathematical risks, or none.
         </RISK_FLAGS>
-
-        <FINAL_RESPONSE>
-        {response_requirement}
-        Keep the proof/derivation compact enough to finish the closing tag. Normally use at most about
-        1400 Chinese characters or 900 English words unless the task has many explicit parts.
-        </FINAL_RESPONSE>
         """
     ).strip()
 
@@ -173,10 +176,23 @@ def repair_prompt_v2(
         OUTPUT CONTRACT
         - Your FIRST characters must be <FINAL_CANDIDATE>.
         - Answer shape: {answer_shape_instruction(contract)}
+        - Immediately emit and close FINAL_RESPONSE after FINAL_CANDIDATE, before metadata.
         - Do not copy the parent conclusion unless your recomputation confirms it.
         - Address the challenged claim explicitly and cover every still-applicable task obligation.
-        - Do not introduce stronger claims not requested by the problem.
-        - Emit the fields below in order and stop after </FINAL_RESPONSE>.
+        - Stop after </RISK_FLAGS>.
+
+        <FINAL_CANDIDATE>
+        Write the corrected exact mathematical answer.
+        </FINAL_CANDIDATE>
+
+        <FINAL_RESPONSE>
+        {response_requirement}
+        Keep it concise and finish this closing tag before metadata.
+        </FINAL_RESPONSE>
+
+        <CHALLENGE_RESOLUTION>
+        State the exact equation, condition, counterexample rejection, or implication that resolves the audit.
+        </CHALLENGE_RESOLUTION>
 
         <METHOD_FINGERPRINT>
         paradigm: choose one actual corrected method family
@@ -192,10 +208,6 @@ def repair_prompt_v2(
         <CLAIM id="C1">a concrete mathematical statement</CLAIM>.
         </CRITICAL_CLAIMS>
 
-        <CHALLENGE_RESOLUTION>
-        State the exact equation, condition, counterexample rejection, or implication that resolves the audit.
-        </CHALLENGE_RESOLUTION>
-
         <CHECK_HINTS>
         Give one concrete falsification check.
         </CHECK_HINTS>
@@ -203,11 +215,6 @@ def repair_prompt_v2(
         <RISK_FLAGS>
         List remaining risks, or none.
         </RISK_FLAGS>
-
-        <FINAL_RESPONSE>
-        {response_requirement}
-        Keep it concise and finish the closing tag.
-        </FINAL_RESPONSE>
         """
     ).strip()
 

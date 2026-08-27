@@ -69,16 +69,22 @@ def _last_zero_signature(requirements_text: str) -> bool:
     )
 
 
+def _defined_automorphism_names(text: str) -> set[str]:
+    names: set[str] = set()
+    pattern = re.compile(
+        r"(?<![A-Za-z])(?P<name>\\[A-Za-z]+|[στrs])\s*\([^()]{1,80}\)\s*=",
+        flags=re.IGNORECASE,
+    )
+    for match in pattern.finditer(text):
+        names.add(match.group("name").lower())
+    return names
+
+
 def evaluate_explicit_requirement_coverage(
     response: str,
     requirements: tuple[str, ...],
 ) -> list[RequirementCheck]:
-    """Conservative completion and consistency certificates for explicit task requirements.
-
-    The checks are intentionally narrow. They never try to judge arbitrary prose proofs; they veto
-    only omissions or directly recognizable contradictions in a named derivation requested by the
-    problem.
-    """
+    """Conservative completion and consistency certificates for explicit task requirements."""
 
     text = str(response or "")
     checks: list[RequirementCheck] = []
@@ -90,9 +96,7 @@ def evaluate_explicit_requirement_coverage(
         _has(req, r"严格(?:证明|推导|说明)|prove|derive|justify rigorously")
         for req in requirements
     )
-    proof_requested = strict_requested or any(
-        _has(req, r"证明|prove") for req in requirements
-    )
+    proof_requested = strict_requested or any(_has(req, r"证明|prove") for req in requirements)
 
     if strict_requested:
         ok = _strict_derivation_ok(text)
@@ -178,11 +182,41 @@ def evaluate_explicit_requirement_coverage(
                 code="bdf2_taylor_coefficient",
                 status="fail" if bad_coefficient else ("pass" if correct_coefficient else "unknown"),
                 hard_failure=bad_coefficient,
-                detail=(
-                    "wrong_third_derivative_coefficient"
-                    if bad_coefficient
-                    else ("expected_coefficient_present" if correct_coefficient else "coefficient_not_parsed")
-                ),
+                detail="wrong_third_derivative_coefficient" if bad_coefficient else ("expected_coefficient_present" if correct_coefficient else "coefficient_not_parsed"),
+            )
+        )
+
+        exact_z_definition = _has(compact, r"z=h\\lambda|z:=h\\lambda")
+        wrong_characteristic_scaling = exact_z_definition and (
+            r"(3-z)\zeta^2" in compact
+            or r"(3-z)\xi^2" in compact
+            or r"z(\theta)=3-4e^{-i\theta}+e^{-2i\theta}" in compact
+        )
+        correct_scaling = (
+            r"(3-2z)\zeta^2" in compact
+            or r"(3-2z)\xi^2" in compact
+            or r"(\frac32-z)\zeta^2" in compact
+            or r"(\frac32-z)\xi^2" in compact
+        )
+        checks.append(
+            RequirementCheck(
+                code="bdf2_z_scaling",
+                status="fail" if wrong_characteristic_scaling else ("pass" if correct_scaling else "unknown"),
+                hard_failure=wrong_characteristic_scaling,
+                detail="lost_factor_two_in_z_scaling" if wrong_characteristic_scaling else ("consistent_z_scaling" if correct_scaling else "scaling_not_parsed"),
+            )
+        )
+
+        positive_anchor_only = (
+            _has(text, r"z\s*\\to\s*\+\\infty|z\s*→\s*\+?∞")
+            and not _has(text, r"z\s*=\s*-1|负实|negative real|z\s*<\s*0")
+        )
+        checks.append(
+            RequirementCheck(
+                code="bdf2_stable_anchor",
+                status="fail" if positive_anchor_only else "pass",
+                hard_failure=positive_anchor_only,
+                detail="used_positive_infinity_without_left_half_plane_anchor" if positive_anchor_only else "left_half_plane_anchor_not_contradictory",
             )
         )
 
@@ -199,13 +233,14 @@ def evaluate_explicit_requirement_coverage(
 
     if any(_has(req, r"两个.*(?:生成)?自同构|two.*automorph") for req in requirements):
         mapping_count = len(re.findall(r"\\mapsto|↦|\bmapsto\b", text, flags=re.IGNORECASE))
-        ok = mapping_count >= 2
+        function_names = _defined_automorphism_names(text)
+        ok = mapping_count >= 2 or len(function_names) >= 2
         checks.append(
             RequirementCheck(
                 code="two_automorphisms",
                 status="pass" if ok else "fail",
                 hard_failure=not ok,
-                detail=f"mapping_count={mapping_count}",
+                detail=f"mapping_count={mapping_count};defined_maps={len(function_names)}",
             )
         )
 
@@ -257,15 +292,20 @@ def evaluate_explicit_requirement_coverage(
         compact = re.sub(r"\s+", "", text)
         nested_gaussian = compact.count(r"\int_{0}^{\infty}") >= 1 and compact.count(r"\int_{0}^{") >= 2
         doubled_prefactor = nested_gaussian and r"\frac{4}{\pi}" in compact
+        bad_auxiliary_constant = (
+            (r"I(0)=1/4" in compact or r"I(0)=\frac14" in compact)
+            and r"+\frac{1}{8}" in compact
+        )
+        bad_normalization = doubled_prefactor or bad_auxiliary_constant
         checks.append(
             RequirementCheck(
                 code="brownian_last_zero_gaussian_normalization",
-                status="fail" if doubled_prefactor else "pass",
-                hard_failure=doubled_prefactor,
+                status="fail" if bad_normalization else "pass",
+                hard_failure=bad_normalization,
                 detail=(
                     "double_integral_prefactor_doubled"
                     if doubled_prefactor
-                    else "no_detected_gaussian_prefactor_conflict"
+                    else ("auxiliary_integral_constant_conflicts_with_I0" if bad_auxiliary_constant else "no_detected_gaussian_normalization_conflict")
                 ),
             )
         )
